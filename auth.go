@@ -65,13 +65,6 @@ func main() {
 		return
 	}
 
-	// Use the PermitDB connection for the group DB
-	var err error
-	if ic.GroupDB, err = imqsauth.NewCachedRoleGroupDB(&ic.Config.PermitDB.DB); err != nil {
-		fmt.Printf("Error connecting to GroupDB (using PermitDB connection) %v\n", err)
-		return
-	}
-
 	handler := func() {
 		ic.RunHttp()
 	}
@@ -89,7 +82,9 @@ func main() {
 		panic("Unrecognized command '" + command + "'")
 	}
 
-	ic.GroupDB.Close()
+	if ic.Central != nil {
+		ic.Central.Close()
+	}
 }
 
 func createDB(config *authaus.Config) {
@@ -105,26 +100,25 @@ func createDB(config *authaus.Config) {
 		fmt.Print("Session database created\n")
 	}
 
-	// Use the PermitDB connection for the group DB
-	if err := imqsauth.RoleGroupDB_Create(&config.PermitDB.DB); err != nil {
+	if err := authaus.SqlCreateSchema_RoleGroupDB(&config.RoleGroupDB.DB); err != nil {
 		fmt.Printf("Error creating Role Group database: %v\n", err)
 	} else {
 		fmt.Print("Role Group database created\n")
 	}
 }
 
-func resetGroup(icentral *imqsauth.ImqsCentral, group *imqsauth.AuthGroup) bool {
-	if existing, eget := icentral.GroupDB.GetByName(group.Name); eget == nil {
+func resetGroup(icentral *imqsauth.ImqsCentral, group *authaus.AuthGroup) bool {
+	if existing, eget := icentral.Central.GetRoleGroupDB().GetByName(group.Name); eget == nil {
 		group.ID = existing.ID
-		existing.PermBits = group.PermBits
-		if eupdate := icentral.GroupDB.UpdateGroup(existing); eupdate == nil {
+		existing.PermList = group.PermList
+		if eupdate := icentral.Central.GetRoleGroupDB().UpdateGroup(existing); eupdate == nil {
 			fmt.Printf("Group %v updated\n", group.Name)
 			return true
 		} else {
 			fmt.Printf("Error updating group of %v: %v\n", group.Name, eupdate)
 		}
-	} else if strings.Index(eget.Error(), imqsauth.ErrGroupNotExist.Error()) == 0 {
-		if ecreate := icentral.GroupDB.InsertGroup(group); ecreate == nil {
+	} else if strings.Index(eget.Error(), authaus.ErrGroupNotExist.Error()) == 0 {
+		if ecreate := icentral.Central.GetRoleGroupDB().InsertGroup(group); ecreate == nil {
 			fmt.Printf("Group %v created\n", group.Name)
 			return true
 		} else {
@@ -160,17 +154,17 @@ func resetAdmin(icentral *imqsauth.ImqsCentral) {
 
 		// Reset the permission groups
 		groupOK := true
-		var groupAdmin *imqsauth.AuthGroup
+		var groupAdmin *authaus.AuthGroup
 		if adminOK {
 
-			group := &imqsauth.AuthGroup{}
+			group := &authaus.AuthGroup{}
 			group.Name = "imqsadmin"
 			group.AddPermBit(imqsauth.PermAdmin)
 			group.AddPermBit(imqsauth.PermEnabled)
 			groupOK = groupOK && resetGroup(icentral, group)
 			groupAdmin = group
 
-			group = &imqsauth.AuthGroup{}
+			group = &authaus.AuthGroup{}
 			group.Name = "user"
 			group.AddPermBit(imqsauth.PermEnabled)
 			groupOK = groupOK && resetGroup(icentral, group)
@@ -178,10 +172,10 @@ func resetAdmin(icentral *imqsauth.ImqsCentral) {
 
 		// Reset the perm bits of the imqsadmin user
 		if groupOK && adminOK {
-			pgroups := make([]imqsauth.GroupIDU32, 1, 1)
+			pgroups := make([]authaus.GroupIDU32, 1, 1)
 			pgroups[0] = groupAdmin.ID
 			permit := &authaus.Permit{}
-			permit.Roles = imqsauth.EncodePermit(pgroups)
+			permit.Roles = authaus.EncodePermit(pgroups)
 			icentral.Central.SetPermit("imqsadmin", permit)
 		}
 

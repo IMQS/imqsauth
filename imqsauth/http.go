@@ -11,9 +11,9 @@ import (
 
 // IMQS permission bits (each number in the range 0..65535 means something)
 const (
-	PermReservedZero PermissionU16 = 0 // Avoid the danger of having a zero mean something
-	PermAdmin        PermissionU16 = 1 // Super-user who can control all aspects of the auth system
-	PermEnabled      PermissionU16 = 2 // User is allowed to use the system. Without this no request is authorized
+	PermReservedZero authaus.PermissionU16 = 0 // Avoid the danger of having a zero mean something
+	PermAdmin        authaus.PermissionU16 = 1 // Super-user who can control all aspects of the auth system
+	PermEnabled      authaus.PermissionU16 = 2 // User is allowed to use the system. Without this no request is authorized
 )
 
 type checkResponseJson struct {
@@ -21,7 +21,7 @@ type checkResponseJson struct {
 	Roles    []string
 }
 
-func (x *checkResponseJson) SetRoles(roles PermissionList) {
+func (x *checkResponseJson) SetRoles(roles authaus.PermissionList) {
 	x.Roles = make([]string, len(roles))
 	for i, role := range roles {
 		x.Roles[i] = fmt.Sprintf("%d", role)
@@ -31,7 +31,6 @@ func (x *checkResponseJson) SetRoles(roles PermissionList) {
 type ImqsCentral struct {
 	Config  *authaus.Config
 	Central *authaus.Central
-	GroupDB RoleGroupDB
 }
 
 func (x *ImqsCentral) runHttpInternal() error {
@@ -75,7 +74,7 @@ func (x *ImqsCentral) RunHttp() error {
 
 func (x *ImqsCentral) IsAdmin(r *http.Request) (bool, error) {
 	if token, err := authaus.HttpHandlerPrelude(&x.Config.HTTP, x.Central, r); err == nil {
-		if pbits, egroup := PermitResolveToList(token.Permit.Roles, x.GroupDB); egroup == nil {
+		if pbits, egroup := authaus.PermitResolveToList(token.Permit.Roles, x.Central.GetRoleGroupDB()); egroup == nil {
 			return pbits.Has(PermAdmin), nil
 		} else {
 			return false, egroup
@@ -99,7 +98,7 @@ func HttpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *http.Reque
 		w.Header().Add("Content-Type", "text/plain")
 		fmt.Fprintf(w, "%v", err)
 	} else {
-		if pbits, egroup := PermitResolveToList(token.Permit.Roles, central.GroupDB); egroup != nil {
+		if pbits, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Header().Set("Content-Type", "text/plain")
 			fmt.Fprintf(w, "Internal Error: %v", egroup)
@@ -129,7 +128,7 @@ func HttpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *http.Reque
 
 func HttpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *http.Request) {
 	if token, err := authaus.HttpHandlerPreludeWithError(&central.Config.HTTP, central.Central, w, r); err == nil {
-		if permList, egroup := PermitResolveToList(token.Permit.Roles, central.GroupDB); egroup != nil {
+		if permList, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Header().Set("Content-Type", "text/plain")
 			fmt.Fprintf(w, "Error: %v", egroup)
@@ -141,7 +140,6 @@ func HttpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *http.Reque
 			} else {
 				jresponse := &checkResponseJson{}
 				jresponse.Identity = token.Identity
-				//jresponse.Roles = encodePermBitsToString(permList)
 				jresponse.SetRoles(permList)
 				json, jsonErr := json.Marshal(jresponse)
 				if jsonErr == nil {
@@ -187,7 +185,7 @@ func HttpHandlerSetUser(central *ImqsCentral, w http.ResponseWriter, r *http.Req
 	if len(groups) == 1 && groups[0] == "" {
 		groups = make([]string, 0)
 	}
-	groupIDs, errGroupIDs := GroupNamesToIDs(groups, central.GroupDB)
+	groupIDs, errGroupIDs := authaus.GroupNamesToIDs(groups, central.Central.GetRoleGroupDB())
 	if errGroupIDs != nil {
 		panic("Invalid groups: " + errGroupIDs.Error())
 	}
@@ -209,20 +207,9 @@ func HttpHandlerSetUser(central *ImqsCentral, w http.ResponseWriter, r *http.Req
 	// WARNING: What if the administrator wants to make this user a member of no groups?
 	if len(groups) != 0 {
 		permit := &authaus.Permit{}
-		permit.Roles = EncodePermit(groupIDs)
+		permit.Roles = authaus.EncodePermit(groupIDs)
 		if eSetPermit := authc.SetPermit(identity, permit); eSetPermit != nil {
 			panic(eSetPermit)
 		}
 	}
-}
-
-func encodePermBitsToString(bits PermissionList) string {
-	if len(bits) == 0 {
-		return ""
-	}
-	str := ""
-	for _, bit := range bits {
-		str += fmt.Sprintf("%d,", bit)
-	}
-	return str[:len(str)-1]
 }
