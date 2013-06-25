@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/IMQS/auth/imqsauth"
+	"github.com/IMQS/imqsauth/imqsauth"
 	"github.com/IMQS/authaus"
 	"os"
 	"strings"
