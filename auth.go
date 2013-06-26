@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/IMQS/imqsauth/imqsauth"
 	"github.com/IMQS/authaus"
+	"github.com/IMQS/imqsauth/imqsauth"
 	"os"
 	"strings"
 )
@@ -91,19 +91,19 @@ func createDB(config *authaus.Config) {
 	if err := authaus.SqlCreateSchema_User(&config.PermitDB.DB); err != nil {
 		fmt.Printf("Error creating User database: %v\n", err)
 	} else {
-		fmt.Print("User database created\n")
+		fmt.Print("User database schema is up to date\n")
 	}
 
 	if err := authaus.SqlCreateSchema_Session(&config.SessionDB.DB); err != nil {
 		fmt.Printf("Error creating Session database: %v\n", err)
 	} else {
-		fmt.Print("Session database created\n")
+		fmt.Print("Session database schema is up to date\n")
 	}
 
 	if err := authaus.SqlCreateSchema_RoleGroupDB(&config.RoleGroupDB.DB); err != nil {
 		fmt.Printf("Error creating Role Group database: %v\n", err)
 	} else {
-		fmt.Print("Role Group database created\n")
+		fmt.Print("Role Group database schema is up to date\n")
 	}
 }
 
@@ -134,6 +134,8 @@ func resetAdmin(icentral *imqsauth.ImqsCentral) {
 	var err error
 	icentral.Central, err = authaus.NewCentralFromConfig(icentral.Config)
 	if err == nil {
+		defer icentral.Central.Close()
+
 		password := authaus.RandomString(10, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 		adminOK := false
 
@@ -178,8 +180,6 @@ func resetAdmin(icentral *imqsauth.ImqsCentral) {
 			permit.Roles = authaus.EncodePermit(pgroups)
 			icentral.Central.SetPermit("imqsadmin", permit)
 		}
-
-		icentral.Central.Close()
 	} else {
 		fmt.Printf("Error: %v\n", err)
 	}

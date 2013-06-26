@@ -51,7 +51,7 @@ func (x *ImqsCentral) runHttpInternal() error {
 	http.HandleFunc("/check", makehandler(HttpHandlerCheck))
 	http.HandleFunc("/setuser", makehandler(HttpHandlerSetUser))
 
-	fmt.Printf("Listening on %v:%v\n", x.Config.HTTP.Bind, x.Config.HTTP.Port)
+	x.Central.Log.Printf("ImqsAuth is listening on %v:%v\n", x.Config.HTTP.Bind, x.Config.HTTP.Port)
 	if err := http.ListenAndServe(x.Config.HTTP.Bind+":"+strconv.Itoa(x.Config.HTTP.Port), nil); err != nil {
 		return err
 	}

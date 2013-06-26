@@ -5,6 +5,6 @@ authaus system.
 
 ## TODO
 
-* The ability to restrict cookies to Secure:true
-* Logging
-* More tests
+* More logging
+* Log rotation
+* More tests (I need ideas for more tests please!)
