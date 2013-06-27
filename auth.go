@@ -24,15 +24,21 @@ imqsauth command [options]
 }
 
 func main() {
+	os.Exit(realMain())
+}
+
+func realMain() (result int) {
+	result = 0
 	args := os.Args[1:]
 	defer func() {
 		if err := recover(); err != nil {
+			result = 1
 			fmt.Printf("%v\n", err)
 		}
 	}()
 	if len(args) == 0 {
 		showhelp()
-		return
+		return 0
 	}
 	command := ""
 	configFile := ""
@@ -43,11 +49,19 @@ func main() {
 			switch arg {
 			case "-c":
 				configFile = args[i+1]
+			case "help":
+				fallthrough
+			case "-help":
+				fallthrough
+			case "--help":
+				fallthrough
+			case "?":
+				fallthrough
 			case "-?":
 				fallthrough
 			case "--?":
 				showhelp()
-				return
+				return 0
 			default:
 				panic("Unrecognized option " + arg)
 			}
@@ -62,20 +76,23 @@ func main() {
 
 	if err := ic.Config.LoadFile(configFile); err != nil {
 		fmt.Printf("Error loading config file '%v': %v\n", configFile, err)
-		return
+		return 1
 	}
 
 	handler := func() {
 		ic.RunHttp()
 	}
 
+	success := true
+
 	switch command {
 	case "createdb":
-		createDB(ic.Config)
+		success = createDB(ic.Config)
 	case "resetadmin":
-		resetAdmin(ic)
+		success = resetAdmin(ic)
 	case "run":
 		if !authaus.RunAsService(handler) {
+			success = false
 			fmt.Print(ic.RunHttp())
 		}
 	default:
@@ -85,26 +102,38 @@ func main() {
 	if ic.Central != nil {
 		ic.Central.Close()
 	}
+
+	if success {
+		return 0
+	} else {
+		return 1
+	}
 }
 
-func createDB(config *authaus.Config) {
+func createDB(config *authaus.Config) (success bool) {
+	success = true
 	if err := authaus.SqlCreateSchema_User(&config.PermitDB.DB); err != nil {
+		success = false
 		fmt.Printf("Error creating User database: %v\n", err)
 	} else {
 		fmt.Print("User database schema is up to date\n")
 	}
 
 	if err := authaus.SqlCreateSchema_Session(&config.SessionDB.DB); err != nil {
+		success = false
 		fmt.Printf("Error creating Session database: %v\n", err)
 	} else {
 		fmt.Print("Session database schema is up to date\n")
 	}
 
 	if err := authaus.SqlCreateSchema_RoleGroupDB(&config.RoleGroupDB.DB); err != nil {
+		success = false
 		fmt.Printf("Error creating Role Group database: %v\n", err)
 	} else {
 		fmt.Print("Role Group database schema is up to date\n")
 	}
+
+	return success
 }
 
 func resetGroup(icentral *imqsauth.ImqsCentral, group *authaus.AuthGroup) bool {
@@ -130,7 +159,7 @@ func resetGroup(icentral *imqsauth.ImqsCentral, group *authaus.AuthGroup) bool {
 	return false
 }
 
-func resetAdmin(icentral *imqsauth.ImqsCentral) {
+func resetAdmin(icentral *imqsauth.ImqsCentral) bool {
 	var err error
 	icentral.Central, err = authaus.NewCentralFromConfig(icentral.Config)
 	if err == nil {
@@ -138,6 +167,7 @@ func resetAdmin(icentral *imqsauth.ImqsCentral) {
 
 		password := authaus.RandomString(10, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 		adminOK := false
+		setPermOK := false
 
 		// Reset the password, or create the user
 		if ecreate := icentral.Central.CreateAuthenticatorIdentity("imqsadmin", password); ecreate == nil {
@@ -178,9 +208,15 @@ func resetAdmin(icentral *imqsauth.ImqsCentral) {
 			pgroups[0] = groupAdmin.ID
 			permit := &authaus.Permit{}
 			permit.Roles = authaus.EncodePermit(pgroups)
-			icentral.Central.SetPermit("imqsadmin", permit)
+			if eSetPermit := icentral.Central.SetPermit("imqsadmin", permit); eSetPermit != nil {
+				fmt.Printf("Error setting permit: %v\n", eSetPermit)
+			} else {
+				setPermOK = true
+			}
 		}
+		return setPermOK
 	} else {
 		fmt.Printf("Error: %v\n", err)
+		return false
 	}
 }
