@@ -16,6 +16,15 @@ const (
 	PermEnabled      authaus.PermissionU16 = 2 // User is allowed to use the system. Without this no request is authorized
 )
 
+var PermissionsTable authaus.PermissionNameTable
+
+func init() {
+	PermissionsTable = make(authaus.PermissionNameTable, 0)
+	PermissionsTable.Append(PermReservedZero, "")
+	PermissionsTable.Append(PermAdmin, "admin")
+	PermissionsTable.Append(PermEnabled, "enabled")
+}
+
 type checkResponseJson struct {
 	Identity string
 	Roles    []string
