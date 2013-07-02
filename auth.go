@@ -4,9 +4,16 @@ import (
 	"fmt"
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/imqsauth/imqsauth"
+	"log"
 	"os"
 	"strings"
 )
+
+const TestConfig1 = "!TESTCONFIG1"
+const TestPort = 3377
+
+const RoleGroupAdmin = "admin"
+const RoleGroupUser = "user"
 
 func showhelp() {
 	help := `
@@ -23,7 +30,9 @@ imqsauth -c configfile command [options]
     run               Run the service
 
   mandatory options
-    -c configfile     Specify the authaus config file
+    -c configfile     Specify the authaus config file. A pseudo file called
+                      !TESTCONFIG1 is used by the REST test suite to load a
+                      test configuration.
 `
 	fmt.Print(help)
 }
@@ -88,13 +97,24 @@ func realMain() (result int) {
 		return 1
 	}
 
-	if err := ic.Config.LoadFile(configFile); err != nil {
-		fmt.Printf("Error loading config file '%v': %v\n", configFile, err)
-		return 1
+	isTestConfig := loadTestConfig(ic, configFile)
+
+	if !isTestConfig {
+		if err := ic.Config.LoadFile(configFile); err != nil {
+			fmt.Printf("Error loading config file '%v': %v\n", configFile, err)
+			return 1
+		}
 	}
 
-	handler := func() {
-		ic.RunHttp()
+	handler := func() error {
+		if isTestConfig {
+			return ic.RunHttp()
+		} else {
+			return ic.LoadConfigAndRunHttp()
+		}
+	}
+	handlerNoRetVal := func() {
+		handler()
 	}
 
 	success := true
@@ -103,10 +123,13 @@ func realMain() (result int) {
 	case "createdb":
 		success = createDB(ic.Config)
 	case "run":
-		if !authaus.RunAsService(handler) {
+		if !authaus.RunAsService(handlerNoRetVal) {
 			success = false
-			fmt.Print(ic.RunHttp())
+			fmt.Print(handler())
 		}
+	case "":
+		showhelp()
+		success = false
 	default:
 		success = genericFunc(ic, command, cmdargs)
 	}
@@ -120,6 +143,23 @@ func realMain() (result int) {
 	} else {
 		return 1
 	}
+}
+
+func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
+	if testConfigName == TestConfig1 {
+		ic.Config.HTTP.Bind = "127.0.0.1"
+		ic.Config.HTTP.Port = TestPort
+		ic.Central = authaus.NewCentralDummy(log.New(os.Stdout, "", 0))
+		resetAuthGroups(ic)
+		ic.Central.CreateAuthenticatorIdentity("joe", "123")
+		//groupAdmin, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupAdmin)
+		groupUser, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupUser)
+		permit := &authaus.Permit{}
+		permit.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupUser.ID})
+		ic.Central.SetPermit("joe", permit)
+		return true
+	}
+	return false
 }
 
 func createDB(config *authaus.Config) (success bool) {
@@ -353,14 +393,14 @@ func ensureGroupHasBits(icentral *imqsauth.ImqsCentral, groupName string, perms 
 // the web interface to do everything else. That's the idea at least (the web interface has yet to be built).
 func resetAuthGroups(icentral *imqsauth.ImqsCentral) bool {
 	ok := true
-	ok = ok && ensureGroupHasBits(icentral, "imqsadmin", []authaus.PermissionU16{imqsauth.PermAdmin, imqsauth.PermEnabled})
-	ok = ok && ensureGroupHasBits(icentral, "user", []authaus.PermissionU16{imqsauth.PermEnabled})
+	ok = ok && ensureGroupHasBits(icentral, RoleGroupAdmin, []authaus.PermissionU16{imqsauth.PermAdmin, imqsauth.PermEnabled})
+	ok = ok && ensureGroupHasBits(icentral, RoleGroupUser, []authaus.PermissionU16{imqsauth.PermEnabled})
 	if !ok {
 		return false
 	}
 
 	// Reset the perm bits of the imqsadmin user
-	if group_imqsadmin, eLoad := loadOrCreateGroup(icentral, "imqsadmin", false); eLoad != nil {
+	if group_imqsadmin, eLoad := loadOrCreateGroup(icentral, RoleGroupAdmin, false); eLoad != nil {
 		fmt.Printf("Error loading imqsadmin group: %v\n", eLoad)
 		return false
 	} else {
@@ -368,7 +408,7 @@ func resetAuthGroups(icentral *imqsauth.ImqsCentral) bool {
 		pgroups[0] = group_imqsadmin.ID
 		permit := &authaus.Permit{}
 		permit.Roles = authaus.EncodePermit(pgroups)
-		if eSetPermit := icentral.Central.SetPermit("imqsadmin", permit); eSetPermit != nil {
+		if eSetPermit := icentral.Central.SetPermit(RoleGroupAdmin, permit); eSetPermit != nil {
 			fmt.Printf("Error setting permit: %v\n", eSetPermit)
 			return false
 		}
