@@ -399,20 +399,25 @@ func resetAuthGroups(icentral *imqsauth.ImqsCentral) bool {
 		return false
 	}
 
-	// Reset the perm bits of the imqsadmin user
-	if group_imqsadmin, eLoad := loadOrCreateGroup(icentral, RoleGroupAdmin, false); eLoad != nil {
-		fmt.Printf("Error loading imqsadmin group: %v\n", eLoad)
-		return false
-	} else {
-		pgroups := make([]authaus.GroupIDU32, 1, 1)
-		pgroups[0] = group_imqsadmin.ID
-		permit := &authaus.Permit{}
-		permit.Roles = authaus.EncodePermit(pgroups)
-		if eSetPermit := icentral.Central.SetPermit(RoleGroupAdmin, permit); eSetPermit != nil {
-			fmt.Printf("Error setting permit: %v\n", eSetPermit)
+	/*
+
+		This is superfluous. You can simply create a user called 'admin', and add the appropriate groups for that user.
+
+		// Reset the perm bits of the imqsadmin user
+		if group_imqsadmin, eLoad := loadOrCreateGroup(icentral, RoleGroupAdmin, false); eLoad != nil {
+			fmt.Printf("Error loading imqsadmin group: %v\n", eLoad)
 			return false
+		} else {
+			pgroups := make([]authaus.GroupIDU32, 1, 1)
+			pgroups[0] = group_imqsadmin.ID
+			permit := &authaus.Permit{}
+			permit.Roles = authaus.EncodePermit(pgroups)
+			if eSetPermit := icentral.Central.SetPermit(RoleGroupAdmin, permit); eSetPermit != nil {
+				fmt.Printf("Error setting permit: %v\n", eSetPermit)
+				return false
+			}
 		}
-	}
+	*/
 
 	return true
 }
