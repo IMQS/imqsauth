@@ -102,6 +102,30 @@ func (x *ImqsCentral) IsAdmin(r *http.Request) (bool, error) {
 	return false, nil
 }
 
+func httpSendCheckJson(token *authaus.Token, permList authaus.PermissionList, w http.ResponseWriter) {
+	jresponse := &checkResponseJson{}
+	jresponse.Identity = token.Identity
+	jresponse.SetRoles(permList)
+	json, jsonErr := json.Marshal(jresponse)
+	if jsonErr == nil {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Add("Content-Type", "application/json")
+		w.Write(json)
+	} else {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, jsonErr.Error())
+	}
+	//fmt.Fprintf(w, "%v", encodePermBitsToString(permList))
+	//fmt.Fprintf(w, "%v", hex.EncodeToString(token.Permit.Roles))
+}
+
+func httpSendAccountDisabled(w http.ResponseWriter) {
+	authaus.HttpSendTxt(w, http.StatusForbidden, msgAccountDisabled)
+}
+
+func httpSendNoIdentity(w http.ResponseWriter) {
+	authaus.HttpSendTxt(w, http.StatusUnauthorized, authaus.ErrIdentityEmpty.Error())
+}
+
 // Handle the 'login' request, sending back a session token (via Set-Cookie),
 func HttpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *http.Request) {
 	identity, password, eBasic := authaus.HttpReadBasicAuth(r)
@@ -109,16 +133,20 @@ func HttpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *http.Reque
 		authaus.HttpSendTxt(w, http.StatusBadRequest, eBasic.Error())
 		return
 	}
+	if identity == "" {
+		httpSendNoIdentity(w)
+		return
+	}
 
 	if sessionkey, token, err := central.Central.Login(identity, password); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
-		if pbits, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup != nil {
+		if permList, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup != nil {
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, egroup.Error())
 		} else {
 			// Ensure that the user has the 'Enabled' permission
-			if !pbits.Has(PermEnabled) {
-				authaus.HttpSendTxt(w, http.StatusForbidden, msgAccountDisabled)
+			if !permList.Has(PermEnabled) {
+				httpSendAccountDisabled(w)
 			} else {
 				cookie := &http.Cookie{
 					Name:    central.Config.HTTP.CookieName,
@@ -128,7 +156,7 @@ func HttpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *http.Reque
 					Secure:  central.Config.HTTP.CookieSecure,
 				}
 				http.SetCookie(w, cookie)
-				w.WriteHeader(http.StatusOK)
+				httpSendCheckJson(token, permList, w)
 			}
 		}
 	}
@@ -141,21 +169,9 @@ func HttpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *http.Reque
 		} else {
 			// Ensure that the user has the 'Enabled' permission
 			if !permList.Has(PermEnabled) {
-				authaus.HttpSendTxt(w, http.StatusForbidden, msgAccountDisabled)
+				httpSendAccountDisabled(w)
 			} else {
-				jresponse := &checkResponseJson{}
-				jresponse.Identity = token.Identity
-				jresponse.SetRoles(permList)
-				json, jsonErr := json.Marshal(jresponse)
-				if jsonErr == nil {
-					w.WriteHeader(http.StatusOK)
-					w.Header().Add("Content-Type", "application/json")
-					w.Write(json)
-				} else {
-					authaus.HttpSendTxt(w, http.StatusInternalServerError, jsonErr.Error())
-				}
-				//fmt.Fprintf(w, "%v", encodePermBitsToString(permList))
-				//fmt.Fprintf(w, "%v", hex.EncodeToString(token.Permit.Roles))
+				httpSendCheckJson(token, permList, w)
 			}
 		}
 	}

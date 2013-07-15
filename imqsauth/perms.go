@@ -11,6 +11,8 @@ const (
 	PermEnabled      authaus.PermissionU16 = 2 // User is allowed to use the system. Without this no request is authorized
 )
 
+// This is not yet used, but I expect to use it when building the REST API that will be used by
+// the administrator web app.
 var PermissionsTable authaus.PermissionNameTable
 
 func init() {

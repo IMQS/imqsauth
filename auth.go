@@ -13,7 +13,7 @@ const TestConfig1 = "!TESTCONFIG1"
 const TestPort = 3377
 
 const RoleGroupAdmin = "admin"
-const RoleGroupUser = "user"
+const RoleGroupEnabled = "enabled"
 
 func showhelp() {
 	help := `
@@ -153,9 +153,9 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 		resetAuthGroups(ic)
 		ic.Central.CreateAuthenticatorIdentity("joe", "123")
 		//groupAdmin, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupAdmin)
-		groupUser, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupUser)
+		groupEnabled, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupEnabled)
 		permit := &authaus.Permit{}
-		permit.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupUser.ID})
+		permit.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupEnabled.ID})
 		ic.Central.SetPermit("joe", permit)
 		return true
 	}
@@ -246,6 +246,7 @@ func resetGroup(icentral *imqsauth.ImqsCentral, group *authaus.AuthGroup) bool {
 func permGroupAddOrDel(icentral *imqsauth.ImqsCentral, identity string, groupname string, isAdd bool) (success bool) {
 	perm, eGetPermit := icentral.Central.GetPermit(identity)
 	if eGetPermit != nil && strings.Index(eGetPermit.Error(), authaus.ErrIdentityPermitNotFound.Error()) == 0 {
+		// Tolerate a non-existing identity. We are going to create the permit for this identity.
 		perm = &authaus.Permit{}
 	} else if eGetPermit != nil {
 		fmt.Printf("Error retrieving permit: %v\n", eGetPermit)
@@ -373,10 +374,30 @@ func setPassword(icentral *imqsauth.ImqsCentral, identity string, password strin
 	}
 }
 
-func ensureGroupHasBits(icentral *imqsauth.ImqsCentral, groupName string, perms []authaus.PermissionU16) bool {
+type groupModifyMode int
+
+const (
+	groupModifySet groupModifyMode = iota
+	groupModifyAdd
+	groupModifyRemove
+)
+
+func modifyGroup(icentral *imqsauth.ImqsCentral, mode groupModifyMode, groupName string, perms authaus.PermissionList) bool {
 	if group, e := loadOrCreateGroup(icentral, groupName, true); e == nil {
-		for _, perm := range perms {
-			group.AddPermBit(perm)
+		switch mode {
+		case groupModifyAdd:
+			for _, perm := range perms {
+				group.AddPerm(perm)
+			}
+		case groupModifyRemove:
+			for _, perm := range perms {
+				group.RemovePerm(perm)
+			}
+		case groupModifySet:
+			group.PermList = make(authaus.PermissionList, len(perms))
+			copy(group.PermList, perms)
+		default:
+			panic(fmt.Sprintf("Unrecognized permission set mode %v", mode))
 		}
 		if saveGroup(icentral, group) {
 			return true
@@ -393,8 +414,8 @@ func ensureGroupHasBits(icentral *imqsauth.ImqsCentral, groupName string, perms 
 // the web interface to do everything else. That's the idea at least (the web interface has yet to be built).
 func resetAuthGroups(icentral *imqsauth.ImqsCentral) bool {
 	ok := true
-	ok = ok && ensureGroupHasBits(icentral, RoleGroupAdmin, []authaus.PermissionU16{imqsauth.PermAdmin, imqsauth.PermEnabled})
-	ok = ok && ensureGroupHasBits(icentral, RoleGroupUser, []authaus.PermissionU16{imqsauth.PermEnabled})
+	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupAdmin, authaus.PermissionList{imqsauth.PermAdmin})
+	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupEnabled, authaus.PermissionList{imqsauth.PermEnabled})
 	if !ok {
 		return false
 	}

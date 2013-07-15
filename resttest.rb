@@ -26,7 +26,7 @@ class Base < Test::Unit::TestCase
 		return RestClient.post(@baseurl + path, body, headers) { |response, request, result| response }
 	end
 
-	def doany(verb, path, body, headers, responseCode, responseBody = nil)
+	def doany(verb, path, body, headers = {}, responseCode = nil, responseBody = nil)
 		r = nil
 		if verb == "POST"
 			r = RestClient.post(@baseurl + path, body, headers) { |response, request, result| response }
@@ -37,22 +37,34 @@ class Base < Test::Unit::TestCase
 		end
 
 		print(">>  #{path}  =>  #{r.code} #{r.body[0,100]} (#{r.class})\n")
-		assert_equal(r.code.to_i, responseCode.to_i)
-		if responseBody != nil
-			if responseBody.class == Hash
-				assert(json_eq(r.body, responseBody))
-			else
-				assert_equal(r.body, responseBody)
+		if block_given?
+			yield(r)
+		else
+			assert_equal(r.code.to_i, responseCode.to_i)
+			if responseBody != nil
+				if responseBody.class == Hash
+					assert(json_eq(r.body, responseBody))
+				else
+					assert_equal(r.body, responseBody)
+				end
 			end
 		end
 	end
 
-	def doget(path, headers, responseCode, responseBody = nil)
-		doany("GET", path, nil, headers, responseCode, responseBody)
+	def doget(path, headers = {}, responseCode = nil, responseBody = nil)
+		if block_given?
+			doany("GET", path, nil, headers) { |r| yield(r) }
+		else
+			doany("GET", path, nil, headers, responseCode, responseBody)
+		end
 	end
 
-	def dopost(path, body, headers, responseCode, responseBody = nil)
-		doany("POST", path, body, headers, responseCode, responseBody)
+	def dopost(path, body, headers = {}, responseCode = nil, responseBody = nil)
+		if block_given?
+			doany("POST", path, body, headers) { |r| yield(r) }
+		else
+			doany("POST", path, body, headers, responseCode, responseBody)
+		end
 	end
 
 	def basicauth(identity, password)
@@ -115,7 +127,7 @@ class Hello < Base
 
 	def test_login
 		doget("/login", basicauth("joe","123"), 400, "API must be accessed using an HTTP POST method")
-		dopost("/login", nil, basicauth("joe","123"), 200, "")
+		dopost("/login", nil, basicauth("joe","123"), 200, {:Identity => "joe", :Roles => ["2"]})
 		login_and_check("POST", "/login")
 	end
 
@@ -126,6 +138,7 @@ class Hello < Base
 	end
 
 	def login_and_check(verb, path)
+		doany(verb, path, nil, {}, 401, "Identity may not be empty")
 		doany(verb, path, nil, basicauth("joe","111"), 403, "Invalid password")
 		doany(verb, path, nil, basicauth("jjj","123"), 403, "Identity authorization not found")
 	end
