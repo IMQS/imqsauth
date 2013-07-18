@@ -12,30 +12,10 @@ import (
 const TestConfig1 = "!TESTCONFIG1"
 const TestPort = 3377
 
-const RoleGroupAdmin = "admin"
-const RoleGroupEnabled = "enabled"
-
-func showhelp() {
-	help := `
-imqsauth -c configfile command [options]
-
-  commands
-    createdb          Create the postgres database
-    resetauthgroups   Reset the 'imqsadmin' and 'user' groups
-    createuser        Create a user in the authentication system
-    setpassword       Set a user's password
-    permgroupadd      Add a group to a permit
-    permgroupdel      Remove a group from a permit
-    permshow          Show the groups of a permit
-    run               Run the service
-
-  mandatory options
-    -c configfile     Specify the authaus config file. A pseudo file called
-                      !TESTCONFIG1 is used by the REST test suite to load a
-                      test configuration.
-`
-	fmt.Print(help)
-}
+const (
+	RoleGroupAdmin   = "admin"
+	RoleGroupEnabled = "enabled"
+)
 
 func main() {
 	os.Exit(realMain())
@@ -54,40 +34,50 @@ func realMain() (result int) {
 		showhelp()
 		return 0
 	}
+	// Add one to the end, so that we don't have to worry about reading past the end of the arguments list
+	args = append(args, "")
 	command := ""
 	configFile := ""
 	lastRecognizedArgument := 0
-	for i := 0; i < len(args); i++ {
+	helpCmd := false
+	for i := 0; i < len(args)-1; i++ {
 		arg := args[i]
-		if arg[0:1] == "-" && i < len(args)-1 {
-			// options followed by a single value
+		if arg[0:1] == "-" {
 			switch arg {
 			case "-c":
 				configFile = args[i+1]
 				lastRecognizedArgument = i + 1
-			case "help":
-				fallthrough
 			case "-help":
 				fallthrough
 			case "--help":
 				fallthrough
-			case "?":
-				fallthrough
 			case "-?":
 				fallthrough
 			case "--?":
-				showhelp()
-				return 0
-			default:
-				panic("Unrecognized option " + arg)
+				helpCmd = true
 			}
 			i += 1
-		} else if command == "" && arg[0:1] != "-" {
+		} else if command == "" {
 			command = arg
 			lastRecognizedArgument = i
 		}
 	}
-	cmdargs := args[lastRecognizedArgument+1:]
+	cmdargsRaw := args[lastRecognizedArgument+1 : len(args)-1]
+
+	if helpCmd || command == "help" || command == "?" {
+		showhelp_cmd(command)
+		return 0
+	}
+
+	cmdOptions := make(map[string]string)
+	cmdArgs := []string{}
+	for _, v := range cmdargsRaw {
+		if v[0:1] == "-" {
+			cmdOptions[v[1:]] = ""
+		} else {
+			cmdArgs = append(cmdArgs, v)
+		}
+	}
 
 	ic := &imqsauth.ImqsCentral{}
 	ic.Config = &authaus.Config{}
@@ -131,7 +121,7 @@ func realMain() (result int) {
 		showhelp()
 		success = false
 	default:
-		success = genericFunc(ic, command, cmdargs)
+		success = genericFunc(ic, command, cmdOptions, cmdArgs)
 	}
 
 	if ic.Central != nil {
@@ -305,7 +295,15 @@ func permShow(icentral *imqsauth.ImqsCentral, identity string) (success bool) {
 	return false
 }
 
-func genericFunc(icentral *imqsauth.ImqsCentral, function string, args []string) (success bool) {
+func dumpOptions(options map[string]string) string {
+	r := ""
+	for k, _ := range options {
+		r += k + ", "
+	}
+	return r[0 : len(r)-2]
+}
+
+func genericFunc(icentral *imqsauth.ImqsCentral, function string, options map[string]string, args []string) (success bool) {
 	var err error
 	icentral.Central, err = authaus.NewCentralFromConfig(icentral.Config)
 	if err == nil {
@@ -316,32 +314,48 @@ func genericFunc(icentral *imqsauth.ImqsCentral, function string, args []string)
 				success = false
 			}
 		}()
+		// NOTE: We should move all of this arbitrary option checking out of here and into some centralized error handling thing
 		switch function {
 		case "resetauthgroups":
+			if len(options) != 0 {
+				panic("Unrecognized option " + dumpOptions(options))
+			}
 			return resetAuthGroups(icentral)
 		case "createuser":
 			if len(args) != 2 {
-				panic("createuser identity password")
+				panic("Must have identity and password")
 			}
-			return createUser(icentral, args[0], args[1])
+			return createUser(icentral, options, args[0], args[1])
 		case "setpassword":
 			if len(args) != 2 {
 				panic("setpassword identity password")
+			}
+			if len(options) != 0 {
+				panic("Unrecognized option " + dumpOptions(options))
 			}
 			return setPassword(icentral, args[0], args[1])
 		case "permgroupadd":
 			if len(args) != 2 {
 				panic("permgroupadd identity groupname")
 			}
+			if len(options) != 0 {
+				panic("Unrecognized option " + dumpOptions(options))
+			}
 			return permGroupAddOrDel(icentral, args[0], args[1], true)
 		case "permgroupdel":
 			if len(args) != 2 {
 				panic("permgroupdel identity groupname")
 			}
+			if len(options) != 0 {
+				panic("Unrecognized option " + dumpOptions(options))
+			}
 			return permGroupAddOrDel(icentral, args[0], args[1], false)
 		case "permshow":
 			if len(args) != 1 {
 				panic("permshow identity")
+			}
+			if len(options) != 0 {
+				panic("Unrecognized option " + dumpOptions(options))
 			}
 			return permShow(icentral, args[0])
 		default:
@@ -354,12 +368,32 @@ func genericFunc(icentral *imqsauth.ImqsCentral, function string, args []string)
 	}
 }
 
-func createUser(icentral *imqsauth.ImqsCentral, identity string, password string) bool {
+func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, identity string, password string) bool {
+	update := false
+	for k, _ := range options {
+		switch k {
+		case "update":
+			update = true
+		default:
+			panic("Unrecognized option '" + k + "'")
+		}
+	}
+
+	if update {
+		if e := icentral.Central.SetPassword(identity, password); e == nil {
+			fmt.Printf("Reset password of %v\n", identity)
+			return true
+		} else if strings.Index(e.Error(), authaus.ErrIdentityAuthNotFound.Error()) == -1 {
+			fmt.Printf("Error setting password fof %v: %v\n", identity, e)
+			return false
+		}
+	}
+
 	if e := icentral.Central.CreateAuthenticatorIdentity(identity, password); e == nil {
 		fmt.Printf("Created user %v\n", identity)
 		return true
 	} else {
-		fmt.Printf("Error creating %v: %v\n", identity, e)
+		fmt.Printf("Error creating identity %v: %v\n", identity, e)
 		return false
 	}
 }
@@ -441,4 +475,51 @@ func resetAuthGroups(icentral *imqsauth.ImqsCentral) bool {
 	*/
 
 	return true
+}
+
+func showhelp() {
+	help := `
+imqsauth -c configfile command [options]
+
+  commands
+    createdb          Create the postgres database
+    resetauthgroups   Reset the [admin,enabled] groups
+    createuser        Create a user in the authentication system
+    setpassword       Set a user's password
+    permgroupadd      Add a group to a permit
+    permgroupdel      Remove a group from a permit
+    permshow          Show the groups of a permit
+    run               Run the service
+
+  mandatory options
+    -c configfile     Specify the authaus config file. A pseudo file called
+                      !TESTCONFIG1 is used by the REST test suite to load a
+                      test configuration.
+`
+	fmt.Print(help)
+}
+
+func showhelp_cmd(cmd string) {
+	switch cmd {
+	case "":
+		showhelp()
+	case "createuser":
+		showhelp_createuser()
+	default:
+		fmt.Printf("%v has no built-in help\n", cmd)
+	}
+}
+
+func showhelp_createuser() {
+	fmt.Print(`
+createuser [-update] identity password
+  Create or update a user in the authentication system.
+  This affects only the 'authentication' system - the permit
+  database is not altered by this command.
+
+  -update If specified, and the user already exists, then
+          behave identically to 'setpassword'. If this
+          is not specified, and the identity already exists,
+          then the function returns with an error.
+`)
 }
