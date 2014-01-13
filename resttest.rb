@@ -7,16 +7,7 @@ require 'rest_client'
 require 'digest/sha1'
 require 'json'
 
-class Base < Test::Unit::TestCase
-
-	def setup
-		@baseurl = "http://127.0.0.1:3377"
-		@pid = spawn("bin/imqsauth -c !TESTCONFIG1 run")
-	end
-
-	def teardown
-		Process.kill("KILL", @pid)
-	end
+class RestBase < Test::Unit::TestCase
 
 	def get(path, headers = {})
 		return RestClient.get(@baseurl + path, headers) { |response, request, result| response }
@@ -30,10 +21,12 @@ class Base < Test::Unit::TestCase
 		r = nil
 		if verb == "POST"
 			r = RestClient.post(@baseurl + path, body, headers) { |response, request, result| response }
+		elsif verb == "PUT"
+			r = RestClient.put(@baseurl + path, body, headers) { |response, request, result| response }
 		elsif verb == "GET"
 			r = RestClient.get(@baseurl + path, headers) { |response, request, result| response }
 		else
-			raise "unknown verb #{verb}"
+			raise "RestBase: unknown verb #{verb}"
 		end
 
 		print(">>  #{path}  =>  #{r.code} #{r.body[0,100]} (#{r.class})\n")
@@ -64,6 +57,14 @@ class Base < Test::Unit::TestCase
 			doany("POST", path, body, headers) { |r| yield(r) }
 		else
 			doany("POST", path, body, headers, responseCode, responseBody)
+		end
+	end
+
+	def doput(path, body, headers = {}, responseCode = nil, responseBody = nil)
+		if block_given?
+			doany("PUT", path, body, headers) { |r| yield(r) }
+		else
+			doany("PUT", path, body, headers, responseCode, responseBody)
 		end
 	end
 
@@ -103,6 +104,27 @@ class Base < Test::Unit::TestCase
 		return ""
 	end
 
+	def array_eq(a,b)
+		return false if a.class != Array or b.class != Array
+		return false if a.length != b.length
+		a.each_with_index { |av,i|
+			return false if a[i] != b[i]
+		}
+		return true
+	end
+
+	def array_eq_any_order(a,b)
+		return false if a.class != Array or b.class != Array
+		return false if a.length != b.length
+		b_visited = Array.new(b.length, false)
+		a.each { |a_value|
+			b_index = b.index(a_value)
+			return false if b_index == nil || b_visited[b_index]
+			b_visited[b_index] = true
+		}
+		return true
+	end
+
 	def hash_eq(a,b)
 		diff = hash_eq_internal(a,b)
 		if diff != ""
@@ -112,9 +134,42 @@ class Base < Test::Unit::TestCase
 		return true
 	end
 
+	def dumpany(verb, path, body, headers = {})
+		doany(verb, path, body, headers) { |r|
+			print("Summary: #{r.description}")
+			print("Body:    #{r.body}\n")
+			print("Headers: #{r.headers}\n")
+		}
+	end
+
 end
 
-class Hello < Base
+class AuthBase < RestBase
+	
+	def setup
+		@baseurl = "http://127.0.0.1:3377"
+		@pid = spawn("bin/imqsauth -c !TESTCONFIG1 run")
+	end
+
+	def teardown
+		Process.kill("KILL", @pid)
+	end
+
+	def basicauth_joe
+		return basicauth("joe", "JOE")
+	end
+
+	def basicauth_admin
+		return basicauth("admin", "ADMIN")
+	end
+
+	def basicauth_admin_disabled
+		return basicauth("admin_disabled", "ADMIN_DISABLED")
+	end
+
+end
+
+class Authorization < AuthBase
 
 	def experiment
 		r = get("/check")
@@ -126,21 +181,93 @@ class Hello < Base
 	end
 
 	def test_login
-		doget("/login", basicauth("joe","123"), 400, "API must be accessed using an HTTP POST method")
-		dopost("/login", nil, basicauth("joe","123"), 200, {:Identity => "joe", :Roles => ["2"]})
+		doget("/login", basicauth_joe, 400, "API must be accessed using an HTTP POST method")
+		dopost("/login", nil, basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
 		login_and_check("POST", "/login")
 	end
 
 	def test_check
-		dopost("/check", nil, basicauth("joe","123"), 400, "API must be accessed using an HTTP GET method")
-		doget("/check", basicauth("joe","123"), 200, {:Identity => "joe", :Roles => ["2"]})
+		dopost("/check", nil, basicauth_joe, 400, "API must be accessed using an HTTP GET method")
+		doget("/check", basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
 		login_and_check("GET", "/check")
 	end
 
 	def login_and_check(verb, path)
 		doany(verb, path, nil, {}, 401, "Identity may not be empty")
-		doany(verb, path, nil, basicauth("joe","111"), 403, "Invalid password")
-		doany(verb, path, nil, basicauth("jjj","123"), 403, "Identity authorization not found")
+		doany(verb, path, nil, basicauth("joe","JoE"), 403, "Invalid password")
+		doany(verb, path, nil, basicauth("jjj","JOE"), 403, "Identity authorization not found")
 	end
 
+end
+
+class AdminTasks < AuthBase
+
+	def verify_role_groups(identity, groups)
+		doget("/users", basicauth_admin, 200) { |r|
+			users = JSON.parse(r.body)
+			assert(users[identity])
+			assert(array_eq_any_order(users[identity]["Groups"], groups))
+		}
+		#dumpany("GET", "/users", nil, basicauth_admin)
+	end
+
+	def test_top_filter_admin_rights
+		admin_commands =
+		%w(
+			PUT  create_user
+			POST set_user_groups
+			GET  users
+			GET  groups
+		)
+		(0 .. admin_commands.length - 1).step(2) { |i|
+			verb = admin_commands[i]
+			action = admin_commands[i + 1]
+			doany(verb, "/#{action}", nil, basicauth_joe, 403, "You are not an administrator")
+			doany(verb, "/#{action}", nil, basicauth_admin_disabled, 403, "Account disabled")
+		}
+	end
+
+	def test_create_user_and_set_groups
+		doput("/create_user?identity=sam&password=SAM", nil, basicauth_admin, 200, "Created identity 'sam'")
+		# Although we have created the identity in the Authenticator, we have not yet created a permit
+		# in the PermitDB. That is why a call to /check on "sam" will fail.
+		doget("/check", basicauth("sam", "SAM"), 403, "Identity permit not found")
+		
+		# Enumerating the list of users MUST include "sam", despite the fact that he
+		# has no permit defined. Were this not the case, then the admin GUI could get stuck
+		# in a state where it has created an identity, but it cannot set its permit, or
+		# that identity gets "lost" because it is invisible to certain parts of the system
+		verify_role_groups("sam", [])
+		
+		# This is an unfortunate consequence of authaus not caring how you bring together your PermitDB and Authentication system.
+		# You can create permits for users that do not exist in the authentication system. This kind of abuse could only be performed
+		# by an administrator.
+		dopost("/set_user_groups?identity=nobody&groups=enabled", nil, basicauth_admin, 200, "'nobody' groups set to (enabled)")
+
+		dopost("/set_user_groups?groups=enabled", nil, basicauth_admin, 403, "Identity is empty")
+
+		dopost("/set_user_groups?identity=sam&groups=NOT_A_GROUP", nil, basicauth_admin, 403, "Invalid groups: Group does not exist")
+
+		# Assign 'enabled' group to 'sam'
+		dopost("/set_user_groups?identity=sam&groups=enabled", nil, basicauth_admin, 200, "'sam' groups set to (enabled)")
+		
+		verify_role_groups("sam", ["enabled"])
+
+		# Assign no groups to 'sam'
+		dopost("/set_user_groups?identity=sam&groups=", nil, basicauth_admin, 200, "'sam' groups set to ()")
+
+		verify_role_groups("sam", [])
+	end
+
+	def test_list_groups
+		doget("/groups", basicauth_admin, 200) { |r|
+			groups_list = JSON.parse(r.body)
+			groups_by_name = {}
+			groups_list.each { |g| groups_by_name[g["Name"]] = g }
+			admin = groups_by_name["admin"]
+			enabled = groups_by_name["enabled"]
+			assert(admin != nil && admin["Roles"].length == 1)
+			assert(enabled != nil && enabled["Roles"].length == 1)
+		}
+	end
 end

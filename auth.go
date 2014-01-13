@@ -141,12 +141,20 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 		ic.Config.HTTP.Port = TestPort
 		ic.Central = authaus.NewCentralDummy(log.New(os.Stdout, "", 0))
 		resetAuthGroups(ic)
-		ic.Central.CreateAuthenticatorIdentity("joe", "123")
-		//groupAdmin, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupAdmin)
+		ic.Central.CreateAuthenticatorIdentity("joe", "JOE")
+		ic.Central.CreateAuthenticatorIdentity("admin", "ADMIN")
+		ic.Central.CreateAuthenticatorIdentity("admin_disabled", "ADMIN_DISABLED")
+		groupAdmin, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupAdmin)
 		groupEnabled, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupEnabled)
-		permit := &authaus.Permit{}
-		permit.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupEnabled.ID})
-		ic.Central.SetPermit("joe", permit)
+		permitEnabled := &authaus.Permit{}
+		permitEnabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupEnabled.ID})
+		permitAdminEnabled := &authaus.Permit{}
+		permitAdminEnabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupAdmin.ID, groupEnabled.ID})
+		permitAdminDisabled := &authaus.Permit{}
+		permitAdminDisabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupAdmin.ID})
+		ic.Central.SetPermit("joe", permitEnabled)
+		ic.Central.SetPermit("admin", permitAdminEnabled)
+		ic.Central.SetPermit("admin_disabled", permitAdminDisabled)
 		return true
 	}
 	return false
@@ -453,27 +461,6 @@ func resetAuthGroups(icentral *imqsauth.ImqsCentral) bool {
 	if !ok {
 		return false
 	}
-
-	/*
-
-		This is superfluous. You can simply create a user called 'admin', and add the appropriate groups for that user.
-
-		// Reset the perm bits of the imqsadmin user
-		if group_imqsadmin, eLoad := loadOrCreateGroup(icentral, RoleGroupAdmin, false); eLoad != nil {
-			fmt.Printf("Error loading imqsadmin group: %v\n", eLoad)
-			return false
-		} else {
-			pgroups := make([]authaus.GroupIDU32, 1, 1)
-			pgroups[0] = group_imqsadmin.ID
-			permit := &authaus.Permit{}
-			permit.Roles = authaus.EncodePermit(pgroups)
-			if eSetPermit := icentral.Central.SetPermit(RoleGroupAdmin, permit); eSetPermit != nil {
-				fmt.Printf("Error setting permit: %v\n", eSetPermit)
-				return false
-			}
-		}
-	*/
-
 	return true
 }
 
