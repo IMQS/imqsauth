@@ -154,8 +154,11 @@ func (x *ImqsCentral) IsAdmin(r *http.Request) (bool, error) {
 func httpSendJson(w http.ResponseWriter, jsonObj interface{}) {
 	jsonStr, jsonErr := json.Marshal(jsonObj)
 	if jsonErr == nil {
-		w.WriteHeader(http.StatusOK)
 		w.Header().Add("Content-Type", "application/json")
+		w.Header().Add("Cache-Control", "no-cache, no-store, must revalidate")
+		w.Header().Add("Pragma", "no-cache")
+		w.Header().Add("Expires", "0")
+		w.WriteHeader(http.StatusOK)
 		w.Write(jsonStr)
 	} else {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, jsonErr.Error())
