@@ -38,7 +38,7 @@ class RestBase < Test::Unit::TestCase
 				if responseBody.class == Hash
 					assert(json_eq(r.body, responseBody))
 				else
-					assert_equal(r.body, responseBody)
+					assert_equal(r.body.downcase, responseBody.downcase)
 				end
 			end
 		end
@@ -204,9 +204,9 @@ class AdminTasks < AuthBase
 
 	def verify_role_groups(identity, groups)
 		doget("/users", basicauth_admin, 200) { |r|
-			users = JSON.parse(r.body)
-			assert(users[identity])
-			assert(array_eq_any_order(users[identity]["Groups"], groups))
+			users = JSON.parse(r.body.downcase)
+			assert(users[identity.downcase])
+			assert(array_eq_any_order(users[identity.downcase]["groups"], groups))
 		}
 		#dumpany("GET", "/users", nil, basicauth_admin)
 	end
@@ -257,6 +257,11 @@ class AdminTasks < AuthBase
 		dopost("/set_user_groups?identity=sam&groups=", nil, basicauth_admin, 200, "'sam' groups set to ()")
 
 		verify_role_groups("sam", [])
+
+		# Check case-insensitivity
+		verify_role_groups("Sam", [])
+		dopost("/set_user_groups?identity=saM&groups=enabled", nil, basicauth_admin, 200, "'sam' groups set to (enabled)")
+		verify_role_groups("sAm", ["enabled"])
 	end
 
 	def test_list_groups

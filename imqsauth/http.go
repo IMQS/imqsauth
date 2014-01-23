@@ -190,7 +190,7 @@ func httpSendPermitsJson(central *ImqsCentral, identities []string, ident2perm m
 
 	jresponse := make(map[string]*userGroupsResponseJson)
 	for _, identity := range identities {
-		permit := ident2perm[identity]
+		permit := ident2perm[authaus.CanonicalizeIdentity(identity)]
 		if permit == nil {
 			permit = &emptyPermit
 		}
