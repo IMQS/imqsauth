@@ -61,28 +61,31 @@ type Yellowfin struct {
 	Password  string `json:"password"`
 	Url       string `json:"url"`
 	User      string `json:"user"`
+	Enabled   string `json:"enabled"`
 	Transport *http.Transport
 }
 
-func NewYellowfin(fn string) *Yellowfin {
-	yf := &Yellowfin{}
+func (y *Yellowfin) LoadConfig(fn string) error {
 	file, err := os.Open(fn)
 	if err != nil {
-		return nil
+		return err
 	}
 	defer file.Close()
 	decoder := json.NewDecoder(file)
-	if err = decoder.Decode(yf); err != nil {
-		return nil
+	if err = decoder.Decode(y); err != nil {
+		return err
 	}
-	yf.Transport = &http.Transport{
+	y.Transport = &http.Transport{
 		DisableKeepAlives:  true,
 		DisableCompression: true,
 	}
-	return yf
+	return nil
 }
 
 func (y *Yellowfin) Login(identity string) []*http.Cookie {
+	if y.Enabled == "false" {
+		return nil
+	}
 	act := strings.Replace(soapLogin, "%ADMIN%", y.User, -1)
 	act = strings.Replace(act, "%PASSWORD%", y.Password, -1)
 	act = strings.Replace(act, "%USER%", identity, -1)
@@ -94,6 +97,9 @@ func (y *Yellowfin) Login(identity string) []*http.Cookie {
 	req.Header["Content-Type"] = []string{"text/xml;charset=UTF-8"}
 	req.Header["Connection"] = []string{"Close"}
 	if resp, err := y.Transport.RoundTrip(req); err == nil {
+		if resp.StatusCode != 200 {
+			return nil
+		}
 		result := y.parsexml(resp)
 		if result.StatusCode == "SUCCESS" && result.ErrorCode == "0" {
 			url := "http://localhost:2005/" + "logon.i4?LoginWebserviceId=" + result.SessionId
@@ -115,6 +121,9 @@ func (y *Yellowfin) Login(identity string) []*http.Cookie {
 }
 
 func (y *Yellowfin) Logout(identity string, r *http.Request) error {
+	if y.Enabled == "false" {
+		return nil
+	}
 	sessionidCookie, err := r.Cookie("JSESSIONID")
 	if err != nil {
 		return err

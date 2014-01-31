@@ -85,18 +85,12 @@ func realMain() (result int) {
 
 	ic := &imqsauth.ImqsCentral{}
 	ic.Config = &authaus.Config{}
+	ic.Yellowfin = &imqsauth.Yellowfin{Enabled: "false"}
 
 	if configFile == "" {
 		showhelp()
 		return 1
 	}
-
-	if yfconfigFile == "" {
-		showhelp()
-		return 1
-	}
-
-	ic.Yellowfin = imqsauth.NewYellowfin(yfconfigFile)
 
 	isTestConfig := loadTestConfig(ic, configFile)
 
@@ -104,6 +98,12 @@ func realMain() (result int) {
 		if err := ic.Config.LoadFile(configFile); err != nil {
 			fmt.Printf("Error loading config file '%v': %v\n", configFile, err)
 			return 1
+		}
+		if yfconfigFile != "" {
+			if err := ic.Yellowfin.LoadConfig(yfconfigFile); err != nil {
+				fmt.Printf("Error loading config file '%v': %v\n", yfconfigFile, err)
+				return 1
+			}
 		}
 	}
 
@@ -166,6 +166,7 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 		ic.Central.SetPermit("joe", permitEnabled)
 		ic.Central.SetPermit("admin", permitAdminEnabled)
 		ic.Central.SetPermit("admin_disabled", permitAdminDisabled)
+		ic.Yellowfin.Enabled = "false"
 		return true
 	}
 	return false
@@ -477,7 +478,7 @@ func resetAuthGroups(icentral *imqsauth.ImqsCentral) bool {
 
 func showhelp() {
 	help := `
-imqsauth -c configfile command [options]
+imqsauth -c configfile [-y yfconfigfile] command [options]
 
   commands
     createdb          Create the postgres database
@@ -493,7 +494,6 @@ imqsauth -c configfile command [options]
     -c configfile     Specify the authaus config file. A pseudo file called
                       !TESTCONFIG1 is used by the REST test suite to load a
                       test configuration.
-    -y configfile     Specify the yellowfin config file.
 `
 	fmt.Print(help)
 }
