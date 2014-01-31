@@ -38,6 +38,7 @@ func realMain() (result int) {
 	args = append(args, "")
 	command := ""
 	configFile := ""
+	yfconfigFile := ""
 	lastRecognizedArgument := 0
 	helpCmd := false
 	for i := 0; i < len(args)-1; i++ {
@@ -46,6 +47,9 @@ func realMain() (result int) {
 			switch arg {
 			case "-c":
 				configFile = args[i+1]
+				lastRecognizedArgument = i + 1
+			case "-y":
+				yfconfigFile = args[i+1]
 				lastRecognizedArgument = i + 1
 			case "-help":
 				fallthrough
@@ -86,6 +90,13 @@ func realMain() (result int) {
 		showhelp()
 		return 1
 	}
+
+	if yfconfigFile == "" {
+		showhelp()
+		return 1
+	}
+
+	ic.Yellowfin = imqsauth.NewYellowfin(yfconfigFile)
 
 	isTestConfig := loadTestConfig(ic, configFile)
 
@@ -482,6 +493,7 @@ imqsauth -c configfile command [options]
     -c configfile     Specify the authaus config file. A pseudo file called
                       !TESTCONFIG1 is used by the REST test suite to load a
                       test configuration.
+    -y configfile     Specify the yellowfin config file.
 `
 	fmt.Print(help)
 }

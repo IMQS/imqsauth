@@ -64,8 +64,9 @@ type userGroupsResponseJson struct {
 }
 
 type ImqsCentral struct {
-	Config  *authaus.Config
-	Central *authaus.Central
+	Config    *authaus.Config
+	Central   *authaus.Central
+	Yellowfin *Yellowfin
 }
 
 func (x *ImqsCentral) RunHttp() error {
@@ -109,6 +110,7 @@ func (x *ImqsCentral) RunHttp() error {
 
 	smux := http.NewServeMux()
 	smux.HandleFunc("/login", makehandler(HttpMethodPost, httpHandlerLogin, 0))
+	smux.HandleFunc("/logout", makehandler(HttpMethodPost, httpHandlerLogout, 0))
 	smux.HandleFunc("/check", makehandler(HttpMethodGet, httpHandlerCheck, 0))
 	smux.HandleFunc("/create_user", makehandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_user_groups", makehandler(HttpMethodPost, httpHandlerSetUserGroups, handlerFlagNeedAdminRights))
@@ -217,6 +219,19 @@ func httpSendAccountDisabled(w http.ResponseWriter) {
 func httpSendNoIdentity(w http.ResponseWriter) {
 	authaus.HttpSendTxt(w, http.StatusUnauthorized, authaus.ErrIdentityEmpty.Error())
 }
+func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *http.Request) {
+	identity := ""
+	if token, err := authaus.HttpHandlerPreludeWithError(&central.Config.HTTP, central.Central, w, r); err == nil {
+		identity = token.Identity
+	}
+
+	if identity == "" {
+		httpSendNoIdentity(w)
+		return
+	}
+	central.Yellowfin.Logout(identity, r)
+	authaus.HttpSendTxt(w, http.StatusOK, "")
+}
 
 // Handle the 'login' request, sending back a session token (via Set-Cookie),
 func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *http.Request) {
@@ -248,6 +263,20 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *http.Reque
 					Secure:  central.Config.HTTP.CookieSecure,
 				}
 				http.SetCookie(w, cookie)
+				// Do yellowfin login
+				cookies := central.Yellowfin.Login(identity)
+				if cookies != nil {
+					for _, cookie := range cookies {
+						newcookie := &http.Cookie{
+							Name:    cookie.Name,
+							Value:   cookie.Value,
+							Path:    "/",
+							Expires: cookie.Expires,
+							Secure:  central.Config.HTTP.CookieSecure,
+						}
+						http.SetCookie(w, newcookie)
+					}
+				}
 				httpSendCheckJson(w, token, permList)
 			}
 		}
