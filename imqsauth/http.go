@@ -271,7 +271,7 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *http.Reque
 							Name:    cookie.Name,
 							Value:   cookie.Value,
 							Path:    "/",
-							Expires: cookie.Expires,
+							Expires: token.Expires,
 							Secure:  central.Config.HTTP.CookieSecure,
 						}
 						http.SetCookie(w, newcookie)

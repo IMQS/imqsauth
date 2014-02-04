@@ -102,13 +102,13 @@ func (y *Yellowfin) Login(identity string) []*http.Cookie {
 		}
 		result := y.parsexml(resp)
 		if result.StatusCode == "SUCCESS" && result.ErrorCode == "0" {
-			url := "http://localhost:2005/" + "logon.i4?LoginWebserviceId=" + result.SessionId
+			url := y.Url + "logon.i4?LoginWebserviceId=" + result.SessionId
 			req, err := http.NewRequest("GET", url, nil)
 			if err != nil {
 				return nil
 			}
 			req.Header["Accept"] = []string{"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"}
-			req.Header["Host"] = []string{"localhost:2005"}
+			//req.Host = "localhost:2005"
 			req.Header["Connection"] = []string{"Close"}
 			resp, err := y.Transport.RoundTrip(req)
 			if err != nil {
@@ -143,6 +143,9 @@ func (y *Yellowfin) Logout(identity string, r *http.Request) error {
 	resp, err := y.Transport.RoundTrip(req)
 	if err != nil {
 		return err
+	}
+	if resp.StatusCode != 200 {
+		return errors.New("Error logging out with webservice")
 	}
 	result := y.parsexml(resp)
 	if result.StatusCode == "SUCCESS" {
