@@ -85,7 +85,7 @@ func realMain() (result int) {
 
 	ic := &imqsauth.ImqsCentral{}
 	ic.Config = &authaus.Config{}
-	ic.Yellowfin = &imqsauth.Yellowfin{Enabled: "false"}
+	ic.Yellowfin = &imqsauth.Yellowfin{Enabled: false}
 
 	if configFile == "" {
 		showhelp()
@@ -166,7 +166,7 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 		ic.Central.SetPermit("joe", permitEnabled)
 		ic.Central.SetPermit("admin", permitAdminEnabled)
 		ic.Central.SetPermit("admin_disabled", permitAdminDisabled)
-		ic.Yellowfin.Enabled = "false"
+		ic.Yellowfin.Enabled = false
 		return true
 	}
 	return false

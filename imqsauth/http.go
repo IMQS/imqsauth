@@ -219,6 +219,7 @@ func httpSendAccountDisabled(w http.ResponseWriter) {
 func httpSendNoIdentity(w http.ResponseWriter) {
 	authaus.HttpSendTxt(w, http.StatusUnauthorized, authaus.ErrIdentityEmpty.Error())
 }
+
 func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *http.Request) {
 	identity := ""
 	if token, err := authaus.HttpHandlerPreludeWithError(&central.Config.HTTP, central.Central, w, r); err == nil {
@@ -229,7 +230,12 @@ func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *http.Requ
 		httpSendNoIdentity(w)
 		return
 	}
-	central.Yellowfin.Logout(identity, r)
+
+	// TODO: when authaus has Logout functionality, use it here.
+
+	if err := central.Yellowfin.Logout(identity, r); err != nil {
+		central.Central.Log.Printf("Yellowfin logout error: %v", err)
+	}
 	authaus.HttpSendTxt(w, http.StatusOK, "")
 }
 
@@ -263,9 +269,12 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *http.Reque
 					Secure:  central.Config.HTTP.CookieSecure,
 				}
 				http.SetCookie(w, cookie)
+
 				// Do yellowfin login
-				cookies := central.Yellowfin.Login(identity)
-				if cookies != nil {
+				cookies, yfErr := central.Yellowfin.Login(identity)
+				if yfErr != nil {
+					central.Central.Log.Printf("Yellowfin login error: %v", yfErr)
+				} else if cookies != nil {
 					for _, cookie := range cookies {
 						newcookie := &http.Cookie{
 							Name:    cookie.Name,

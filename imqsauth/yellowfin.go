@@ -61,7 +61,7 @@ type Yellowfin struct {
 	Password  string `json:"password"`
 	Url       string `json:"url"`
 	User      string `json:"user"`
-	Enabled   string `json:"enabled"`
+	Enabled   bool   `json:"enabled"`
 	Transport *http.Transport
 }
 
@@ -82,46 +82,49 @@ func (y *Yellowfin) LoadConfig(fn string) error {
 	return nil
 }
 
-func (y *Yellowfin) Login(identity string) []*http.Cookie {
-	if y.Enabled == "false" {
-		return nil
+func (y *Yellowfin) Login(identity string) ([]*http.Cookie, error) {
+	if !y.Enabled {
+		return nil, nil
 	}
 	act := strings.Replace(soapLogin, "%ADMIN%", y.User, -1)
 	act = strings.Replace(act, "%PASSWORD%", y.Password, -1)
 	act = strings.Replace(act, "%USER%", identity, -1)
 	req, err := http.NewRequest("POST", y.Url+"services/AdministrationService", strings.NewReader(act))
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	req.Header["SOAPAction"] = []string{"\"\""}
 	req.Header["Content-Type"] = []string{"text/xml;charset=UTF-8"}
 	req.Header["Connection"] = []string{"Close"}
 	if resp, err := y.Transport.RoundTrip(req); err == nil {
 		if resp.StatusCode != 200 {
-			return nil
+			return nil, errors.New(fmt.Sprintf("Login error (HTTP): %v", resp.StatusCode))
 		}
 		result := y.parsexml(resp)
 		if result.StatusCode == "SUCCESS" && result.ErrorCode == "0" {
 			url := y.Url + "logon.i4?LoginWebserviceId=" + result.SessionId
 			req, err := http.NewRequest("GET", url, nil)
 			if err != nil {
-				return nil
+				return nil, err
 			}
 			req.Header["Accept"] = []string{"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"}
 			//req.Host = "localhost:2005"
 			req.Header["Connection"] = []string{"Close"}
 			resp, err := y.Transport.RoundTrip(req)
 			if err != nil {
-				return nil
+				return nil, err
 			}
-			return resp.Cookies()
+			return resp.Cookies(), nil
+		} else {
+			return nil, errors.New(fmt.Sprintf("Login error %v, %v", result.StatusCode, result.ErrorCode))
 		}
+	} else {
+		return nil, err
 	}
-	return nil
 }
 
 func (y *Yellowfin) Logout(identity string, r *http.Request) error {
-	if y.Enabled == "false" {
+	if !y.Enabled {
 		return nil
 	}
 	sessionidCookie, err := r.Cookie("JSESSIONID")
@@ -145,13 +148,13 @@ func (y *Yellowfin) Logout(identity string, r *http.Request) error {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return errors.New("Error logging out with webservice")
+		return errors.New(fmt.Sprintf("Logout error (HTTP): %s", resp.StatusCode))
 	}
 	result := y.parsexml(resp)
 	if result.StatusCode == "SUCCESS" {
 		return nil
 	} else {
-		return errors.New(fmt.Sprintf("Logout Error Code :%s", result.ErrorCode))
+		return errors.New(fmt.Sprintf("Logout error (Response): %s", result.ErrorCode))
 	}
 	return nil
 }
