@@ -108,12 +108,12 @@ func (y *Yellowfin) Login(identity string) ([]*http.Cookie, error) {
 				return nil, err
 			}
 			req.Header["Accept"] = []string{"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"}
-			//req.Host = "localhost:2005"
 			req.Header["Connection"] = []string{"Close"}
 			resp, err := y.Transport.RoundTrip(req)
 			if err != nil {
 				return nil, err
 			}
+
 			return resp.Cookies(), nil
 		} else {
 			return nil, errors.New(fmt.Sprintf("Login error %v, %v", result.StatusCode, result.ErrorCode))

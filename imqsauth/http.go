@@ -276,14 +276,16 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *http.Reque
 					central.Central.Log.Printf("Yellowfin login error: %v", yfErr)
 				} else if cookies != nil {
 					for _, cookie := range cookies {
-						newcookie := &http.Cookie{
-							Name:    cookie.Name,
-							Value:   cookie.Value,
-							Path:    "/",
-							Expires: token.Expires,
-							Secure:  central.Config.HTTP.CookieSecure,
+						if cookie.Name == "JSESSIONID" || cookie.Name == "IPID" {
+							newcookie := &http.Cookie{
+								Name:    cookie.Name,
+								Value:   cookie.Value,
+								Path:    "/",
+								Expires: cookie.Expires,
+								Secure:  cookie.Secure,
+							}
+							http.SetCookie(w, newcookie)
 						}
-						http.SetCookie(w, newcookie)
 					}
 				}
 				httpSendCheckJson(w, token, permList)
