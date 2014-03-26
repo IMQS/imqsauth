@@ -15,6 +15,7 @@ const TestPort = 3377
 const (
 	RoleGroupAdmin   = "admin"
 	RoleGroupEnabled = "enabled"
+	RoleGroupPCS     = "pcs"
 )
 
 func main() {
@@ -157,10 +158,11 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 		ic.Central.CreateAuthenticatorIdentity("admin_disabled", "ADMIN_DISABLED")
 		groupAdmin, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupAdmin)
 		groupEnabled, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupEnabled)
+		groupPCS, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupPCS)
 		permitEnabled := &authaus.Permit{}
 		permitEnabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupEnabled.ID})
 		permitAdminEnabled := &authaus.Permit{}
-		permitAdminEnabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupAdmin.ID, groupEnabled.ID})
+		permitAdminEnabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupAdmin.ID, groupEnabled.ID, groupPCS.ID})
 		permitAdminDisabled := &authaus.Permit{}
 		permitAdminDisabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupAdmin.ID})
 		ic.Central.SetPermit("joe", permitEnabled)
@@ -470,6 +472,7 @@ func resetAuthGroups(icentral *imqsauth.ImqsCentral) bool {
 	ok := true
 	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupAdmin, authaus.PermissionList{imqsauth.PermAdmin})
 	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupEnabled, authaus.PermissionList{imqsauth.PermEnabled})
+	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupPCS, authaus.PermissionList{imqsauth.PermEnabled, imqsauth.PermPCS})
 	if !ok {
 		return false
 	}

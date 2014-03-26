@@ -9,6 +9,7 @@ const (
 	PermReservedZero authaus.PermissionU16 = 0 // Avoid the danger of having a zero mean something
 	PermAdmin        authaus.PermissionU16 = 1 // Super-user who can control all aspects of the auth system
 	PermEnabled      authaus.PermissionU16 = 2 // User is allowed to use the system. Without this no request is authorized
+	PermPCS          authaus.PermissionU16 = 3 // User is allowed to access the PCS module.
 )
 
 // This is not yet used, but I expect to use it when building the REST API that will be used by
@@ -20,4 +21,5 @@ func init() {
 	PermissionsTable.Append(PermReservedZero, "")
 	PermissionsTable.Append(PermAdmin, "admin")
 	PermissionsTable.Append(PermEnabled, "enabled")
+	PermissionsTable.Append(PermPCS, "pcs")
 }
