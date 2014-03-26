@@ -485,7 +485,7 @@ imqsauth -c configfile [-y yfconfigfile] command [options]
 
   commands
     createdb          Create the postgres database
-    resetauthgroups   Reset the [admin,enabled] groups
+    resetauthgroups   Reset the [admin,enabled,pcs] groups
     createuser        Create a user in the authentication system
     setpassword       Set a user's password
     permgroupadd      Add a group to a permit
