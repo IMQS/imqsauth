@@ -15,8 +15,13 @@ const TestPort = 3377
 const (
 	RoleGroupAdmin   = "admin"
 	RoleGroupEnabled = "enabled"
-	RoleGroupPCS     = "pcs"
+	RoleGroupPCS     = "pcs" // TODO: Remove once Admin GUI is built
 )
+
+// Why is RoleGroupPCS in here? The reason is because the PCS product needs to be deployed soon, and we have not yet built
+// the GUI for managing role groups. Once that GUI is built, we can remove any mention of PCS inside this file.
+// If another such situation arises, then rather than continuing the hack, just finish the Role Group Administration GUI.
+// [BMH 2014-03-27]
 
 func main() {
 	os.Exit(realMain())
@@ -158,11 +163,10 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 		ic.Central.CreateAuthenticatorIdentity("admin_disabled", "ADMIN_DISABLED")
 		groupAdmin, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupAdmin)
 		groupEnabled, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupEnabled)
-		groupPCS, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupPCS)
 		permitEnabled := &authaus.Permit{}
 		permitEnabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupEnabled.ID})
 		permitAdminEnabled := &authaus.Permit{}
-		permitAdminEnabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupAdmin.ID, groupEnabled.ID, groupPCS.ID})
+		permitAdminEnabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupAdmin.ID, groupEnabled.ID})
 		permitAdminDisabled := &authaus.Permit{}
 		permitAdminDisabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupAdmin.ID})
 		ic.Central.SetPermit("joe", permitEnabled)
@@ -472,7 +476,7 @@ func resetAuthGroups(icentral *imqsauth.ImqsCentral) bool {
 	ok := true
 	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupAdmin, authaus.PermissionList{imqsauth.PermAdmin})
 	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupEnabled, authaus.PermissionList{imqsauth.PermEnabled})
-	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupPCS, authaus.PermissionList{imqsauth.PermEnabled, imqsauth.PermPCS})
+	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupPCS, authaus.PermissionList{imqsauth.PermEnabled, imqsauth.PermPCS}) // TODO: Remove once Admin GUI is built
 	if !ok {
 		return false
 	}
