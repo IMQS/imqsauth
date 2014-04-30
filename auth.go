@@ -376,6 +376,16 @@ func genericFunc(icentral *imqsauth.ImqsCentral, function string, options map[st
 				panic("Unrecognized option " + dumpOptions(options))
 			}
 			return permGroupAddOrDel(icentral, args[0], args[1], false)
+		case "addgroup":
+			if len(args) < 1 {
+				//at least one argument is required, the groupname. If no other parameters are provided,
+				//the group is created with no roles
+				panic("addgroup groupname role1 role2 role3...")
+			}
+			if len(options) != 0 {
+				panic("Unrecognized option " + dumpOptions(options))
+			}
+			return addGroup(icentral, args)
 		case "permshow":
 			if len(args) != 1 {
 				panic("permshow identity")
@@ -392,6 +402,25 @@ func genericFunc(icentral *imqsauth.ImqsCentral, function string, options map[st
 		fmt.Printf("Error: %v\n", err)
 		return false
 	}
+}
+
+func addGroup(icentral *imqsauth.ImqsCentral, args []string) bool {
+	for i, k := range args {
+		fmt.Printf("arg %v value %s\n", i, k)
+	}
+	//extract all args[1]..[n-1] as PermissionU16
+	// loadOrCreateGroup()
+	// roles = make(authaus.PermissionList, len(args))
+
+	for j, pName := range imqsauth.PermissionsTable {
+		fmt.Printf("index %v name %s\n", j, pName)
+	}
+
+	ok := true
+	// ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupAdmin, authaus.PermissionList{imqsauth.PermAdmin})
+	ok = ok && modifyGroup(icentral, groupModifySet, args[0], authaus.PermissionList{1})
+
+	return ok
 }
 
 func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, identity string, password string) bool {
