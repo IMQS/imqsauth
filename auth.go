@@ -405,20 +405,39 @@ func genericFunc(icentral *imqsauth.ImqsCentral, function string, options map[st
 }
 
 func addGroup(icentral *imqsauth.ImqsCentral, args []string) bool {
+	//print out permission names from cmd line
 	for i, k := range args {
 		fmt.Printf("arg %v value %s\n", i, k)
 	}
+
+	//convert imqsauth.PermissionsTable to map
+	var permMap map[string]int
+	permMap = make(map[string]int)
+
+	for permNr, permName := range imqsauth.PermissionsTable {
+		permMap[permName] = permNr
+	}
+
 	//extract all args[1]..[n-1] as PermissionU16
 	// loadOrCreateGroup()
 	// roles = make(authaus.PermissionList, len(args))
 
-	for j, pName := range imqsauth.PermissionsTable {
-		fmt.Printf("index %v name %s\n", j, pName)
+	ps := make([]authaus.PermissionU16, 0, len(args))
+	var result int
+	for l, cmdPerm := range args {
+		if l > 0 {
+			result = permMap[cmdPerm]
+			if result > 0 {
+				ps = append(ps, authaus.PermissionU16(result))
+				fmt.Printf("New permission added for %s : %v\n", cmdPerm, result)
+			} else {
+				panic("Permission does not exit " + cmdPerm)
+			}
+		}
 	}
 
 	ok := true
-	// ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupAdmin, authaus.PermissionList{imqsauth.PermAdmin})
-	ok = ok && modifyGroup(icentral, groupModifySet, args[0], authaus.PermissionList{1})
+	ok = ok && modifyGroup(icentral, groupModifySet, args[0], ps)
 
 	return ok
 }
