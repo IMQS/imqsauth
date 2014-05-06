@@ -15,13 +15,7 @@ const TestPort = 3377
 const (
 	RoleGroupAdmin   = "admin"
 	RoleGroupEnabled = "enabled"
-	RoleGroupPCS     = "pcs" // TODO: Remove once Admin GUI is built
 )
-
-// Why is RoleGroupPCS in here? The reason is because the PCS product needs to be deployed soon, and we have not yet built
-// the GUI for managing role groups. Once that GUI is built, we can remove any mention of PCS inside this file.
-// If another such situation arises, then rather than continuing the hack, just finish the Role Group Administration GUI.
-// [BMH 2014-03-27]
 
 func main() {
 	os.Exit(realMain())
@@ -524,7 +518,6 @@ func resetAuthGroups(icentral *imqsauth.ImqsCentral) bool {
 	ok := true
 	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupAdmin, authaus.PermissionList{imqsauth.PermAdmin})
 	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupEnabled, authaus.PermissionList{imqsauth.PermEnabled})
-	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupPCS, authaus.PermissionList{imqsauth.PermEnabled, imqsauth.PermPCS}) // TODO: Remove once Admin GUI is built
 	if !ok {
 		return false
 	}
@@ -537,7 +530,7 @@ imqsauth -c configfile [-y yfconfigfile] command [options]
 
   commands
     createdb          Create the postgres database
-    resetauthgroups   Reset the [admin,enabled,pcs] groups
+    resetauthgroups   Reset the [admin,enabled] groups
     createuser        Create a user in the authentication system
     setpassword       Set a user's password
     permgroupadd      Add a group to a permit
