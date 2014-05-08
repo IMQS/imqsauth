@@ -15,13 +15,7 @@ const TestPort = 3377
 const (
 	RoleGroupAdmin   = "admin"
 	RoleGroupEnabled = "enabled"
-	RoleGroupPCS     = "pcs" // TODO: Remove once Admin GUI is built
 )
-
-// Why is RoleGroupPCS in here? The reason is because the PCS product needs to be deployed soon, and we have not yet built
-// the GUI for managing role groups. Once that GUI is built, we can remove any mention of PCS inside this file.
-// If another such situation arises, then rather than continuing the hack, just finish the Role Group Administration GUI.
-// [BMH 2014-03-27]
 
 func main() {
 	os.Exit(realMain())
@@ -376,6 +370,17 @@ func genericFunc(icentral *imqsauth.ImqsCentral, function string, options map[st
 				panic("Unrecognized option " + dumpOptions(options))
 			}
 			return permGroupAddOrDel(icentral, args[0], args[1], false)
+		case "addgroup":
+
+			if len(args) < 1 {
+				//at least one argument is required, the groupname. If no other parameters are provided,
+				//the group is created with no roles
+				panic("addgroup groupname role1 role2 role3...")
+			}
+			if len(options) != 0 {
+				panic("Unrecognized option " + dumpOptions(options))
+			}
+			return addGroup(icentral, args)
 		case "permshow":
 			if len(args) != 1 {
 				panic("permshow identity")
@@ -392,6 +397,39 @@ func genericFunc(icentral *imqsauth.ImqsCentral, function string, options map[st
 		fmt.Printf("Error: %v\n", err)
 		return false
 	}
+}
+
+func addGroup(icentral *imqsauth.ImqsCentral, args []string) bool {
+	//convert imqsauth.PermissionsTable to map
+	var permMap map[string]int
+	permMap = make(map[string]int)
+
+	for permNr, permName := range imqsauth.PermissionsTable {
+		permMap[permName] = permNr
+	}
+
+	//extract all args[1]..[n-1] as PermissionU16
+	ps := make([]authaus.PermissionU16, 0, len(args))
+	var result int
+
+	for l, cmdPerm := range args {
+		if l > 0 {
+			result = permMap[cmdPerm]
+			if result > 0 {
+				ps = append(ps, authaus.PermissionU16(result))
+				fmt.Printf("Added permission : %-25v  [%v]\n", cmdPerm, result)
+			} else {
+				fmt.Printf("Permission '%v' does not exist, group not added.\n", cmdPerm)
+				panic("Permission does not exit " + cmdPerm)
+			}
+		}
+	}
+
+	//persist
+	ok := true
+	ok = ok && modifyGroup(icentral, groupModifySet, args[0], ps)
+
+	return ok
 }
 
 func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, identity string, password string) bool {
@@ -476,7 +514,6 @@ func resetAuthGroups(icentral *imqsauth.ImqsCentral) bool {
 	ok := true
 	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupAdmin, authaus.PermissionList{imqsauth.PermAdmin})
 	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupEnabled, authaus.PermissionList{imqsauth.PermEnabled})
-	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupPCS, authaus.PermissionList{imqsauth.PermEnabled, imqsauth.PermPCS}) // TODO: Remove once Admin GUI is built
 	if !ok {
 		return false
 	}
@@ -489,7 +526,7 @@ imqsauth -c configfile [-y yfconfigfile] command [options]
 
   commands
     createdb          Create the postgres database
-    resetauthgroups   Reset the [admin,enabled,pcs] groups
+    resetauthgroups   Reset the [admin,enabled] groups
     createuser        Create a user in the authentication system
     setpassword       Set a user's password
     permgroupadd      Add a group to a permit
