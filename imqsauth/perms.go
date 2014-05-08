@@ -30,31 +30,33 @@ const (
 	PermPCSBudgetItemsAvailable   authaus.PermissionU16 = 116 // User is allowed to view the allocatable budget items
 )
 
-// This is not yet used, but I expect to use it when building the REST API that will be used by
-// the administrator web app.
+// Mapping from 16-bit permission integer to string-based name
 var PermissionsTable authaus.PermissionNameTable
 
 func init() {
-	PermissionsTable = make(authaus.PermissionNameTable, 0)
-	PermissionsTable.Append(PermReservedZero, "")
-	PermissionsTable.Append(PermAdmin, "admin")
-	PermissionsTable.Append(PermEnabled, "enabled")
-	PermissionsTable.Append(PermPCS, "pcs")
-	PermissionsTable.Append(PermPCSSuperUser, "pcssuperuser")
-	PermissionsTable.Append(PermPCSBudgetAddAndDelete, "pcsbudgetaddanddelete")
-	PermissionsTable.Append(PermPCSBudgetUpdate, "pcsbudgetupdate")
-	PermissionsTable.Append(PermPCSBudgetView, "pcsbudgetview")
-	PermissionsTable.Append(PermPCSProjectAddAndDelete, "pcsprojectaddanddelete")
-	PermissionsTable.Append(PermPCSProjectUpdate, "pcsprojectupdate")
-	PermissionsTable.Append(PermPCSProjectView, "pcsprojectview")
-	PermissionsTable.Append(PermPCSProgrammeAddAndDelete, "pcsprogrammeaddanddelete")
-	PermissionsTable.Append(PermPCSProgrammeUpdate, "pcsprogrammeupdate")
-	PermissionsTable.Append(PermPCSProgrammeView, "pcsprogrammeview")
-	PermissionsTable.Append(PermPCSLookupAddAndDelete, "pcslookupaddanddelete")
-	PermissionsTable.Append(PermPCSLookupUpdate, "pcslookupupdate")
-	PermissionsTable.Append(PermPCSLookupView, "pcslookupview")
-	PermissionsTable.Append(PermPCSBudgetItemList, "pcsbudgetitemlist")
-	PermissionsTable.Append(PermPCSDynamicContent, "pcsdynamiccontent")
-	PermissionsTable.Append(PermPCSProjectsUnassignedView, "pcsprojectsunassignedview")
-	PermissionsTable.Append(PermPCSBudgetItemsAvailable, "pcsbudgetitemsavailable")
+	PermissionsTable = authaus.PermissionNameTable{}
+
+	// It is better not to include the 'zero' permission in here, otherwise it leaks
+	// out into things like an inverted map from permission name to permission number.
+
+	PermissionsTable[PermAdmin] = "admin"
+	PermissionsTable[PermEnabled] = "enabled"
+	PermissionsTable[PermPCS] = "pcs"
+	PermissionsTable[PermPCSSuperUser] = "pcssuperuser"
+	PermissionsTable[PermPCSBudgetAddAndDelete] = "pcsbudgetaddanddelete"
+	PermissionsTable[PermPCSBudgetUpdate] = "pcsbudgetupdate"
+	PermissionsTable[PermPCSBudgetView] = "pcsbudgetview"
+	PermissionsTable[PermPCSProjectAddAndDelete] = "pcsprojectaddanddelete"
+	PermissionsTable[PermPCSProjectUpdate] = "pcsprojectupdate"
+	PermissionsTable[PermPCSProjectView] = "pcsprojectview"
+	PermissionsTable[PermPCSProgrammeAddAndDelete] = "pcsprogrammeaddanddelete"
+	PermissionsTable[PermPCSProgrammeUpdate] = "pcsprogrammeupdate"
+	PermissionsTable[PermPCSProgrammeView] = "pcsprogrammeview"
+	PermissionsTable[PermPCSLookupAddAndDelete] = "pcslookupaddanddelete"
+	PermissionsTable[PermPCSLookupUpdate] = "pcslookupupdate"
+	PermissionsTable[PermPCSLookupView] = "pcslookupview"
+	PermissionsTable[PermPCSBudgetItemList] = "pcsbudgetitemlist"
+	PermissionsTable[PermPCSDynamicContent] = "pcsdynamiccontent"
+	PermissionsTable[PermPCSProjectsUnassignedView] = "pcsprojectsunassignedview"
+	PermissionsTable[PermPCSBudgetItemsAvailable] = "pcsbudgetitemsavailable"
 }

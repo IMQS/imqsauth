@@ -59,8 +59,11 @@ func realMain() (result int) {
 				fallthrough
 			case "--?":
 				helpCmd = true
+				i -= 1 // counteract following i += 1
 			}
 			i += 1
+		} else if arg == "help" || arg == "?" {
+			helpCmd = true
 		} else if command == "" {
 			command = arg
 			lastRecognizedArgument = i
@@ -68,7 +71,7 @@ func realMain() (result int) {
 	}
 	cmdargsRaw := args[lastRecognizedArgument+1 : len(args)-1]
 
-	if helpCmd || command == "help" || command == "?" {
+	if helpCmd {
 		showhelp_cmd(command)
 		return 0
 	}
@@ -354,6 +357,14 @@ func genericFunc(icentral *imqsauth.ImqsCentral, function string, options map[st
 				panic("Unrecognized option " + dumpOptions(options))
 			}
 			return setPassword(icentral, args[0], args[1])
+		case "setgroup":
+			if len(args) < 1 {
+				panic("setgroup groupname [role1 role2 role3...]")
+			}
+			if len(options) != 0 {
+				panic("Unrecognized option " + dumpOptions(options))
+			}
+			return setGroup(icentral, args)
 		case "permgroupadd":
 			if len(args) != 2 {
 				panic("permgroupadd identity groupname")
@@ -370,17 +381,6 @@ func genericFunc(icentral *imqsauth.ImqsCentral, function string, options map[st
 				panic("Unrecognized option " + dumpOptions(options))
 			}
 			return permGroupAddOrDel(icentral, args[0], args[1], false)
-		case "addgroup":
-
-			if len(args) < 1 {
-				//at least one argument is required, the groupname. If no other parameters are provided,
-				//the group is created with no roles
-				panic("addgroup groupname role1 role2 role3...")
-			}
-			if len(options) != 0 {
-				panic("Unrecognized option " + dumpOptions(options))
-			}
-			return addGroup(icentral, args)
 		case "permshow":
 			if len(args) != 1 {
 				panic("permshow identity")
@@ -399,37 +399,22 @@ func genericFunc(icentral *imqsauth.ImqsCentral, function string, options map[st
 	}
 }
 
-func addGroup(icentral *imqsauth.ImqsCentral, args []string) bool {
-	//convert imqsauth.PermissionsTable to map
-	var permMap map[string]int
-	permMap = make(map[string]int)
+func setGroup(icentral *imqsauth.ImqsCentral, args []string) bool {
+	// command format is: group perm1 perm2 perm3...
+	groupName := args[0]
+	perms := []authaus.PermissionU16{}
+	nameToPerm := imqsauth.PermissionsTable.Inverted()
 
-	for permNr, permName := range imqsauth.PermissionsTable {
-		permMap[permName] = permNr
-	}
-
-	//extract all args[1]..[n-1] as PermissionU16
-	ps := make([]authaus.PermissionU16, 0, len(args))
-	var result int
-
-	for l, cmdPerm := range args {
-		if l > 0 {
-			result = permMap[cmdPerm]
-			if result > 0 {
-				ps = append(ps, authaus.PermissionU16(result))
-				fmt.Printf("Added permission : %-25v  [%v]\n", cmdPerm, result)
-			} else {
-				fmt.Printf("Permission '%v' does not exist, group not added.\n", cmdPerm)
-				panic("Permission does not exit " + cmdPerm)
-			}
+	for _, name := range args[1:] {
+		if perm, ok := nameToPerm[name]; ok {
+			perms = append(perms, perm)
+			// fmt.Printf("Added permission : %-25v [%v]\n", name, perm)
+		} else {
+			panic(fmt.Sprintf("Permission '%v' does not exist", name))
 		}
 	}
 
-	//persist
-	ok := true
-	ok = ok && modifyGroup(icentral, groupModifySet, args[0], ps)
-
-	return ok
+	return modifyGroup(icentral, groupModifySet, groupName, perms)
 }
 
 func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, identity string, password string) bool {
@@ -529,6 +514,7 @@ imqsauth -c configfile [-y yfconfigfile] command [options]
     resetauthgroups   Reset the [admin,enabled] groups
     createuser        Create a user in the authentication system
     setpassword       Set a user's password
+    setgroup          Add or modify a group
     permgroupadd      Add a group to a permit
     permgroupdel      Remove a group from a permit
     permshow          Show the groups of a permit
