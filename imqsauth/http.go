@@ -304,6 +304,9 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *http.
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		authaus.HttpSendTxt(w, http.StatusOK, "Created identity '"+identity+"'")
+		if yfErr := central.Yellowfin.CreateUser(identity, password); yfErr != nil {
+			central.Central.Log.Printf("Yellowfin user creation error: %v", yfErr)
+		}
 	}
 }
 
@@ -343,6 +346,14 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 
 	summary := strings.Join(groups, ",")
 	authaus.HttpSendTxt(w, http.StatusOK, "'"+identity+"' groups set to ("+summary+")")
+	if permList, errList := authaus.PermitResolveToList(permit.Roles, central.Central.GetRoleGroupDB()); errList != nil {
+		central.Central.Log.Printf("Yellowfin Permit resolve error: %v", errList)
+	} else {
+		errYFGroup := central.Yellowfin.ChangeGroup(permList.Has(PermAdmin), identity)
+		if errYFGroup != nil {
+			central.Central.Log.Printf("Could not change yf role error: %v", errYFGroup)
+		}
+	}
 }
 
 func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *http.Request) {
