@@ -227,7 +227,7 @@ func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *http.Requ
 	}
 
 	// Try to erase the session cookie regardless of whether we could locate a valid token.
-	sessioncookie, _ := r.Cookie(config.CookieName)
+	sessioncookie, _ := r.Cookie(central.Config.HTTP.CookieName)
 	if sessioncookie != nil {
 		central.Central.Logout(sessioncookie.Value)
 	}
