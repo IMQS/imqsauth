@@ -226,12 +226,16 @@ func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *http.Requ
 		identity = token.Identity
 	}
 
+	// Try to erase the session cookie regardless of whether we could locate a valid token.
+	sessioncookie, _ := r.Cookie(config.CookieName)
+	if sessioncookie != nil {
+		central.Central.Logout(sessioncookie.Value)
+	}
+
 	if identity == "" {
 		httpSendNoIdentity(w)
 		return
 	}
-
-	// TODO: when authaus has Logout functionality, use it here.
 
 	if err := central.Yellowfin.Logout(identity, r); err != nil {
 		central.Central.Log.Printf("Yellowfin logout error: %v", err)
@@ -346,7 +350,7 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 
 	summary := strings.Join(groups, ",")
 	authaus.HttpSendTxt(w, http.StatusOK, "'"+identity+"' groups set to ("+summary+")")
-	
+
 	// Change yellowfin permissions
 	if permList, errList := authaus.PermitResolveToList(permit.Roles, central.Central.GetRoleGroupDB()); errList != nil {
 		central.Central.Log.Printf("Permit resolve failed: %v", errList)
