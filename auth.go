@@ -392,15 +392,7 @@ func setGroup(icentral *imqsauth.ImqsCentral, groupName string, roles []string) 
 }
 
 func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, identity string, password string) bool {
-	update := false
-	for k, _ := range options {
-		switch k {
-		case "update":
-			update = true
-		default:
-			panic("Unrecognized option '" + k + "'")
-		}
-	}
+	_, update := options["update"]
 
 	if update {
 		if e := icentral.Central.SetPassword(identity, password); e == nil {
