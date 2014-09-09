@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/IMQS/authaus"
+	"github.com/IMQS/cli"
 	"github.com/IMQS/imqsauth/imqsauth"
 	"log"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -13,99 +15,75 @@ const TestConfig1 = "!TESTCONFIG1"
 const TestPort = 3377
 
 const (
+	// Hard-coded group names
 	RoleGroupAdmin   = "admin"
 	RoleGroupEnabled = "enabled"
 )
 
 func main() {
-	os.Exit(realMain())
+	app := cli.App{}
+
+	app.Description = "imqsauth -c=configfile [options] command"
+	app.DefaultExec = exec
+
+	app.AddCommand("createdb", "Create the postgres database")
+	app.AddCommand("resetauthgroups", "Reset the [admin,enabled] groups")
+
+	createUserDesc := "Create a user in the authentication system\nThis affects only the 'authentication' system - the permit database is not altered by this command."
+	createuser := app.AddCommand("createuser", createUserDesc, "identity", "password")
+	createuser.AddBoolOption("update",
+		"If specified, and the user already exists, then behave identically to 'setpassword'. "+
+			"If this is not specified, and the identity already exists, then the function returns with an error.")
+
+	app.AddCommand("setpassword", "Set a user's password", "identity", "password")
+	app.AddCommand("setgroup", "Add or modify a group\nThe list of roles specified replaces the existing roles completely.", "groupname", "...role")
+	app.AddCommand("permgroupadd", "Add a group to a permit", "identity", "groupname")
+	app.AddCommand("permgroupdel", "Remove a group from a permit", "identity", "groupname")
+	app.AddCommand("permshow", "Show the groups of a permit", "identity")
+	app.AddCommand("showidentities", "Show a list of all identities and the groups that they belong to")
+	app.AddCommand("showroles", "Show a list of all roles")
+	app.AddCommand("showgroups", "Show a list of all groups")
+	app.AddCommand("run", "Run the service\nThis will automatically detect if it's being run from the Windows Service dispatcher, and if so, "+
+		"launch as a Windows Service. Otherwise, this runs in the foreground, and returns with an error code of 1. When running in the foreground, "+
+		"log messages are still sent to the logfile (not to the console).")
+
+	app.AddValueOption("c", "configfile", "Specify the authaus config file. A pseudo file called "+TestConfig1+" is "+
+		"used by the REST test suite to load a test configuration. This option is mandatory.")
+
+	app.AddValueOption("yf", "configfile", "Specify the Yellowfin config file.")
+
+	app.Run()
 }
 
-func realMain() (result int) {
-	result = 0
-	args := os.Args[1:]
+func exec(cmdName string, args []string, options map[string]string) {
 	defer func() {
-		if err := recover(); err != nil {
-			result = 1
-			fmt.Printf("%v\n", err)
+		if ex := recover(); ex != nil {
+			fmt.Printf("%v\n", ex)
+			os.Exit(1)
+		} else {
+			os.Exit(0)
 		}
 	}()
-	if len(args) == 0 {
-		showhelp()
-		return 0
-	}
-	// Add one to the end, so that we don't have to worry about reading past the end of the arguments list
-	args = append(args, "")
-	command := ""
-	configFile := ""
-	yfconfigFile := ""
-	lastRecognizedArgument := 0
-	helpCmd := false
-	for i := 0; i < len(args)-1; i++ {
-		arg := args[i]
-		if arg[0:1] == "-" {
-			switch arg {
-			case "-c":
-				configFile = args[i+1]
-				lastRecognizedArgument = i + 1
-			case "-y":
-				yfconfigFile = args[i+1]
-				lastRecognizedArgument = i + 1
-			case "-help":
-				fallthrough
-			case "--help":
-				fallthrough
-			case "-?":
-				fallthrough
-			case "--?":
-				helpCmd = true
-				i -= 1 // counteract following i += 1
-			}
-			i += 1
-		} else if arg == "help" || arg == "?" {
-			helpCmd = true
-		} else if command == "" {
-			command = arg
-			lastRecognizedArgument = i
-		}
-	}
-	cmdargsRaw := args[lastRecognizedArgument+1 : len(args)-1]
-
-	if helpCmd {
-		showhelp_cmd(command)
-		return 0
-	}
-
-	cmdOptions := make(map[string]string)
-	cmdArgs := []string{}
-	for _, v := range cmdargsRaw {
-		if v[0:1] == "-" {
-			cmdOptions[v[1:]] = ""
-		} else {
-			cmdArgs = append(cmdArgs, v)
-		}
-	}
 
 	ic := &imqsauth.ImqsCentral{}
 	ic.Config = &authaus.Config{}
 	ic.Yellowfin = &imqsauth.Yellowfin{Enabled: false}
 
+	configFile := options["c"]
+	yfConfigFile := options["yf"]
 	if configFile == "" {
-		showhelp()
-		return 1
+		panic("config file not specified")
 	}
 
 	isTestConfig := loadTestConfig(ic, configFile)
 
 	if !isTestConfig {
 		if err := ic.Config.LoadFile(configFile); err != nil {
-			fmt.Printf("Error loading config file '%v': %v\n", configFile, err)
-			return 1
+			panic(fmt.Sprintf("Error loading config file '%v': %v\n", configFile, err))
 		}
-		if yfconfigFile != "" {
-			if err := ic.Yellowfin.LoadConfig(yfconfigFile); err != nil {
-				fmt.Printf("Error loading config file '%v': %v\n", yfconfigFile, err)
-				return 1
+		if yfConfigFile != "" {
+			if err := ic.Yellowfin.LoadConfig(yfConfigFile); err != nil {
+				panic(fmt.Sprintf("Error loading config file '%v': %v\n", yfConfigFile, err))
 			}
 		}
 	}
@@ -121,31 +99,50 @@ func realMain() (result int) {
 		handler()
 	}
 
-	success := true
+	// createdb is special. We cannot initialize an authaus Central object until the DB has been created
+	if cmdName != "createdb" {
+		var err error
+		ic.Central, err = authaus.NewCentralFromConfig(ic.Config)
+		if err != nil {
+			panic(err)
+		}
+		defer ic.Central.Close()
+	}
 
-	switch command {
+	success := false
+	switch cmdName {
 	case "createdb":
 		success = createDB(ic.Config)
+	case "createuser":
+		success = createUser(ic, options, args[0], args[1])
+	case "permgroupadd":
+		success = permGroupAddOrDel(ic, args[0], args[1], true)
+	case "permgroupdel":
+		success = permGroupAddOrDel(ic, args[0], args[1], false)
+	case "permshow":
+		success = permShow(ic, 0, args[0])
+	case "resetauthgroups":
+		success = resetAuthGroups(ic)
 	case "run":
 		if !authaus.RunAsService(handlerNoRetVal) {
 			success = false
 			fmt.Print(handler())
 		}
-	case "":
-		showhelp()
-		success = false
-	default:
-		success = genericFunc(ic, command, cmdOptions, cmdArgs)
+	case "setgroup":
+		success = setGroup(ic, args[0], args[1:])
+	case "setpassword":
+		success = setPassword(ic, args[0], args[1])
+	case "showgroups":
+		success = showAllGroups(ic)
+	case "showidentities":
+		success = showAllIdentities(ic)
+	case "showroles":
+		showAllRoles()
+		success = true
 	}
 
-	if ic.Central != nil {
-		ic.Central.Close()
-	}
-
-	if success {
-		return 0
-	} else {
-		return 1
+	if !success {
+		panic("")
 	}
 }
 
@@ -296,15 +293,13 @@ func permGroupAddOrDel(icentral *imqsauth.ImqsCentral, identity string, groupnam
 	return false
 }
 
-func permShow(icentral *imqsauth.ImqsCentral, identity string) (success bool) {
+func permShow(icentral *imqsauth.ImqsCentral, identityColumnWidth int, identity string) (success bool) {
 	if perm, e := icentral.Central.GetPermit(identity); e == nil {
 		if groups, eDecode := authaus.DecodePermit(perm.Roles); eDecode == nil {
 			if groupNames, eGetNames := authaus.GroupIDsToNames(groups, icentral.Central.GetRoleGroupDB()); eGetNames == nil {
-				fmt.Printf("%v: ", identity)
-				for _, gname := range groupNames {
-					fmt.Printf("%v ", gname)
-				}
-				fmt.Printf("\n")
+				sort.Strings(groupNames)
+				fmtStr := fmt.Sprintf("%%-%vv  %%v\n", identityColumnWidth)
+				fmt.Printf(fmtStr, identity, strings.Join(groupNames, " "))
 				return true
 			} else {
 				fmt.Printf("Error converting group IDs to names: %v\n", eGetNames)
@@ -318,99 +313,78 @@ func permShow(icentral *imqsauth.ImqsCentral, identity string) (success bool) {
 	return false
 }
 
-func dumpOptions(options map[string]string) string {
-	r := ""
-	for k, _ := range options {
-		r += k + ", "
-	}
-	return r[0 : len(r)-2]
-}
-
-func genericFunc(icentral *imqsauth.ImqsCentral, function string, options map[string]string, args []string) (success bool) {
-	var err error
-	icentral.Central, err = authaus.NewCentralFromConfig(icentral.Config)
-	if err == nil {
-		defer icentral.Central.Close()
-		defer func() {
-			if e := recover(); e != nil {
-				fmt.Printf("Error: %v\n", e)
-				success = false
-			}
-		}()
-		// NOTE: We should move all of this arbitrary option checking out of here and into some centralized error handling thing
-		switch function {
-		case "resetauthgroups":
-			if len(options) != 0 {
-				panic("Unrecognized option " + dumpOptions(options))
-			}
-			return resetAuthGroups(icentral)
-		case "createuser":
-			if len(args) != 2 {
-				panic("Must have identity and password")
-			}
-			return createUser(icentral, options, args[0], args[1])
-		case "setpassword":
-			if len(args) != 2 {
-				panic("setpassword identity password")
-			}
-			if len(options) != 0 {
-				panic("Unrecognized option " + dumpOptions(options))
-			}
-			return setPassword(icentral, args[0], args[1])
-		case "setgroup":
-			if len(args) < 1 {
-				panic("setgroup groupname [role1 role2 role3...]")
-			}
-			if len(options) != 0 {
-				panic("Unrecognized option " + dumpOptions(options))
-			}
-			return setGroup(icentral, args)
-		case "permgroupadd":
-			if len(args) != 2 {
-				panic("permgroupadd identity groupname")
-			}
-			if len(options) != 0 {
-				panic("Unrecognized option " + dumpOptions(options))
-			}
-			return permGroupAddOrDel(icentral, args[0], args[1], true)
-		case "permgroupdel":
-			if len(args) != 2 {
-				panic("permgroupdel identity groupname")
-			}
-			if len(options) != 0 {
-				panic("Unrecognized option " + dumpOptions(options))
-			}
-			return permGroupAddOrDel(icentral, args[0], args[1], false)
-		case "permshow":
-			if len(args) != 1 {
-				panic("permshow identity")
-			}
-			if len(options) != 0 {
-				panic("Unrecognized option " + dumpOptions(options))
-			}
-			return permShow(icentral, args[0])
-		default:
-			fmt.Printf("Unrecognized command '%v'\n", function)
-			return false
-		}
-	} else {
+func showAllGroups(icentral *imqsauth.ImqsCentral) bool {
+	groups, err := icentral.Central.GetRoleGroupDB().GetGroups()
+	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		return false
 	}
+
+	longestName := 0
+	for _, group := range groups {
+		if len(group.Name) > longestName {
+			longestName = len(group.Name)
+		}
+	}
+	formatStr := fmt.Sprintf("%%-%vv  %%v\n", longestName)
+
+	fmt.Printf(formatStr, "group", "roles")
+	fmt.Printf(formatStr, "-----", "-----")
+
+	for _, group := range groups {
+		roles := []string{}
+		for _, perm := range group.PermList {
+			roles = append(roles, imqsauth.PermissionsTable[perm])
+		}
+		sort.Strings(roles)
+		fmt.Printf(formatStr, group.Name, strings.Join(roles, " "))
+	}
+	return true
 }
 
-func setGroup(icentral *imqsauth.ImqsCentral, args []string) bool {
-	// command format is: group perm1 perm2 perm3...
-	groupName := args[0]
+func showAllRoles() {
+	roles := []string{}
+	for _, name := range imqsauth.PermissionsTable {
+		roles = append(roles, name)
+	}
+	sort.Strings(roles)
+	for _, name := range roles {
+		fmt.Printf("%v\n", name)
+	}
+}
+
+func showAllIdentities(icentral *imqsauth.ImqsCentral) bool {
+	identities, err := icentral.Central.GetAuthenticatorIdentities()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return false
+	}
+	sort.Strings(identities)
+
+	longestName := 0
+	for _, ident := range identities {
+		if len(ident) > longestName {
+			longestName = len(ident)
+		}
+	}
+
+	for _, ident := range identities {
+		permShow(icentral, longestName, ident)
+	}
+
+	return true
+}
+
+func setGroup(icentral *imqsauth.ImqsCentral, groupName string, roles []string) bool {
 	perms := []authaus.PermissionU16{}
 	nameToPerm := imqsauth.PermissionsTable.Inverted()
 
-	for _, name := range args[1:] {
-		if perm, ok := nameToPerm[name]; ok {
+	for _, pname := range roles {
+		if perm, ok := nameToPerm[pname]; ok {
 			perms = append(perms, perm)
-			// fmt.Printf("Added permission : %-25v [%v]\n", name, perm)
+			// fmt.Printf("Added permission : %-25v [%v]\n", pname, perm)
 		} else {
-			panic(fmt.Sprintf("Permission '%v' does not exist", name))
+			panic(fmt.Sprintf("Permission '%v' does not exist", pname))
 		}
 	}
 
@@ -503,52 +477,4 @@ func resetAuthGroups(icentral *imqsauth.ImqsCentral) bool {
 		return false
 	}
 	return true
-}
-
-func showhelp() {
-	help := `
-imqsauth -c configfile [-y yfconfigfile] command [options]
-
-  commands
-    createdb          Create the postgres database
-    resetauthgroups   Reset the [admin,enabled] groups
-    createuser        Create a user in the authentication system
-    setpassword       Set a user's password
-    setgroup          Add or modify a group
-    permgroupadd      Add a group to a permit
-    permgroupdel      Remove a group from a permit
-    permshow          Show the groups of a permit
-    run               Run the service
-
-  mandatory options
-    -c configfile     Specify the authaus config file. A pseudo file called
-                      !TESTCONFIG1 is used by the REST test suite to load a
-                      test configuration.
-`
-	fmt.Print(help)
-}
-
-func showhelp_cmd(cmd string) {
-	switch cmd {
-	case "":
-		showhelp()
-	case "createuser":
-		showhelp_createuser()
-	default:
-		fmt.Printf("%v has no built-in help\n", cmd)
-	}
-}
-
-func showhelp_createuser() {
-	fmt.Print(`
-createuser [-update] identity password
-  Create or update a user in the authentication system.
-  This affects only the 'authentication' system - the permit
-  database is not altered by this command.
-
-  -update If specified, and the user already exists, then
-          behave identically to 'setpassword'. If this
-          is not specified, and the identity already exists,
-          then the function returns with an error.
-`)
 }
