@@ -28,6 +28,8 @@ const (
 	PermPCSDynamicContent         authaus.PermissionU16 = 114 // User is allowed to get dynamic configuration
 	PermPCSProjectsUnassignedView authaus.PermissionU16 = 115 // User is allowed to view all the projects that are not assigned to programmes
 	PermPCSBudgetItemsAvailable   authaus.PermissionU16 = 116 // User is allowed to view the allocatable budget items
+	PermReportCreator             authaus.PermissionU16 = 200 // Can create reports
+	PermReportViewer              authaus.PermissionU16 = 201 // Can view reports
 )
 
 // Mapping from 16-bit permission integer to string-based name
@@ -42,6 +44,7 @@ func init() {
 	PermissionsTable[PermAdmin] = "admin"
 	PermissionsTable[PermEnabled] = "enabled"
 	PermissionsTable[PermPCS] = "pcs"
+
 	PermissionsTable[PermPCSSuperUser] = "pcssuperuser"
 	PermissionsTable[PermPCSBudgetAddAndDelete] = "pcsbudgetaddanddelete"
 	PermissionsTable[PermPCSBudgetUpdate] = "pcsbudgetupdate"
@@ -59,4 +62,7 @@ func init() {
 	PermissionsTable[PermPCSDynamicContent] = "pcsdynamiccontent"
 	PermissionsTable[PermPCSProjectsUnassignedView] = "pcsprojectsunassignedview"
 	PermissionsTable[PermPCSBudgetItemsAvailable] = "pcsbudgetitemsavailable"
+
+	PermissionsTable[PermReportCreator] = "reportcreator"
+	PermissionsTable[PermReportViewer] = "reportviewer"
 }
