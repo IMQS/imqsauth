@@ -31,8 +31,15 @@ const (
 type handlerFlags uint32
 
 const (
-	handlerFlagNeedAdminRights = 1 << iota
+	handlerFlagNeedAdminRights = 1 << iota // Request won't even reach your handler unless the user is an admin
+	handlerFlagNeedToken                   // Populate the httpRequest object with 'token' and 'permList'
 )
+
+type httpRequest struct {
+	http     *http.Request
+	token    *authaus.Token // Only populated if you passed in handlerFlagNeedAdminRights or handlerFlagNeedToken
+	permList authaus.PermissionList
+}
 
 type checkResponseJson struct {
 	Identity string
@@ -73,24 +80,35 @@ func (x *ImqsCentral) RunHttp() error {
 
 	// The built-in go ServeMux does not support differentiating based on HTTP verb, so we have to make
 	// the request path unique for each verb. I think this is OK as far as API design is concerned - at least in this domain.
-	makehandler := func(method HttpMethod, actual func(*ImqsCentral, http.ResponseWriter, *http.Request), flags handlerFlags) func(http.ResponseWriter, *http.Request) {
+	makehandler := func(method HttpMethod, actual func(*ImqsCentral, http.ResponseWriter, *httpRequest), flags handlerFlags) func(http.ResponseWriter, *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
 			if r.Method != string(method) {
 				authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("API must be accessed using an HTTP %v method", method))
 				return
 			}
-			if 0 != (flags & handlerFlagNeedAdminRights) {
+			httpReq := &httpRequest{
+				http: r,
+			}
+			needAdmin := 0 != (flags & handlerFlagNeedAdminRights)
+			needToken := 0 != (flags & handlerFlagNeedToken)
+			if needAdmin || needToken {
 				permOK := false
 				if token, err := authaus.HttpHandlerPreludeWithError(&x.Config.HTTP, x.Central, w, r); err == nil {
 					if permList, errDecodePerms := authaus.PermitResolveToList(token.Permit.Roles, x.Central.GetRoleGroupDB()); errDecodePerms != nil {
 						authaus.HttpSendTxt(w, http.StatusInternalServerError, errDecodePerms.Error())
 					} else {
-						if !permList.Has(PermAdmin) {
-							authaus.HttpSendTxt(w, http.StatusForbidden, msgNotAdmin)
-						} else if !permList.Has(PermEnabled) {
-							httpSendAccountDisabled(w)
+						httpReq.token = token
+						httpReq.permList = permList
+						if needAdmin {
+							if !permList.Has(PermAdmin) {
+								authaus.HttpSendTxt(w, http.StatusForbidden, msgNotAdmin)
+							} else if !permList.Has(PermEnabled) {
+								httpSendAccountDisabled(w)
+							} else {
+								permOK = true
+							}
 						} else {
-							x.Central.Log.Printf("Admin is OK")
+							// for this case (ie needToken), so long as we have the token and permList, we are fine
 							permOK = true
 						}
 					}
@@ -104,7 +122,7 @@ func (x *ImqsCentral) RunHttp() error {
 				}
 			}
 
-			actual(x, w, r)
+			actual(x, w, httpReq)
 		}
 	}
 
@@ -114,6 +132,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/check", makehandler(HttpMethodGet, httpHandlerCheck, 0))
 	smux.HandleFunc("/create_user", makehandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_user_groups", makehandler(HttpMethodPost, httpHandlerSetUserGroups, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/set_password", makehandler(HttpMethodPost, httpHandlerSetPassword, handlerFlagNeedToken))
 	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/groups", makehandler(HttpMethodGet, httpHandlerGetGroups, handlerFlagNeedAdminRights))
 
@@ -151,6 +170,24 @@ func (x *ImqsCentral) IsAdmin(r *http.Request) (bool, error) {
 	} else {
 		return false, err
 	}
+}
+
+func makeYellowfinGroup(permList authaus.PermissionList) YellowfinGroup {
+	table := []struct {
+		perm  authaus.PermissionU16
+		group YellowfinGroup
+	}{
+		// More permissive roles must be first in this table, because we take whatever we see first.
+		{PermAdmin, YellowfinGroupAdmin},
+		{PermReportCreator, YellowfinGroupWriter},
+		{PermReportViewer, YellowfinGroupConsumer},
+	}
+	for _, t := range table {
+		if permList.Has(t.perm) {
+			return t.group
+		}
+	}
+	return YellowfinGroupNone
 }
 
 func httpSendJson(w http.ResponseWriter, jsonObj interface{}) {
@@ -220,14 +257,14 @@ func httpSendNoIdentity(w http.ResponseWriter) {
 	authaus.HttpSendTxt(w, http.StatusUnauthorized, authaus.ErrIdentityEmpty.Error())
 }
 
-func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *http.Request) {
+func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	identity := ""
-	if token, err := authaus.HttpHandlerPreludeWithError(&central.Config.HTTP, central.Central, w, r); err == nil {
+	if token, err := authaus.HttpHandlerPreludeWithError(&central.Config.HTTP, central.Central, w, r.http); err == nil {
 		identity = token.Identity
 	}
 
 	// Try to erase the session cookie regardless of whether we could locate a valid token.
-	sessioncookie, _ := r.Cookie(central.Config.HTTP.CookieName)
+	sessioncookie, _ := r.http.Cookie(central.Config.HTTP.CookieName)
 	if sessioncookie != nil {
 		central.Central.Logout(sessioncookie.Value)
 	}
@@ -237,15 +274,15 @@ func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if err := central.Yellowfin.Logout(identity, r); err != nil {
+	if err := central.Yellowfin.Logout(identity, r.http); err != nil {
 		central.Central.Log.Printf("Yellowfin logout error: %v", err)
 	}
 	authaus.HttpSendTxt(w, http.StatusOK, "")
 }
 
 // Handle the 'login' request, sending back a session token (via Set-Cookie),
-func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *http.Request) {
-	identity, password, eBasic := authaus.HttpReadBasicAuth(r)
+func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	identity, password, eBasic := authaus.HttpReadBasicAuth(r.http)
 	if eBasic != nil {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, eBasic.Error())
 		return
@@ -273,26 +310,42 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *http.Reque
 					Secure:  central.Config.HTTP.CookieSecure,
 				}
 				http.SetCookie(w, cookie)
-
-				// Do yellowfin login
-				cookies, yfErr := central.Yellowfin.Login(identity)
-				if yfErr != nil {
-					central.Central.Log.Printf("Yellowfin login error: %v", yfErr)
-				} else if cookies != nil {
-					for _, cookie := range cookies {
-						if cookie.Name == "JSESSIONID" || cookie.Name == "IPID" {
-							newcookie := &http.Cookie{
-								Name:    cookie.Name,
-								Value:   cookie.Value,
-								Path:    "/",
-								Expires: cookie.Expires,
-								Secure:  cookie.Secure,
-							}
-							http.SetCookie(w, newcookie)
-						}
-					}
-				}
+				httpLoginYellowfin(central, w, r, identity, permList)
 				httpSendCheckJson(w, token, permList)
+			}
+		}
+	}
+}
+
+// This is intended to be called by httpHandlerLogin
+func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequest, identity string, permList authaus.PermissionList) {
+	if !central.Yellowfin.Enabled {
+		return
+	}
+	yfGroup := makeYellowfinGroup(permList)
+	if yfGroup != YellowfinGroupNone {
+		cookies, err := central.Yellowfin.LoginAndUpdateGroup(identity, yfGroup)
+		if err == ErrYellowfinAuthFailed {
+			// Try to create the identity in yellowfin
+			if err = central.Yellowfin.CreateUser(identity); err == nil {
+				// Try again to login
+				cookies, err = central.Yellowfin.LoginAndUpdateGroup(identity, yfGroup)
+			}
+		}
+		if err != nil {
+			central.Central.Log.Printf("Yellowfin login error: %v", err)
+		} else if cookies != nil {
+			for _, cookie := range cookies {
+				if cookie.Name == "JSESSIONID" || cookie.Name == "IPID" {
+					newcookie := &http.Cookie{
+						Name:    cookie.Name,
+						Value:   cookie.Value,
+						Path:    "/",
+						Expires: cookie.Expires,
+						Secure:  cookie.Secure,
+					}
+					http.SetCookie(w, newcookie)
+				}
 			}
 		}
 	}
@@ -301,32 +354,34 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *http.Reque
 // Note that we do not create a permit here for the user, so he will not yet be able to login.
 // In order to finish the job, you will need to call httpHandlerSetUserGroups which will
 // create a permit for this user.
-func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *http.Request) {
-	identity := strings.TrimSpace(r.URL.Query().Get("identity"))
-	password := strings.TrimSpace(r.URL.Query().Get("password"))
+func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
+	password := strings.TrimSpace(r.http.URL.Query().Get("password"))
 	if err := central.Central.CreateAuthenticatorIdentity(identity, password); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		authaus.HttpSendTxt(w, http.StatusOK, "Created identity '"+identity+"'")
-		if yfErr := central.Yellowfin.CreateUser(identity, password); yfErr != nil {
+		/* // This has been moved to Login
+		if yfErr := central.Yellowfin.CreateUser(identity); yfErr != nil {
 			central.Central.Log.Printf("Error creating Yellowfin user '%v': %v", identity, yfErr)
 		}
+		*/
 	}
 }
 
-func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *http.Request) {
+func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	defer func() {
 		if ex := recover(); ex != nil {
 			str, isStr := ex.(string)
 			if !isStr {
-				str = ex.(error).Error()
+				str = fmt.Sprintf("%v", ex)
 			}
 			authaus.HttpSendTxt(w, http.StatusForbidden, str)
 		}
 	}()
 
-	identity := strings.TrimSpace(r.URL.Query().Get("identity"))
-	groupsParam := strings.TrimSpace(r.URL.Query().Get("groups"))
+	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
+	groupsParam := strings.TrimSpace(r.http.URL.Query().Get("groups"))
 
 	if identity == "" {
 		panic("Identity is empty")
@@ -352,6 +407,7 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 	authaus.HttpSendTxt(w, http.StatusOK, "'"+identity+"' groups set to ("+summary+")")
 
 	// Change yellowfin permissions
+	/* // this has been moved into Login
 	if permList, errList := authaus.PermitResolveToList(permit.Roles, central.Central.GetRoleGroupDB()); errList != nil {
 		central.Central.Log.Printf("Permit resolve failed: %v", errList)
 	} else {
@@ -359,10 +415,39 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 			central.Central.Log.Printf("Yellowfin role change error for %v: %v", identity, errYFGroup)
 		}
 	}
+	*/
 }
 
-func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *http.Request) {
-	if token, err := authaus.HttpHandlerPreludeWithError(&central.Config.HTTP, central.Central, w, r); err == nil {
+func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
+	password := strings.TrimSpace(r.http.URL.Query().Get("password"))
+
+	// admin permission allows you to change anybody's password
+	if identity != r.token.Identity && !r.permList.Has(PermAdmin) {
+		authaus.HttpSendTxt(w, http.StatusForbidden, msgNotAdmin)
+		return
+	}
+
+	central.Central.Log.Printf("Setting password for %v", identity)
+
+	err := central.Central.SetPassword(identity, password)
+	if err == nil {
+		if err = central.Yellowfin.UpdatePassword(identity, password); err != nil {
+			central.Central.Log.Printf("Error setting Yellowfin password for %v: %v", identity, err)
+			authaus.HttpSendTxt(w, http.StatusInternalServerError, "Yellowfin password update failed")
+			return
+		}
+	} else {
+		central.Central.Log.Printf("Error setting password for %v: %v", identity, err)
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	authaus.HttpSendTxt(w, http.StatusOK, "Password changed")
+}
+
+func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	if token, err := authaus.HttpHandlerPreludeWithError(&central.Config.HTTP, central.Central, w, r.http); err == nil {
 		if permList, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup != nil {
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, egroup.Error())
 		} else {
@@ -376,7 +461,7 @@ func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func httpHandlerGetUsers(central *ImqsCentral, w http.ResponseWriter, r *http.Request) {
+func httpHandlerGetUsers(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	identities, err := central.Central.GetAuthenticatorIdentities()
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
@@ -392,7 +477,7 @@ func httpHandlerGetUsers(central *ImqsCentral, w http.ResponseWriter, r *http.Re
 	httpSendPermitsJson(central, identities, ident2perm, w)
 }
 
-func httpHandlerGetGroups(central *ImqsCentral, w http.ResponseWriter, r *http.Request) {
+func httpHandlerGetGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	if groups, err := central.Central.GetRoleGroupDB().GetGroups(); err != nil {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 	} else {

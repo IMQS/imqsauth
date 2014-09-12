@@ -148,7 +148,7 @@ class AuthBase < RestBase
 	
 	def setup
 		@baseurl = "http://127.0.0.1:3377"
-		@pid = spawn("bin/imqsauth -c !TESTCONFIG1 run")
+		@pid = spawn("bin/imqsauth -c=!TESTCONFIG1 run")
 	end
 
 	def teardown
@@ -180,6 +180,12 @@ class Authorization < AuthBase
 		print("--#{r.net_http_res.message}--\n")
 	end
 
+	def login_and_check(verb, path)
+		doany(verb, path, nil, {}, 401, "Identity may not be empty")
+		doany(verb, path, nil, basicauth("joe","JoE"), 403, "Invalid password")
+		doany(verb, path, nil, basicauth("jjj","JOE"), 403, "Identity authorization not found")
+	end
+
 	def test_login
 		doget("/login", basicauth_joe, 400, "API must be accessed using an HTTP POST method")
 		dopost("/login", nil, basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
@@ -192,10 +198,21 @@ class Authorization < AuthBase
 		login_and_check("GET", "/check")
 	end
 
-	def login_and_check(verb, path)
-		doany(verb, path, nil, {}, 401, "Identity may not be empty")
-		doany(verb, path, nil, basicauth("joe","JoE"), 403, "Invalid password")
-		doany(verb, path, nil, basicauth("jjj","JOE"), 403, "Identity authorization not found")
+	def test_set_password()
+		# Cannot change somebody else's password if you're not admin
+		dopost("/set_password?identity=sam&password=123", nil, basicauth_joe, 403, "You are not an administrator")
+
+		# Change joe's password, while acting as joe
+		dopost("/set_password?identity=joe&password=123", nil, basicauth_joe, 200, "Password changed")
+		doget("/check", basicauth_joe, 403, "Invalid password")
+		dopost("/set_password?identity=joe&password=JOE", nil, basicauth("joe", "123"), 200, "Password changed")
+		doget("/check", basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
+
+		# Change joe's password, while acting as administrator
+		dopost("/set_password?identity=joe&password=123", nil, basicauth_admin, 200, "Password changed")
+		doget("/check", basicauth_joe, 403, "Invalid password")
+		dopost("/set_password?identity=joe&password=JOE", nil, basicauth_admin, 200, "Password changed")
+		doget("/check", basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
 	end
 
 end

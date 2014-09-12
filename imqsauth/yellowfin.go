@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
-	"os"
 	"strings"
 )
 
@@ -117,37 +117,97 @@ const (
 </soapenv:Envelope>`
 )
 
+var (
+	ErrYellowfinAuthFailed      = errors.New("Yellowfin authentication failed")
+	ErrYellowfinPasswordTooLong = errors.New("Yellowfin password must be 20 characters or less")
+	ErrYellowfinInvalidGroup    = errors.New("Invalid yellowfind group")
+)
+
+type YellowfinGroup int
+
+const (
+	YellowfinGroupNone YellowfinGroup = iota
+	YellowfinGroupAdmin
+	YellowfinGroupWriter
+	YellowfinGroupConsumer
+)
+
+// The 'admin' user is a yellowfin super-user that we can use as authority in order to
+// login on behalf of regular users. This is convenient, because it means we do not
+// need to worry about yellowfin's storage of passwords for regular users.
+// The password for the 'admin@yellowfin.com.au' user is set by create-keys.rb.
+// We use this particular username because it is the default created by the
+// yellowfin installer. Note also, that this is the "userid" as well as the "email"
+// identity of the user, so despite the fact that yellowfin's authentication mode
+// is set to "UserID", we still use the full name.
+const AdminUser = "admin@yellowfin.com.au"
+
+// We never use a user's actual password. We authorize all requests with the admin user's credentials.
+// This just makes life simpler for us, so that we don't have to worry about keeping passwords in sync
+// between authaus and yellowfin.
+// The one place where we are forced to specify a user's password is when creating a new user. We simply
+// force all users to have the same password. This one password is stored in the secrets directory on the
+// server, alongside the admin password
+
 type Yellowfin struct {
-	Password  string `json:"password"`
-	Url       string `json:"url"`
-	User      string `json:"user"`
-	Enabled   bool   `json:"enabled"`
-	Transport *http.Transport
+	Log           *log.Logger
+	AdminPassword string
+	UserPassword  string // This password is used only when creating users, but thereafter we never use it
+	Url           string `json:"url"`
+	Enabled       bool   `json:"enabled"`
+	Transport     *http.Transport
 }
 
-func (y *Yellowfin) LoadConfig(fn string) error {
-	file, err := os.Open(fn)
-	if err != nil {
-		return err
+func NewYellowfin(logger *log.Logger) *Yellowfin {
+	y := &Yellowfin{
+		Log:     logger,
+		Enabled: false,
+		Url:     "http://localhost/yellowfin/",
 	}
-	defer file.Close()
-	decoder := json.NewDecoder(file)
-	if err = decoder.Decode(y); err != nil {
-		return err
+	if y.Log == nil {
+		y.Log = log.New(ioutil.Discard, "", 0)
 	}
 	y.Transport = &http.Transport{
 		DisableKeepAlives:  true,
 		DisableCompression: true,
 	}
+	return y
+}
+
+func (y *Yellowfin) LoadConfig(configFile, adminPasswordFile, userPasswordFile string) error {
+	rawConfig, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		return err
+	}
+	if err = json.Unmarshal(rawConfig, y); err != nil {
+		return err
+	}
+
+	// Read admin password
+	rawPass, err := ioutil.ReadFile(adminPasswordFile)
+	if err != nil {
+		return err
+	}
+	y.AdminPassword = string(rawPass)
+
+	// Read user password
+	rawPass, err = ioutil.ReadFile(userPasswordFile)
+	if err != nil {
+		return err
+	}
+	y.UserPassword = string(rawPass)
+
 	return nil
 }
 
-func (y *Yellowfin) CreateUser(identity, password string) error {
+func (y *Yellowfin) CreateUser(identity string) error {
 	if !y.Enabled {
 		return nil
 	}
-	create := strings.Replace(soapCreateUser, "%ADMIN%", y.User, -1)
-	create = strings.Replace(create, "%PASSWORD%", y.Password, -1)
+	// See comments higher in file, about why we use a fixed password for all users
+	password := y.UserPassword
+	create := strings.Replace(soapCreateUser, "%ADMIN%", AdminUser, -1)
+	create = strings.Replace(create, "%PASSWORD%", y.AdminPassword, -1)
 	create = strings.Replace(create, "%USERID%", identity, -1)
 	create = strings.Replace(create, "%EMAIL%", identity+"@imqs.co.za", -1)
 	create = strings.Replace(create, "%FIRSTNAME%", identity, -1)
@@ -157,17 +217,16 @@ func (y *Yellowfin) CreateUser(identity, password string) error {
 	if err != nil {
 		return err
 	}
-	req.Header["SOAPAction"] = []string{"\"\""}
-	req.Header["Content-Type"] = []string{"text/xml;charset=UTF-8"}
-	req.Header["Connection"] = []string{"Close"}
+	setupSoapRequestHeaders(req)
 	if resp, err := y.Transport.RoundTrip(req); err == nil {
 		if resp.StatusCode != 200 {
-			return errors.New(fmt.Sprintf("Create yf user error (HTTP): %v", resp.StatusCode))
+			return errors.New(fmt.Sprintf("Error creating yellowfin user: HTTP code %v", resp.StatusCode))
 		}
 		result := y.parsexml(resp)
 		if result.StatusCode == "SUCCESS" && result.ErrorCode == "0" {
 			return y.UpdatePassword(identity, password)
 		}
+		return makeYellowfinError(result, "Error creating yellowfin user")
 	} else {
 		return err
 	}
@@ -178,78 +237,84 @@ func (y *Yellowfin) UpdatePassword(identity, password string) error {
 	if !y.Enabled {
 		return nil
 	}
-	passwd := strings.Replace(soapChangePassword, "%ADMIN%", y.User, -1)
-	passwd = strings.Replace(passwd, "%PASSWORD%", y.Password, -1)
+	passwd := strings.Replace(soapChangePassword, "%ADMIN%", AdminUser, -1)
+	passwd = strings.Replace(passwd, "%PASSWORD%", y.AdminPassword, -1)
 	passwd = strings.Replace(passwd, "%USERID%", identity, -1)
 	passwd = strings.Replace(passwd, "%USERPASSWORD%", password, -1)
 	req, err := http.NewRequest("POST", y.Url+"services/AdministrationService", strings.NewReader(passwd))
 	if err != nil {
 		return err
 	}
-	req.Header["SOAPAction"] = []string{"\"\""}
-	req.Header["Content-Type"] = []string{"text/xml;charset=UTF-8"}
-	req.Header["Connection"] = []string{"Close"}
+	setupSoapRequestHeaders(req)
 	if resp, err := y.Transport.RoundTrip(req); err == nil {
 		if resp.StatusCode != 200 {
-			return errors.New(fmt.Sprintf("Update yf password error (HTTP): %v", resp.StatusCode))
+			return errors.New(fmt.Sprintf("Error updating yellowfin password: HTTP code %v", resp.StatusCode))
 		}
 		result := y.parsexml(resp)
-		if result.StatusCode == "SUCCESS" && result.ErrorCode == "0" {
-			return nil
-		}
+		return makeYellowfinError(result, "Error updating yellowfin password")
 	} else {
 		return err
 	}
 	return nil
 }
 
-func (y *Yellowfin) ChangeGroup(admin bool, identity string) error {
+func (y *Yellowfin) ChangeGroup(identity string, group YellowfinGroup) error {
 	if !y.Enabled {
 		return nil
 	}
-	act := strings.Replace(soapGroup, "%ADMIN%", y.User, -1)
-	act = strings.Replace(act, "%PASSWORD%", y.Password, -1)
-	if admin {
+	act := strings.Replace(soapGroup, "%ADMIN%", AdminUser, -1)
+	act = strings.Replace(act, "%PASSWORD%", y.AdminPassword, -1)
+	switch group {
+	case YellowfinGroupAdmin:
 		act = strings.Replace(act, "%ROLE%", "YFADMIN", -1)
-	} else {
+	case YellowfinGroupWriter:
+		act = strings.Replace(act, "%ROLE%", "YFREPORTWRITER", -1)
+	case YellowfinGroupConsumer:
 		act = strings.Replace(act, "%ROLE%", "YFREPORTCONSUMER", -1)
+	default:
+		return ErrYellowfinInvalidGroup
 	}
 	act = strings.Replace(act, "%USERID%", identity, -1)
 	req, err := http.NewRequest("POST", y.Url+"services/AdministrationService", strings.NewReader(act))
 	if err != nil {
 		return err
 	}
-	req.Header["SOAPAction"] = []string{"\"\""}
-	req.Header["Content-Type"] = []string{"text/xml;charset=UTF-8"}
-	req.Header["Connection"] = []string{"Close"}
+	setupSoapRequestHeaders(req)
 	if resp, err := y.Transport.RoundTrip(req); err == nil {
 		if resp.StatusCode != 200 {
-			return errors.New(fmt.Sprintf("Login error (HTTP): %v", resp.StatusCode))
+			return errors.New(fmt.Sprintf("Error changing yellowfin group: HTTP code %v", resp.StatusCode))
 		}
 		result := y.parsexml(resp)
-		if result.StatusCode == "SUCCESS" && result.ErrorCode == "0" {
-			return nil
-		}
+		return makeYellowfinError(result, "Error changing yellowfin group")
 	} else {
 		return err
 	}
 	return nil
 }
 
+func (y *Yellowfin) LoginAndUpdateGroup(identity string, group YellowfinGroup) ([]*http.Cookie, error) {
+	// We must change the group before logging in, otherwise the user's UI will not reflect his new status
+	err := y.ChangeGroup(identity, group)
+	if err != nil {
+		y.Log.Printf("Failed to update yellowfin group for %v to %v", identity, group)
+	}
+
+	return y.Login(identity)
+}
+
 func (y *Yellowfin) Login(identity string) ([]*http.Cookie, error) {
 	if !y.Enabled {
 		return nil, nil
 	}
-	act := strings.Replace(soapLogin, "%ADMIN%", y.User, -1)
-	act = strings.Replace(act, "%PASSWORD%", y.Password, -1)
+	//y.Log.Printf("YF Logging in %v:%v %v", AdminUser, y.AdminPassword, identity)
+	act := strings.Replace(soapLogin, "%ADMIN%", AdminUser, -1)
+	act = strings.Replace(act, "%PASSWORD%", y.AdminPassword, -1)
 	act = strings.Replace(act, "%USER%", identity, -1)
 	req, err := http.NewRequest("POST", y.Url+"services/AdministrationService", strings.NewReader(act))
 	if err != nil {
 		return nil, err
 	}
-	req.Header["SOAPAction"] = []string{"\"\""}
-	req.Header["Content-Type"] = []string{"text/xml;charset=UTF-8"}
-	req.Header["Connection"] = []string{"Close"}
+	setupSoapRequestHeaders(req)
 	if resp, err := y.Transport.RoundTrip(req); err == nil {
 		if resp.StatusCode != 200 {
 			return nil, errors.New(fmt.Sprintf("Login error (HTTP): %v", resp.StatusCode))
@@ -270,7 +335,7 @@ func (y *Yellowfin) Login(identity string) ([]*http.Cookie, error) {
 
 			return resp.Cookies(), nil
 		} else {
-			return nil, errors.New(fmt.Sprintf("Login error %v, %v", result.StatusCode, result.ErrorCode))
+			return nil, makeYellowfinError(result, "Error logging in to yellowfin")
 		}
 	} else {
 		return nil, err
@@ -286,31 +351,24 @@ func (y *Yellowfin) Logout(identity string, r *http.Request) error {
 		return err
 	}
 	sessionid := sessionidCookie.Value
-	act := strings.Replace(soapLogout, "%ADMIN%", y.User, -1)
-	act = strings.Replace(act, "%PASSWORD%", y.Password, -1)
+	act := strings.Replace(soapLogout, "%ADMIN%", AdminUser, -1)
+	act = strings.Replace(act, "%PASSWORD%", y.AdminPassword, -1)
 	act = strings.Replace(act, "%USER%", identity, -1)
 	act = strings.Replace(act, "%SESSIONID%", sessionid, -1)
 	req, err := http.NewRequest("POST", y.Url+"services/AdministrationService", strings.NewReader(act))
 	if err != nil {
 		return nil
 	}
-	req.Header["SOAPAction"] = []string{"\"\""}
-	req.Header["Content-Type"] = []string{"text/xml;charset=UTF-8"}
-	req.Header["Connection"] = []string{"Close"}
+	setupSoapRequestHeaders(req)
 	resp, err := y.Transport.RoundTrip(req)
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return errors.New(fmt.Sprintf("Logout error (HTTP): %s", resp.StatusCode))
+		return errors.New(fmt.Sprintf("Error logging out of yellowfin: HTTP code %s", resp.StatusCode))
 	}
 	result := y.parsexml(resp)
-	if result.StatusCode == "SUCCESS" {
-		return nil
-	} else {
-		return errors.New(fmt.Sprintf("Logout error (Response): %s", result.ErrorCode))
-	}
-	return nil
+	return makeYellowfinError(result, "Error loggout out of yellowfin")
 }
 
 type XMLResult struct {
@@ -329,4 +387,25 @@ func (y *Yellowfin) parsexml(r *http.Response) *XMLResult {
 		return nil
 	}
 	return &result
+}
+
+func setupSoapRequestHeaders(req *http.Request) {
+	req.Header["SOAPAction"] = []string{"\"\""}
+	req.Header["Content-Type"] = []string{"text/xml;charset=UTF-8"}
+	req.Header["Connection"] = []string{"Close"}
+}
+
+func makeYellowfinError(result *XMLResult, baseMsg string) error {
+	if result.StatusCode == "SUCCESS" && result.ErrorCode == "0" {
+		return nil
+	}
+
+	switch result.ErrorCode {
+	case "25":
+		return ErrYellowfinAuthFailed
+	case "38":
+		return ErrYellowfinPasswordTooLong
+	}
+
+	return errors.New(fmt.Sprintf("%v: %v, %v", baseMsg, result.StatusCode, result.ErrorCode))
 }

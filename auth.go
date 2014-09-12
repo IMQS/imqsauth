@@ -7,12 +7,19 @@ import (
 	"github.com/IMQS/imqsauth/imqsauth"
 	"log"
 	"os"
+	"runtime"
 	"sort"
 	"strings"
 )
 
 const TestConfig1 = "!TESTCONFIG1"
 const TestPort = 3377
+
+// These files are written by create-keys.rb
+const (
+	YellowfinAdminPasswordFile = "c:/imqsvar/secrets/yellowfin_admin"
+	YellowfinUserPasswordFile  = "c:/imqsvar/secrets/yellowfin_user"
+)
 
 const (
 	// Hard-coded group names
@@ -29,13 +36,14 @@ func main() {
 	app.AddCommand("createdb", "Create the postgres database")
 	app.AddCommand("resetauthgroups", "Reset the [admin,enabled] groups")
 
-	createUserDesc := "Create a user in the authentication system\nThis affects only the 'authentication' system - the permit database is not altered by this command."
+	createUserDesc := "Create a user in the authentication system\nThis affects only the 'authentication' system - the permit database is not altered by this command. " +
+		"If the global -yf (yellowfin) option is specified, then the user is also created in yellowfin."
 	createuser := app.AddCommand("createuser", createUserDesc, "identity", "password")
-	createuser.AddBoolOption("update",
-		"If specified, and the user already exists, then behave identically to 'setpassword'. "+
-			"If this is not specified, and the identity already exists, then the function returns with an error.")
+	createuser.AddBoolOption("yf-only", "Create the user in yellowfin only. To do the opposite, ie disable creating the user in yellowfin, simply omit the global -yf option")
 
-	app.AddCommand("setpassword", "Set a user's password", "identity", "password")
+	setPassword := app.AddCommand("setpassword", "Set a user's password", "identity", "password")
+	setPassword.AddBoolOption("yf-only", "Set the password in yellowfin only. To do the opposite, ie disable setting the password in yellowfin, simply omit the global -yf option")
+
 	app.AddCommand("setgroup", "Add or modify a group\nThe list of roles specified replaces the existing roles completely.", "groupname", "...role")
 	app.AddCommand("permgroupadd", "Add a group to a permit", "identity", "groupname")
 	app.AddCommand("permgroupdel", "Remove a group from a permit", "identity", "groupname")
@@ -56,9 +64,24 @@ func main() {
 }
 
 func exec(cmdName string, args []string, options map[string]string) {
+
+	// panic(string) to show an error message.
+	// panic(error) will show a stack trace
 	defer func() {
 		if ex := recover(); ex != nil {
-			fmt.Printf("%v\n", ex)
+			switch err := ex.(type) {
+			case error:
+				fmt.Printf("%v\n", err)
+				trace := make([]byte, 1024)
+				runtime.Stack(trace, false)
+				fmt.Printf("%s\n", trace)
+			case string:
+				if err != "" {
+					fmt.Printf("%v\n", err)
+				}
+			default:
+				fmt.Printf("%v\n", ex)
+			}
 			os.Exit(1)
 		} else {
 			os.Exit(0)
@@ -67,7 +90,6 @@ func exec(cmdName string, args []string, options map[string]string) {
 
 	ic := &imqsauth.ImqsCentral{}
 	ic.Config = &authaus.Config{}
-	ic.Yellowfin = &imqsauth.Yellowfin{Enabled: false}
 
 	configFile := options["c"]
 	yfConfigFile := options["yf"]
@@ -79,12 +101,7 @@ func exec(cmdName string, args []string, options map[string]string) {
 
 	if !isTestConfig {
 		if err := ic.Config.LoadFile(configFile); err != nil {
-			panic(fmt.Sprintf("Error loading config file '%v': %v\n", configFile, err))
-		}
-		if yfConfigFile != "" {
-			if err := ic.Yellowfin.LoadConfig(yfConfigFile); err != nil {
-				panic(fmt.Sprintf("Error loading config file '%v': %v\n", yfConfigFile, err))
-			}
+			panic(fmt.Sprintf("Error loading config file '%v': %v", configFile, err))
 		}
 	}
 
@@ -99,14 +116,25 @@ func exec(cmdName string, args []string, options map[string]string) {
 		handler()
 	}
 
-	// createdb is special. We cannot initialize an authaus Central object until the DB has been created
-	if cmdName != "createdb" {
+	// "createdb" is different to the other command.
+	// We cannot initialize an authaus Central object until the DB has been created.
+	createCentral := cmdName != "createdb" && !isTestConfig
+
+	if createCentral {
 		var err error
 		ic.Central, err = authaus.NewCentralFromConfig(ic.Config)
 		if err != nil {
 			panic(err)
 		}
 		defer ic.Central.Close()
+	}
+
+	// Setup yellowfin
+	ic.Yellowfin = imqsauth.NewYellowfin(ic.Central.Log)
+	if yfConfigFile != "" {
+		if err := ic.Yellowfin.LoadConfig(yfConfigFile, YellowfinAdminPasswordFile, YellowfinUserPasswordFile); err != nil {
+			panic(fmt.Sprintf("Error loading yellowfin config: %v", err))
+		}
 	}
 
 	success := false
@@ -131,7 +159,7 @@ func exec(cmdName string, args []string, options map[string]string) {
 	case "setgroup":
 		success = setGroup(ic, args[0], args[1:])
 	case "setpassword":
-		success = setPassword(ic, args[0], args[1])
+		success = setPassword(ic, options, args[0], args[1])
 	case "showgroups":
 		success = showAllGroups(ic)
 	case "showidentities":
@@ -166,7 +194,6 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 		ic.Central.SetPermit("joe", permitEnabled)
 		ic.Central.SetPermit("admin", permitAdminEnabled)
 		ic.Central.SetPermit("admin_disabled", permitAdminDisabled)
-		ic.Yellowfin.Enabled = false
 		return true
 	}
 	return false
@@ -392,35 +419,74 @@ func setGroup(icentral *imqsauth.ImqsCentral, groupName string, roles []string) 
 }
 
 func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, identity string, password string) bool {
-	_, update := options["update"]
+	_, yfOnly := options["yf-only"]
+	if yfOnly && !icentral.Yellowfin.Enabled {
+		fmt.Printf("Yellowfin is disabled inside yellowfin config\n")
+		return false
+	}
+	nfailed := 0
 
-	if update {
-		if e := icentral.Central.SetPassword(identity, password); e == nil {
-			fmt.Printf("Reset password of %v\n", identity)
-			return true
-		} else if strings.Index(e.Error(), authaus.ErrIdentityAuthNotFound.Error()) == -1 {
-			fmt.Printf("Error setting password fof %v: %v\n", identity, e)
-			return false
+	if yfOnly || icentral.Yellowfin.Enabled {
+		if e := icentral.Yellowfin.CreateUser(identity); e == nil {
+			if yfOnly {
+				return true
+			}
+		} else {
+			fmt.Printf("Failed to create yellowfin user %v\n", identity)
+			nfailed++
+			if yfOnly {
+				return false
+			}
 		}
 	}
 
-	if e := icentral.Central.CreateAuthenticatorIdentity(identity, password); e == nil {
-		fmt.Printf("Created user %v\n", identity)
-		return true
-	} else {
-		fmt.Printf("Error creating identity %v: %v\n", identity, e)
-		return false
+	if !yfOnly {
+		if e := icentral.Central.CreateAuthenticatorIdentity(identity, password); e == nil {
+			fmt.Printf("Created user %v\n", identity)
+			return true
+		} else {
+			fmt.Printf("Error creating identity %v: %v\n", identity, e)
+			nfailed++
+		}
 	}
+
+	return nfailed == 0
 }
 
-func setPassword(icentral *imqsauth.ImqsCentral, identity string, password string) bool {
-	if e := icentral.Central.SetPassword(identity, password); e == nil {
-		fmt.Printf("Reset password of %v\n", identity)
-		return true
-	} else {
-		fmt.Printf("Error resetting password: %v\n", e)
+func setPassword(icentral *imqsauth.ImqsCentral, options map[string]string, identity string, password string) bool {
+	_, yfOnly := options["yf-only"]
+	if yfOnly && !icentral.Yellowfin.Enabled {
+		fmt.Printf("Yellowfin is disabled inside yellowfin config\n")
 		return false
 	}
+	nfailed := 0
+
+	if yfOnly || icentral.Yellowfin.Enabled {
+		if e := icentral.Yellowfin.UpdatePassword(identity, password); e == nil {
+			fmt.Printf("Reset yellowfin password of %v\n", identity)
+			if yfOnly {
+				return true
+			}
+		} else {
+			fmt.Printf("Failed to set yellowfin password of %v: %v\n", identity, e)
+			nfailed++
+			if yfOnly {
+				return false
+			}
+		}
+	}
+
+	if !yfOnly {
+		if e := icentral.Central.SetPassword(identity, password); e == nil {
+			fmt.Printf("Reset password of %v\n", identity)
+			return true
+		} else {
+			fmt.Printf("Error resetting password: %v\n", e)
+			nfailed++
+		}
+	}
+
+	return nfailed == 0
 }
 
 type groupModifyMode int
