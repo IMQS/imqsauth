@@ -37,9 +37,8 @@ func main() {
 	app.AddCommand("resetauthgroups", "Reset the [admin,enabled] groups")
 
 	createUserDesc := "Create a user in the authentication system\nThis affects only the 'authentication' system - the permit database is not altered by this command. " +
-		"If the global -yf (yellowfin) option is specified, then the user is also created in yellowfin."
-	createuser := app.AddCommand("createuser", createUserDesc, "identity", "password")
-	createuser.AddBoolOption("yf-only", "Create the user in yellowfin only. To do the opposite, ie disable creating the user in yellowfin, simply omit the global -yf option")
+		"This has no effect on Yellowfin. Yellowfin users are created automatically during HTTP login."
+	app.AddCommand("createuser", createUserDesc, "identity", "password")
 
 	setPassword := app.AddCommand("setpassword", "Set a user's password", "identity", "password")
 	setPassword.AddBoolOption("yf-only", "Set the password in yellowfin only. To do the opposite, ie disable setting the password in yellowfin, simply omit the global -yf option")
@@ -321,23 +320,26 @@ func permGroupAddOrDel(icentral *imqsauth.ImqsCentral, identity string, groupnam
 }
 
 func permShow(icentral *imqsauth.ImqsCentral, identityColumnWidth int, identity string) (success bool) {
+	permStr := ""
+	success = false
 	if perm, e := icentral.Central.GetPermit(identity); e == nil {
 		if groups, eDecode := authaus.DecodePermit(perm.Roles); eDecode == nil {
 			if groupNames, eGetNames := authaus.GroupIDsToNames(groups, icentral.Central.GetRoleGroupDB()); eGetNames == nil {
 				sort.Strings(groupNames)
-				fmtStr := fmt.Sprintf("%%-%vv  %%v\n", identityColumnWidth)
-				fmt.Printf(fmtStr, identity, strings.Join(groupNames, " "))
-				return true
+				permStr = strings.Join(groupNames, " ")
+				success = true
 			} else {
-				fmt.Printf("Error converting group IDs to names: %v\n", eGetNames)
+				permStr = fmt.Sprintf("Error converting group IDs to names: %v\n", eGetNames)
 			}
 		} else {
-			fmt.Printf("Error decoding permit: %v\n", eDecode)
+			permStr = fmt.Sprintf("Error decoding permit: %v\n", eDecode)
 		}
 	} else {
-		fmt.Printf("Error retrieving permit: %v\n", e)
+		permStr = fmt.Sprintf("Error retrieving permit: %v\n", e)
 	}
-	return false
+	fmtStr := fmt.Sprintf("%%-%vv  %%v\n", identityColumnWidth)
+	fmt.Printf(fmtStr, identity, permStr)
+	return
 }
 
 func showAllGroups(icentral *imqsauth.ImqsCentral) bool {
@@ -419,38 +421,13 @@ func setGroup(icentral *imqsauth.ImqsCentral, groupName string, roles []string) 
 }
 
 func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, identity string, password string) bool {
-	_, yfOnly := options["yf-only"]
-	if yfOnly && !icentral.Yellowfin.Enabled {
-		fmt.Printf("Yellowfin is disabled inside yellowfin config\n")
+	if e := icentral.Central.CreateAuthenticatorIdentity(identity, password); e == nil {
+		fmt.Printf("Created user %v\n", identity)
+		return true
+	} else {
+		fmt.Printf("Error creating identity %v: %v\n", identity, e)
 		return false
 	}
-	nfailed := 0
-
-	if yfOnly || icentral.Yellowfin.Enabled {
-		if e := icentral.Yellowfin.CreateUser(identity); e == nil {
-			if yfOnly {
-				return true
-			}
-		} else {
-			fmt.Printf("Failed to create yellowfin user %v\n", identity)
-			nfailed++
-			if yfOnly {
-				return false
-			}
-		}
-	}
-
-	if !yfOnly {
-		if e := icentral.Central.CreateAuthenticatorIdentity(identity, password); e == nil {
-			fmt.Printf("Created user %v\n", identity)
-			return true
-		} else {
-			fmt.Printf("Error creating identity %v: %v\n", identity, e)
-			nfailed++
-		}
-	}
-
-	return nfailed == 0
 }
 
 func setPassword(icentral *imqsauth.ImqsCentral, options map[string]string, identity string, password string) bool {
