@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -142,6 +143,9 @@ const (
 // is set to "UserID", we still use the full name.
 const AdminUser = "admin@yellowfin.com.au"
 
+// This is the password of admin@yellowfin.com.au, as set by the yellowfin installer
+const AdminDefaultPassword = "test"
+
 // We never use a user's actual password. We authorize all requests with the admin user's credentials.
 // This just makes life simpler for us, so that we don't have to worry about keeping passwords in sync
 // between authaus and yellowfin.
@@ -183,12 +187,19 @@ func (y *Yellowfin) LoadConfig(configFile, adminPasswordFile, userPasswordFile s
 		return err
 	}
 
-	// Read admin password
+	// Read admin password. If this file is not found, then we assume that the password
+	// is "test", because that is the password set by the yellowfin installer.
+	// This is not just conservative coding - this code path is actually used
+	// by the IMQS server install script when it changes the yellowfin admin password
+	// to a random string.
 	rawPass, err := ioutil.ReadFile(adminPasswordFile)
-	if err != nil {
+	if err == nil {
+		y.AdminPassword = string(rawPass)
+	} else if os.IsNotExist(err) {
+		y.AdminPassword = AdminDefaultPassword
+	} else {
 		return err
 	}
-	y.AdminPassword = string(rawPass)
 
 	// Read user password
 	rawPass, err = ioutil.ReadFile(userPasswordFile)
