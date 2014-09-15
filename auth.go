@@ -129,10 +129,12 @@ func exec(cmdName string, args []string, options map[string]string) {
 	}
 
 	// Setup yellowfin
-	ic.Yellowfin = imqsauth.NewYellowfin(ic.Central.Log)
-	if yfConfigFile != "" {
-		if err := ic.Yellowfin.LoadConfig(yfConfigFile, YellowfinAdminPasswordFile, YellowfinUserPasswordFile); err != nil {
-			panic(fmt.Sprintf("Error loading yellowfin config: %v", err))
+	if ic.Central != nil {
+		ic.Yellowfin = imqsauth.NewYellowfin(ic.Central.Log)
+		if yfConfigFile != "" {
+			if err := ic.Yellowfin.LoadConfig(yfConfigFile, YellowfinAdminPasswordFile, YellowfinUserPasswordFile); err != nil {
+				panic(fmt.Sprintf("Error loading yellowfin config: %v", err))
+			}
 		}
 	}
 
