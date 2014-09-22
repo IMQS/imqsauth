@@ -169,7 +169,7 @@ func NewYellowfin(logger *log.Logger) *Yellowfin {
 		Url:     "http://localhost/yellowfin/",
 	}
 	if y.Log == nil {
-		y.Log = log.New(ioutil.Discard, "", 0)
+		y.Log = log.New(os.Stdout, "", 0)
 	}
 	y.Transport = &http.Transport{
 		DisableKeepAlives:  true,
@@ -203,10 +203,11 @@ func (y *Yellowfin) LoadConfig(configFile, adminPasswordFile, userPasswordFile s
 
 	// Read user password
 	rawPass, err = ioutil.ReadFile(userPasswordFile)
-	if err != nil {
+	if err == nil {
+		y.UserPassword = string(rawPass)
+	} else if y.Enabled {
 		return err
 	}
-	y.UserPassword = string(rawPass)
 
 	return nil
 }
