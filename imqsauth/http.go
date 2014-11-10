@@ -71,7 +71,7 @@ type userGroupsResponseJson struct {
 }
 
 type ImqsCentral struct {
-	Config    *authaus.Config
+	Config    *Config
 	Central   *authaus.Central
 	Yellowfin *Yellowfin
 }
@@ -93,7 +93,7 @@ func (x *ImqsCentral) RunHttp() error {
 			needToken := 0 != (flags & handlerFlagNeedToken)
 			if needAdmin || needToken {
 				permOK := false
-				if token, err := authaus.HttpHandlerPreludeWithError(&x.Config.HTTP, x.Central, w, r); err == nil {
+				if token, err := authaus.HttpHandlerPreludeWithError(&x.Config.Authaus.HTTP, x.Central, w, r); err == nil {
 					if permList, errDecodePerms := authaus.PermitResolveToList(token.Permit.Roles, x.Central.GetRoleGroupDB()); errDecodePerms != nil {
 						authaus.HttpSendTxt(w, http.StatusInternalServerError, errDecodePerms.Error())
 					} else {
@@ -138,9 +138,9 @@ func (x *ImqsCentral) RunHttp() error {
 
 	server := &http.Server{}
 	server.Handler = smux
-	server.Addr = x.Config.HTTP.Bind + ":" + strconv.Itoa(x.Config.HTTP.Port)
+	server.Addr = x.Config.Authaus.HTTP.Bind + ":" + strconv.Itoa(x.Config.Authaus.HTTP.Port)
 
-	x.Central.Log.Printf("ImqsAuth is listening on %v:%v\n", x.Config.HTTP.Bind, x.Config.HTTP.Port)
+	x.Central.Log.Printf("ImqsAuth is listening on %v:%v\n", x.Config.Authaus.HTTP.Bind, x.Config.Authaus.HTTP.Port)
 
 	if err := server.ListenAndServe(); err != nil {
 		return err
@@ -151,7 +151,7 @@ func (x *ImqsCentral) RunHttp() error {
 
 func (x *ImqsCentral) LoadConfigAndRunHttp() error {
 	var err error
-	if x.Central, err = authaus.NewCentralFromConfig(x.Config); err != nil {
+	if x.Central, err = authaus.NewCentralFromConfig(&x.Config.Authaus); err != nil {
 		return err
 	} else {
 		err := x.RunHttp()
@@ -161,7 +161,7 @@ func (x *ImqsCentral) LoadConfigAndRunHttp() error {
 }
 
 func (x *ImqsCentral) IsAdmin(r *http.Request) (bool, error) {
-	if token, err := authaus.HttpHandlerPrelude(&x.Config.HTTP, x.Central, r); err == nil {
+	if token, err := authaus.HttpHandlerPrelude(&x.Config.Authaus.HTTP, x.Central, r); err == nil {
 		if pbits, egroup := authaus.PermitResolveToList(token.Permit.Roles, x.Central.GetRoleGroupDB()); egroup == nil {
 			return pbits.Has(PermAdmin), nil
 		} else {
@@ -259,12 +259,12 @@ func httpSendNoIdentity(w http.ResponseWriter) {
 
 func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	identity := ""
-	if token, err := authaus.HttpHandlerPreludeWithError(&central.Config.HTTP, central.Central, w, r.http); err == nil {
+	if token, err := authaus.HttpHandlerPreludeWithError(&central.Config.Authaus.HTTP, central.Central, w, r.http); err == nil {
 		identity = token.Identity
 	}
 
 	// Try to erase the session cookie regardless of whether we could locate a valid token.
-	sessioncookie, _ := r.http.Cookie(central.Config.HTTP.CookieName)
+	sessioncookie, _ := r.http.Cookie(central.Config.Authaus.HTTP.CookieName)
 	if sessioncookie != nil {
 		central.Central.Logout(sessioncookie.Value)
 	}
@@ -303,11 +303,11 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 				httpSendAccountDisabled(w)
 			} else {
 				cookie := &http.Cookie{
-					Name:    central.Config.HTTP.CookieName,
+					Name:    central.Config.Authaus.HTTP.CookieName,
 					Value:   sessionkey,
 					Path:    "/",
 					Expires: token.Expires,
-					Secure:  central.Config.HTTP.CookieSecure,
+					Secure:  central.Config.Authaus.HTTP.CookieSecure,
 				}
 				http.SetCookie(w, cookie)
 				httpLoginYellowfin(central, w, r, identity, permList)
@@ -447,7 +447,7 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 }
 
 func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	if token, err := authaus.HttpHandlerPreludeWithError(&central.Config.HTTP, central.Central, w, r.http); err == nil {
+	if token, err := authaus.HttpHandlerPreludeWithError(&central.Config.Authaus.HTTP, central.Central, w, r.http); err == nil {
 		if permList, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup != nil {
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, egroup.Error())
 		} else {

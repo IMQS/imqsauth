@@ -41,7 +41,7 @@ func main() {
 	app.AddCommand("createuser", createUserDesc, "identity", "password")
 
 	setPassword := app.AddCommand("setpassword", "Set a user's password", "identity", "password")
-	setPassword.AddBoolOption("yf-only", "Set the password in yellowfin only. To do the opposite, ie disable setting the password in yellowfin, simply omit the global -yf option")
+	setPassword.AddBoolOption("yf-only", "Set the password in yellowfin only.")
 
 	app.AddCommand("setgroup", "Add or modify a group\nThe list of roles specified replaces the existing roles completely.", "groupname", "...role")
 	app.AddCommand("permgroupadd", "Add a group to a permit", "identity", "groupname")
@@ -54,10 +54,8 @@ func main() {
 		"launch as a Windows Service. Otherwise, this runs in the foreground, and returns with an error code of 1. When running in the foreground, "+
 		"log messages are still sent to the logfile (not to the console).")
 
-	app.AddValueOption("c", "configfile", "Specify the authaus config file. A pseudo file called "+TestConfig1+" is "+
+	app.AddValueOption("c", "configfile", "Specify the imqsauth config file. A pseudo file called "+TestConfig1+" is "+
 		"used by the REST test suite to load a test configuration. This option is mandatory.")
-
-	app.AddValueOption("yf", "configfile", "Specify the Yellowfin config file.")
 
 	app.Run()
 }
@@ -88,16 +86,15 @@ func exec(cmdName string, args []string, options map[string]string) {
 	}()
 
 	ic := &imqsauth.ImqsCentral{}
-	ic.Config = &authaus.Config{}
+	ic.Config = &imqsauth.Config{}
 
 	configFile := options["c"]
-	yfConfigFile := options["yf"]
 	if configFile == "" {
 		panic("config file not specified")
 	}
 
+	// Try test config first; otherwise load real config
 	isTestConfig := loadTestConfig(ic, configFile)
-
 	if !isTestConfig {
 		if err := ic.Config.LoadFile(configFile); err != nil {
 			panic(fmt.Sprintf("Error loading config file '%v': %v", configFile, err))
@@ -121,7 +118,7 @@ func exec(cmdName string, args []string, options map[string]string) {
 
 	if createCentral {
 		var err error
-		ic.Central, err = authaus.NewCentralFromConfig(ic.Config)
+		ic.Central, err = authaus.NewCentralFromConfig(&ic.Config.Authaus)
 		if err != nil {
 			panic(err)
 		}
@@ -131,8 +128,8 @@ func exec(cmdName string, args []string, options map[string]string) {
 	// Setup yellowfin
 	if ic.Central != nil {
 		ic.Yellowfin = imqsauth.NewYellowfin(ic.Central.Log)
-		if yfConfigFile != "" {
-			if err := ic.Yellowfin.LoadConfig(yfConfigFile, YellowfinAdminPasswordFile, YellowfinUserPasswordFile); err != nil {
+		if ic.Config.Yellowfin.Enabled {
+			if err := ic.Yellowfin.LoadConfig(ic.Config.Yellowfin, YellowfinAdminPasswordFile, YellowfinUserPasswordFile); err != nil {
 				panic(fmt.Sprintf("Error loading yellowfin config: %v", err))
 			}
 		}
@@ -141,7 +138,7 @@ func exec(cmdName string, args []string, options map[string]string) {
 	success := false
 	switch cmdName {
 	case "createdb":
-		success = createDB(ic.Config)
+		success = createDB(&ic.Config.Authaus)
 	case "createuser":
 		success = createUser(ic, options, args[0], args[1])
 	case "permgroupadd":
@@ -177,8 +174,8 @@ func exec(cmdName string, args []string, options map[string]string) {
 
 func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 	if testConfigName == TestConfig1 {
-		ic.Config.HTTP.Bind = "127.0.0.1"
-		ic.Config.HTTP.Port = TestPort
+		ic.Config.Authaus.HTTP.Bind = "127.0.0.1"
+		ic.Config.Authaus.HTTP.Port = TestPort
 		ic.Central = authaus.NewCentralDummy(log.New(os.Stdout, "", 0))
 		resetAuthGroups(ic)
 		ic.Central.CreateAuthenticatorIdentity("joe", "JOE")

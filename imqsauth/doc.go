@@ -9,5 +9,34 @@ cannot be hard-coded into the application, so they don't fit into
 this scheme. However, it should not be too difficult to expand this
 system to accomodate that kind of thing.
 
+Example config file:
+
+{
+	"Authaus": {
+		"Log": {
+			"Filename":		"c:\\imqsvar\\logs\\imqsauth.log"
+		},
+		"HTTP": {
+			"Bind": 		"127.0.0.1",
+			"Port": 		2003
+		},
+		"Authenticator": {
+			"Type": 		"db",
+			"DB": {...}
+		},
+		"PermitDB": {
+			"DB": {...}
+		},
+		"SessionDB": {
+			"DB": {...}
+		},
+		"RoleGroupDB": {
+			"DB": {...}
+		}
+	},
+	"Yellowfin": {
+		"Enabled": true
+	}
+}
 */
 package imqsauth

@@ -1,7 +1,6 @@
 package imqsauth
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -157,8 +156,8 @@ type Yellowfin struct {
 	Log           *log.Logger
 	AdminPassword string
 	UserPassword  string // This password is used only when creating users, but thereafter we never use it
-	Url           string `json:"url"`
-	Enabled       bool   `json:"enabled"`
+	Url           string
+	Enabled       bool
 	Transport     *http.Transport
 }
 
@@ -178,14 +177,8 @@ func NewYellowfin(logger *log.Logger) *Yellowfin {
 	return y
 }
 
-func (y *Yellowfin) LoadConfig(configFile, adminPasswordFile, userPasswordFile string) error {
-	rawConfig, err := ioutil.ReadFile(configFile)
-	if err != nil {
-		return err
-	}
-	if err = json.Unmarshal(rawConfig, y); err != nil {
-		return err
-	}
+func (y *Yellowfin) LoadConfig(config ConfigYellowfin, adminPasswordFile, userPasswordFile string) error {
+	y.Enabled = config.Enabled
 
 	// Read admin password. If this file is not found, then we assume that the password
 	// is "test", because that is the password set by the yellowfin installer.
