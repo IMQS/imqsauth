@@ -40,6 +40,8 @@ func main() {
 		"This has no effect on Yellowfin. Yellowfin users are created automatically during HTTP login."
 	app.AddCommand("createuser", createUserDesc, "identity", "password")
 
+	app.AddCommand("killsessions", "Erase all sessions belonging to a particular user\nWarning! The running server maintains a cache of "+
+		"sessions, so you must stop the server, run this command, and then start the server again to kill sessions correctly.", "identity")
 	app.AddCommand("setpassword", "Set a user's password in Authaus", "identity", "password")
 	app.AddCommand("setpassword-yf", "Set a user's password in Yellowfin", "identity", "password")
 	app.AddCommand("setgroup", "Add or modify a group\nThe list of roles specified replaces the existing roles completely.", "groupname", "...role")
@@ -140,6 +142,8 @@ func exec(cmdName string, args []string, options map[string]string) {
 		success = createDB(&ic.Config.Authaus)
 	case "createuser":
 		success = createUser(ic, options, args[0], args[1])
+	case "killsessions":
+		success = killSessions(ic, args[0])
 	case "permgroupadd":
 		success = permGroupAddOrDel(ic, args[0], args[1], true)
 	case "permgroupdel":
@@ -426,6 +430,16 @@ func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, ident
 		return true
 	} else {
 		fmt.Printf("Error creating identity %v: %v\n", identity, e)
+		return false
+	}
+}
+
+func killSessions(icentral *imqsauth.ImqsCentral, identity string) bool {
+	if e := icentral.Central.InvalidateSessionsForIdentity(identity); e == nil {
+		fmt.Printf("Destroyed all sessions for %v\n", identity)
+		return true
+	} else {
+		fmt.Printf("Error destroying sessions: %v\n", e)
 		return false
 	}
 }
