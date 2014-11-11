@@ -40,9 +40,8 @@ func main() {
 		"This has no effect on Yellowfin. Yellowfin users are created automatically during HTTP login."
 	app.AddCommand("createuser", createUserDesc, "identity", "password")
 
-	setPassword := app.AddCommand("setpassword", "Set a user's password", "identity", "password")
-	setPassword.AddBoolOption("yf-only", "Set the password in yellowfin only.")
-
+	app.AddCommand("setpassword", "Set a user's password in Authaus", "identity", "password")
+	app.AddCommand("setpassword-yf", "Set a user's password in Yellowfin", "identity", "password")
 	app.AddCommand("setgroup", "Add or modify a group\nThe list of roles specified replaces the existing roles completely.", "groupname", "...role")
 	app.AddCommand("permgroupadd", "Add a group to a permit", "identity", "groupname")
 	app.AddCommand("permgroupdel", "Remove a group from a permit", "identity", "groupname")
@@ -157,7 +156,9 @@ func exec(cmdName string, args []string, options map[string]string) {
 	case "setgroup":
 		success = setGroup(ic, args[0], args[1:])
 	case "setpassword":
-		success = setPassword(ic, options, args[0], args[1])
+		success = setPassword(ic, args[0], args[1])
+	case "setpassword-yf":
+		success = setPasswordYellowfin(ic, args[0], args[1])
 	case "showgroups":
 		success = showAllGroups(ic)
 	case "showidentities":
@@ -429,40 +430,28 @@ func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, ident
 	}
 }
 
-func setPassword(icentral *imqsauth.ImqsCentral, options map[string]string, identity string, password string) bool {
-	_, yfOnly := options["yf-only"]
-	if yfOnly && !icentral.Yellowfin.Enabled {
-		fmt.Printf("Yellowfin is disabled inside yellowfin config\n")
+func setPassword(icentral *imqsauth.ImqsCentral, identity string, password string) bool {
+	if e := icentral.Central.SetPassword(identity, password); e == nil {
+		fmt.Printf("Reset password of %v\n", identity)
+		return true
+	} else {
+		fmt.Printf("Error resetting password: %v\n", e)
 		return false
 	}
-	nfailed := 0
+}
 
-	if yfOnly || icentral.Yellowfin.Enabled {
-		if e := icentral.Yellowfin.UpdatePassword(identity, password); e == nil {
-			fmt.Printf("Reset yellowfin password of %v\n", identity)
-			if yfOnly {
-				return true
-			}
-		} else {
-			fmt.Printf("Failed to set yellowfin password of %v: %v\n", identity, e)
-			nfailed++
-			if yfOnly {
-				return false
-			}
-		}
+func setPasswordYellowfin(icentral *imqsauth.ImqsCentral, identity string, password string) bool {
+	if !icentral.Yellowfin.Enabled {
+		fmt.Printf("Yellowfin is disabled\n")
+		return false
 	}
-
-	if !yfOnly {
-		if e := icentral.Central.SetPassword(identity, password); e == nil {
-			fmt.Printf("Reset password of %v\n", identity)
-			return true
-		} else {
-			fmt.Printf("Error resetting password: %v\n", e)
-			nfailed++
-		}
+	if e := icentral.Yellowfin.UpdatePassword(identity, password); e == nil {
+		fmt.Printf("Reset yellowfin password of %v\n", identity)
+		return true
+	} else {
+		fmt.Printf("Failed to set yellowfin password of %v: %v\n", identity, e)
+		return false
 	}
-
-	return nfailed == 0
 }
 
 type groupModifyMode int
