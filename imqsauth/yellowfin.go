@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 // Functions to allow for parallel login to yellowfin. This is done via a webservice; the first page
@@ -131,6 +132,10 @@ const (
 	YellowfinGroupWriter
 	YellowfinGroupConsumer
 )
+
+// If you modify this, then also read the comment inside httpLoginYellowfin, and make
+// sure you keep in mind the session timeout value in Yellowfin's web.xml
+const yellowfinCookieExpiry = 31 * 24 * time.Hour
 
 // The 'admin' user is a yellowfin super-user that we can use as authority in order to
 // login on behalf of regular users. This is convenient, because it means we do not

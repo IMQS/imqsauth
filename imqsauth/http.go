@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // On the usage of defer() and panic() inside this file, as an exception handling mechanism:
@@ -336,12 +337,15 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 			central.Central.Log.Printf("Yellowfin login error: %v", err)
 		} else if cookies != nil {
 			for _, cookie := range cookies {
+				// Despite raising the tomcat session timeout in web.xml to 31 days,
+				// the cookies that yellowfin returns us have an expiry of 12 hours.
+				// That is why we simply override the cookie timeout here.
 				if cookie.Name == "JSESSIONID" || cookie.Name == "IPID" {
 					newcookie := &http.Cookie{
 						Name:    cookie.Name,
 						Value:   cookie.Value,
 						Path:    "/",
-						Expires: cookie.Expires,
+						Expires: time.Now().Add(yellowfinCookieExpiry),
 						Secure:  cookie.Secure,
 					}
 					http.SetCookie(w, newcookie)
