@@ -102,6 +102,12 @@ func exec(cmdName string, args []string, options map[string]string) {
 		}
 	}
 
+	// Because Yellowfin only allows a single session per user, we need to
+	// make our behaviour the same.
+	if ic.Config.Yellowfin.Enabled {
+		ic.Config.Authaus.SessionDB.MaxActiveSessions = 1
+	}
+
 	handler := func() error {
 		if isTestConfig {
 			return ic.RunHttp()
