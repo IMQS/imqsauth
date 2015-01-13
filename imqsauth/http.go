@@ -132,6 +132,8 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/logout", makehandler(HttpMethodPost, httpHandlerLogout, 0))
 	smux.HandleFunc("/check", makehandler(HttpMethodGet, httpHandlerCheck, 0))
 	smux.HandleFunc("/create_user", makehandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/create_group", makehandler(HttpMethodPut, httpHandlerCreateGroup, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/set_group_roles", makehandler(HttpMethodPut, httpHandlerSetGroupRoles, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_user_groups", makehandler(HttpMethodPost, httpHandlerSetUserGroups, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_password", makehandler(HttpMethodPost, httpHandlerSetPassword, handlerFlagNeedToken))
 	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
@@ -141,7 +143,7 @@ func (x *ImqsCentral) RunHttp() error {
 	server.Handler = smux
 	server.Addr = x.Config.Authaus.HTTP.Bind + ":" + strconv.Itoa(x.Config.Authaus.HTTP.Port)
 
-	x.Central.Log.Printf("ImqsAuth is listening on %v:%v\n", x.Config.Authaus.HTTP.Bind, x.Config.Authaus.HTTP.Port)
+	x.Central.Log.Printf("ImqsAuth is listening on %v:%v", x.Config.Authaus.HTTP.Bind, x.Config.Authaus.HTTP.Port)
 
 	if err := server.ListenAndServe(); err != nil {
 		return err
@@ -224,7 +226,7 @@ func httpSendGroupsJson(w http.ResponseWriter, groups []*authaus.AuthGroup) {
 }
 
 func httpSendPermitsJson(central *ImqsCentral, identities []string, ident2perm map[string]*authaus.Permit, w http.ResponseWriter) {
-	//central.Central.Log.Printf("Number of identities %v\n", len(permits))
+	//central.Central.Log.Printf("Number of identities %v", len(permits))
 
 	emptyPermit := authaus.Permit{}
 
@@ -364,12 +366,58 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	if err := central.Central.CreateAuthenticatorIdentity(identity, password); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
-		authaus.HttpSendTxt(w, http.StatusOK, "Created identity '"+identity+"'")
+		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Created identity '%v'", identity))
 		/* // This has been moved to Login
 		if yfErr := central.Yellowfin.CreateUser(identity); yfErr != nil {
 			central.Central.Log.Printf("Error creating Yellowfin user '%v': %v", identity, yfErr)
 		}
 		*/
+	}
+}
+
+func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	groupname := strings.TrimSpace(r.http.URL.Query().Get("groupname"))
+	if groupname == "" {
+		authaus.HttpSendTxt(w, http.StatusNotAcceptable, "Group name may not be blank.")
+		return
+	}
+
+	if _, err := authaus.LoadOrCreateGroup(central.Central.GetRoleGroupDB(), groupname, true); err == nil {
+		central.Central.Log.Printf("New group added: %v", groupname)
+		authaus.HttpSendTxt(w, http.StatusOK, "")
+		return
+	} else {
+		central.Central.Log.Printf("Error creating group (%v): %v", groupname, err)
+		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Error creating group (%v): %v", groupname, err))
+		return
+	}
+}
+
+func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	//TODO : Add check so current user cannot remove own Admin rights
+	groupname := strings.TrimSpace(r.http.URL.Query().Get("groupname"))
+	rolesstring := strings.TrimSpace(r.http.URL.Query().Get("roles"))
+
+	perms := authaus.PermissionList{}
+
+	for _, pname := range strings.Split(rolesstring, ",") {
+		perm, _ := strconv.ParseInt(pname, 10, 16)
+		perms = append(perms, authaus.PermissionU16(perm))
+	}
+
+	if group, e := authaus.LoadOrCreateGroup(central.Central.GetRoleGroupDB(), groupname, false); e == nil {
+		central.Central.Log.Printf("Roles %v set for group %v", rolesstring, groupname)
+		group.PermList = perms
+		if err := central.Central.GetRoleGroupDB().UpdateGroup(group); err == nil {
+			central.Central.Log.Printf("Set group roles for %v", groupname)
+			authaus.HttpSendTxt(w, http.StatusOK, "")
+		} else {
+			central.Central.Log.Printf("Could not set group roles for %v: %v", groupname, err)
+			authaus.HttpSendTxt(w, http.StatusNotAcceptable, fmt.Sprintf("Could not set group roles for %v: %v", groupname, err))
+		}
+	} else {
+		central.Central.Log.Printf("Group '%v' not found: %v", groupname, e)
+		authaus.HttpSendTxt(w, http.StatusNotFound, fmt.Sprintf("Group '%v' not found: %v", groupname, e))
 	}
 }
 
@@ -408,7 +456,7 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	summary := strings.Join(groups, ",")
-	authaus.HttpSendTxt(w, http.StatusOK, "'"+identity+"' groups set to ("+summary+")")
+	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("'%v' groups set to (%v)", identity, summary))
 
 	// Change yellowfin permissions
 	/* // this has been moved into Login
@@ -438,7 +486,7 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 	if err == nil {
 		if err = central.Yellowfin.UpdatePassword(identity, password); err != nil {
 			central.Central.Log.Printf("Error setting Yellowfin password for %v: %v", identity, err)
-			authaus.HttpSendTxt(w, http.StatusInternalServerError, "Yellowfin password update failed")
+			authaus.HttpSendTxt(w, http.StatusInternalServerError, fmt.Sprintf("Yellowfin password update failed for %v: %v", identity, err))
 			return
 		}
 	} else {
