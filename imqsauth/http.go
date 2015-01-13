@@ -132,6 +132,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/logout", makehandler(HttpMethodPost, httpHandlerLogout, 0))
 	smux.HandleFunc("/check", makehandler(HttpMethodGet, httpHandlerCheck, 0))
 	smux.HandleFunc("/create_user", makehandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/create_group", makehandler(HttpMethodPut, httpHandlerCreateGroup, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_user_groups", makehandler(HttpMethodPost, httpHandlerSetUserGroups, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_password", makehandler(HttpMethodPost, httpHandlerSetPassword, handlerFlagNeedToken))
 	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
@@ -371,6 +372,40 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		}
 		*/
 	}
+}
+
+func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	groupname := strings.TrimSpace(r.http.URL.Query().Get("groupname"))
+
+	if _, eget := central.Central.GetRoleGroupDB().GetByName(groupname); eget == nil {
+		authaus.HttpSendTxt(w, http.StatusOK, "Group already exists ('"+groupname+")'")
+	} else if strings.Index(eget.Error(), authaus.ErrGroupNotExist.Error()) == 0 {
+
+		group := &authaus.AuthGroup{}
+		group.Name = groupname
+		if ecreate := central.Central.GetRoleGroupDB().InsertGroup(group); ecreate == nil {
+			authaus.HttpSendTxt(w, http.StatusOK, "Group created ('"+groupname+")'")
+		} else {
+			authaus.HttpSendTxt(w, http.StatusBadRequest, "Error creating group ('"+groupname+")' ")
+			//fmt.Printf("Error inserting group %v: %v\n", groupName, ecreate)
+			//return nil, ecreate
+		}
+
+	} else {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, "Unknown server error.")
+	}
+
+	/*	if err := central.Central.CreateAuthenticatorIdentity(identity, password); err != nil {
+			authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+		} else {
+			authaus.HttpSendTxt(w, http.StatusOK, "Created identity '"+identity+"'")
+	*/
+	/* // This has been moved to Login
+	if yfErr := central.Yellowfin.CreateUser(identity); yfErr != nil {
+		central.Central.Log.Printf("Error creating Yellowfin user '%v': %v", identity, yfErr)
+	}
+	*/
+	//	}
 }
 
 func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
