@@ -133,6 +133,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/check", makehandler(HttpMethodGet, httpHandlerCheck, 0))
 	smux.HandleFunc("/create_user", makehandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/create_group", makehandler(HttpMethodPut, httpHandlerCreateGroup, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/set_group_roles", makehandler(HttpMethodPut, httpHandlerSetGroupRoles, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_user_groups", makehandler(HttpMethodPost, httpHandlerSetUserGroups, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_password", makehandler(HttpMethodPost, httpHandlerSetPassword, handlerFlagNeedToken))
 	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
@@ -387,25 +388,82 @@ func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *http
 			authaus.HttpSendTxt(w, http.StatusOK, "Group created ('"+groupname+")'")
 		} else {
 			authaus.HttpSendTxt(w, http.StatusBadRequest, "Error creating group ('"+groupname+")' ")
-			//fmt.Printf("Error inserting group %v: %v\n", groupName, ecreate)
-			//return nil, ecreate
 		}
 
 	} else {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, "Unknown server error.")
 	}
+}
 
-	/*	if err := central.Central.CreateAuthenticatorIdentity(identity, password); err != nil {
-			authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
-		} else {
-			authaus.HttpSendTxt(w, http.StatusOK, "Created identity '"+identity+"'")
-	*/
-	/* // This has been moved to Login
-	if yfErr := central.Yellowfin.CreateUser(identity); yfErr != nil {
-		central.Central.Log.Printf("Error creating Yellowfin user '%v': %v", identity, yfErr)
+func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	groupname := strings.TrimSpace(r.http.URL.Query().Get("groupname"))
+	rolesstring := strings.TrimSpace(r.http.URL.Query().Get("roles"))
+
+	roles := strings.Split(rolesstring, ",")
+
+	perms := []authaus.PermissionU16{}
+	//	nameToPerm := PermissionsTable.Inverted()
+
+	for _, pname := range roles {
+		// if perm, ok := nameToPerm[pname]; ok {
+		central.Central.Log.Printf("Role: " + pname)
+		perm, _ := strconv.ParseInt(pname, 10, 16)
+		perms = append(perms, authaus.PermissionU16(perm))
+		central.Central.Log.Printf("Added to list...")
+		// fmt.Printf("Added permission : %-25v [%v]\n", pname, perm)
+		// } else {
+		//panic(fmt.Sprintf("Permission '%v' does not exist", pname))
+		// }
 	}
-	*/
-	//	}
+
+	central.Central.Printf("Added all.")
+
+	//return modifyGroup(icentral, groupModifySet, groupName, perms)
+	if group, e := loadOrCreateGroup(central, groupname, true); e == nil {
+		group.PermList = make(authaus.PermissionList, len(perms))
+		copy(group.PermList, perms)
+		if saveGroup(central, group) {
+			authaus.HttpSendTxt(w, http.StatusOK, "Set group roles for '"+groupname+"'")
+		} else {
+			authaus.HttpSendTxt(w, http.StatusNotAcceptable, "Could not set group roles for '"+groupname+"'")
+		}
+	} else {
+		authaus.HttpSendTxt(w, http.StatusNotFound, "Group not found ("+groupname+")'")
+	}
+
+	//	authaus.HttpSendTxt(w, http.StatusNotImplemented, groupname+":"+rolesstring)
+}
+
+func saveGroup(icentral *ImqsCentral, group *authaus.AuthGroup) bool {
+	if eupdate := icentral.Central.GetRoleGroupDB().UpdateGroup(group); eupdate == nil {
+		fmt.Printf("Group %v updated\n", group.Name)
+		return true
+	} else {
+		fmt.Printf("Error updating group of %v: %v\n", group.Name, eupdate)
+		return false
+	}
+}
+
+func loadOrCreateGroup(icentral *ImqsCentral, groupName string, createIfNotExist bool) (*authaus.AuthGroup, error) {
+	if existing, eget := icentral.Central.GetRoleGroupDB().GetByName(groupName); eget == nil {
+		return existing, nil
+	} else if strings.Index(eget.Error(), authaus.ErrGroupNotExist.Error()) == 0 {
+		if createIfNotExist {
+			group := &authaus.AuthGroup{}
+			group.Name = groupName
+			if ecreate := icentral.Central.GetRoleGroupDB().InsertGroup(group); ecreate == nil {
+				fmt.Printf("Group %v created\n", groupName)
+				return group, nil
+			} else {
+				fmt.Printf("Error inserting group %v: %v\n", groupName, ecreate)
+				return nil, ecreate
+			}
+		} else {
+			return nil, eget
+		}
+	} else {
+		return nil, eget
+	}
 }
 
 func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
