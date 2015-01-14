@@ -377,49 +377,50 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 
 func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	groupname := strings.TrimSpace(r.http.URL.Query().Get("groupname"))
+	if groupname == "" {
+		authaus.HttpSendTxt(w, http.StatusNotAcceptable, "Group name may not be blank.")
+		return
+	}
 
 	if _, eget := central.Central.GetRoleGroupDB().GetByName(groupname); eget == nil {
-		authaus.HttpSendTxt(w, http.StatusOK, "Group already exists ('"+groupname+")'")
+		central.Central.Log.Printf("Tried to add group that already exists (no error): '" + groupname + "'")
+		authaus.HttpSendTxt(w, http.StatusOK, "Group already exists ('"+groupname+"')")
 	} else if strings.Index(eget.Error(), authaus.ErrGroupNotExist.Error()) == 0 {
 
 		group := &authaus.AuthGroup{}
 		group.Name = groupname
 		if ecreate := central.Central.GetRoleGroupDB().InsertGroup(group); ecreate == nil {
-			authaus.HttpSendTxt(w, http.StatusOK, "Group created ('"+groupname+")'")
+			central.Central.Log.Printf("New group added: '" + groupname + "'")
+			authaus.HttpSendTxt(w, http.StatusOK, "Group created ('"+groupname+"')")
 		} else {
-			authaus.HttpSendTxt(w, http.StatusBadRequest, "Error creating group ('"+groupname+")' ")
+			central.Central.Log.Printf("Error creating group ('" + groupname + "') ")
+			authaus.HttpSendTxt(w, http.StatusBadRequest, "Error creating group ('"+groupname+"') ")
 		}
-
 	} else {
+		central.Central.Log.Printf("Unknown server error creating group '" + groupname + "'")
 		authaus.HttpSendTxt(w, http.StatusBadRequest, "Unknown server error.")
 	}
 }
 
 func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	//TODO : Add check so current user cannot remove own Admin rights
 	groupname := strings.TrimSpace(r.http.URL.Query().Get("groupname"))
 	rolesstring := strings.TrimSpace(r.http.URL.Query().Get("roles"))
 
 	roles := strings.Split(rolesstring, ",")
 
 	perms := []authaus.PermissionU16{}
-	//	nameToPerm := PermissionsTable.Inverted()
+	permsString := []string{}
 
 	for _, pname := range roles {
-		// if perm, ok := nameToPerm[pname]; ok {
-		central.Central.Log.Printf("Role: " + pname)
 		perm, _ := strconv.ParseInt(pname, 10, 16)
 		perms = append(perms, authaus.PermissionU16(perm))
-		central.Central.Log.Printf("Added to list...")
-		// fmt.Printf("Added permission : %-25v [%v]\n", pname, perm)
-		// } else {
-		//panic(fmt.Sprintf("Permission '%v' does not exist", pname))
-		// }
+		permsString = append(permsString, pname)
 	}
 
-	central.Central.Printf("Added all.")
+	central.Central.Log.Printf("Roles " + strings.Join(permsString, ",") + " added to group '" + groupname + "'\n")
 
-	//return modifyGroup(icentral, groupModifySet, groupName, perms)
-	if group, e := loadOrCreateGroup(central, groupname, true); e == nil {
+	if group, e := loadGroup(central, groupname); e == nil {
 		group.PermList = make(authaus.PermissionList, len(perms))
 		copy(group.PermList, perms)
 		if saveGroup(central, group) {
@@ -428,40 +429,28 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 			authaus.HttpSendTxt(w, http.StatusNotAcceptable, "Could not set group roles for '"+groupname+"'")
 		}
 	} else {
-		authaus.HttpSendTxt(w, http.StatusNotFound, "Group not found ("+groupname+")'")
+		authaus.HttpSendTxt(w, http.StatusNotFound, "Group not found ('"+groupname+"')")
 	}
-
-	//	authaus.HttpSendTxt(w, http.StatusNotImplemented, groupname+":"+rolesstring)
 }
 
 func saveGroup(icentral *ImqsCentral, group *authaus.AuthGroup) bool {
 	if eupdate := icentral.Central.GetRoleGroupDB().UpdateGroup(group); eupdate == nil {
-		fmt.Printf("Group %v updated\n", group.Name)
+		icentral.Central.Log.Printf("Group '%v' updated\n", group.Name)
 		return true
 	} else {
-		fmt.Printf("Error updating group of %v: %v\n", group.Name, eupdate)
+		icentral.Central.Log.Printf("Error updating group '%v': %v\n", group.Name, eupdate)
 		return false
 	}
 }
 
-func loadOrCreateGroup(icentral *ImqsCentral, groupName string, createIfNotExist bool) (*authaus.AuthGroup, error) {
+func loadGroup(icentral *ImqsCentral, groupName string) (*authaus.AuthGroup, error) {
 	if existing, eget := icentral.Central.GetRoleGroupDB().GetByName(groupName); eget == nil {
 		return existing, nil
 	} else if strings.Index(eget.Error(), authaus.ErrGroupNotExist.Error()) == 0 {
-		if createIfNotExist {
-			group := &authaus.AuthGroup{}
-			group.Name = groupName
-			if ecreate := icentral.Central.GetRoleGroupDB().InsertGroup(group); ecreate == nil {
-				fmt.Printf("Group %v created\n", groupName)
-				return group, nil
-			} else {
-				fmt.Printf("Error inserting group %v: %v\n", groupName, ecreate)
-				return nil, ecreate
-			}
-		} else {
-			return nil, eget
-		}
+		icentral.Central.Log.Printf("Error loading group ('%v'). Group does not exist.", groupName, eget.Error())
+		return nil, eget
 	} else {
+		icentral.Central.Log.Printf("Error loading group ('%v'). Unknown error.", groupName, eget.Error())
 		return nil, eget
 	}
 }
