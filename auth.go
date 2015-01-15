@@ -235,34 +235,12 @@ func createDB(config *authaus.Config) (success bool) {
 }
 
 func loadOrCreateGroup(icentral *imqsauth.ImqsCentral, groupName string, createIfNotExist bool) (*authaus.AuthGroup, error) {
-	if existing, eget := icentral.Central.GetRoleGroupDB().GetByName(groupName); eget == nil {
-		return existing, nil
-	} else if strings.Index(eget.Error(), authaus.ErrGroupNotExist.Error()) == 0 {
-		if createIfNotExist {
-			group := &authaus.AuthGroup{}
-			group.Name = groupName
-			if ecreate := icentral.Central.GetRoleGroupDB().InsertGroup(group); ecreate == nil {
-				fmt.Printf("Group %v created\n", groupName)
-				return group, nil
-			} else {
-				fmt.Printf("Error inserting group %v: %v\n", groupName, ecreate)
-				return nil, ecreate
-			}
-		} else {
-			return nil, eget
-		}
+	if group, error := authaus.LoadOrCreateGroup(icentral.Central, groupName, createIfNotExist); error == nil {
+		fmt.Printf("Group %v created\n", groupName)
+		return group, nil
 	} else {
-		return nil, eget
-	}
-}
-
-func saveGroup(icentral *imqsauth.ImqsCentral, group *authaus.AuthGroup) bool {
-	if eupdate := icentral.Central.GetRoleGroupDB().UpdateGroup(group); eupdate == nil {
-		fmt.Printf("Group %v updated\n", group.Name)
-		return true
-	} else {
-		fmt.Printf("Error updating group of %v: %v\n", group.Name, eupdate)
-		return false
+		fmt.Printf("Error creating group %v, %v ", groupName, error)
+		return nil, error
 	}
 }
 
@@ -289,6 +267,7 @@ func resetGroup(icentral *imqsauth.ImqsCentral, group *authaus.AuthGroup) bool {
 	return false
 }
 
+//add or remove an identity (e.g. user) to or from a group
 func permGroupAddOrDel(icentral *imqsauth.ImqsCentral, identity string, groupname string, isAdd bool) (success bool) {
 	perm, eGetPermit := icentral.Central.GetPermit(identity)
 	if eGetPermit != nil && strings.Index(eGetPermit.Error(), authaus.ErrIdentityPermitNotFound.Error()) == 0 {
@@ -499,7 +478,7 @@ func modifyGroup(icentral *imqsauth.ImqsCentral, mode groupModifyMode, groupName
 		default:
 			panic(fmt.Sprintf("Unrecognized permission set mode %v", mode))
 		}
-		if saveGroup(icentral, group) {
+		if authaus.SaveGroup(icentral.Central, group) {
 			return true
 		} else {
 			return false

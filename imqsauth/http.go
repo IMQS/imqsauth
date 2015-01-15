@@ -382,23 +382,14 @@ func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *http
 		return
 	}
 
-	if _, eget := central.Central.GetRoleGroupDB().GetByName(groupname); eget == nil {
-		central.Central.Log.Printf("Tried to add group that already exists (no error): '" + groupname + "'")
-		authaus.HttpSendTxt(w, http.StatusOK, "Group already exists ('"+groupname+"')")
-	} else if strings.Index(eget.Error(), authaus.ErrGroupNotExist.Error()) == 0 {
-
-		group := &authaus.AuthGroup{}
-		group.Name = groupname
-		if ecreate := central.Central.GetRoleGroupDB().InsertGroup(group); ecreate == nil {
-			central.Central.Log.Printf("New group added: '" + groupname + "'")
-			authaus.HttpSendTxt(w, http.StatusOK, "Group created ('"+groupname+"')")
-		} else {
-			central.Central.Log.Printf("Error creating group ('" + groupname + "') ")
-			authaus.HttpSendTxt(w, http.StatusBadRequest, "Error creating group ('"+groupname+"') ")
-		}
+	if _, error := authaus.LoadOrCreateGroup(central.Central, groupname, true); error == nil {
+		central.Central.Log.Printf("New group added: '" + groupname + "'")
+		authaus.HttpSendTxt(w, http.StatusOK, "Group created ('"+groupname+"')")
+		return
 	} else {
-		central.Central.Log.Printf("Unknown server error creating group '" + groupname + "'")
-		authaus.HttpSendTxt(w, http.StatusBadRequest, "Unknown server error.")
+		central.Central.Log.Printf("Error creating group ('" + groupname + "') ")
+		authaus.HttpSendTxt(w, http.StatusBadRequest, "Error creating group ('"+groupname+"') ")
+		return
 	}
 }
 
@@ -420,38 +411,16 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 
 	central.Central.Log.Printf("Roles " + strings.Join(permsString, ",") + " added to group '" + groupname + "'\n")
 
-	if group, e := loadGroup(central, groupname); e == nil {
+	if group, e := authaus.LoadOrCreateGroup(central.Central, groupname, false); e == nil {
 		group.PermList = make(authaus.PermissionList, len(perms))
 		copy(group.PermList, perms)
-		if saveGroup(central, group) {
+		if authaus.SaveGroup(central.Central, group) {
 			authaus.HttpSendTxt(w, http.StatusOK, "Set group roles for '"+groupname+"'")
 		} else {
 			authaus.HttpSendTxt(w, http.StatusNotAcceptable, "Could not set group roles for '"+groupname+"'")
 		}
 	} else {
 		authaus.HttpSendTxt(w, http.StatusNotFound, "Group not found ('"+groupname+"')")
-	}
-}
-
-func saveGroup(icentral *ImqsCentral, group *authaus.AuthGroup) bool {
-	if eupdate := icentral.Central.GetRoleGroupDB().UpdateGroup(group); eupdate == nil {
-		icentral.Central.Log.Printf("Group '%v' updated\n", group.Name)
-		return true
-	} else {
-		icentral.Central.Log.Printf("Error updating group '%v': %v\n", group.Name, eupdate)
-		return false
-	}
-}
-
-func loadGroup(icentral *ImqsCentral, groupName string) (*authaus.AuthGroup, error) {
-	if existing, eget := icentral.Central.GetRoleGroupDB().GetByName(groupName); eget == nil {
-		return existing, nil
-	} else if strings.Index(eget.Error(), authaus.ErrGroupNotExist.Error()) == 0 {
-		icentral.Central.Log.Printf("Error loading group ('%v'). Group does not exist.", groupName, eget.Error())
-		return nil, eget
-	} else {
-		icentral.Central.Log.Printf("Error loading group ('%v'). Unknown error.", groupName, eget.Error())
-		return nil, eget
 	}
 }
 
