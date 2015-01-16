@@ -33,12 +33,12 @@ class RestBase < Test::Unit::TestCase
 		if block_given?
 			yield(r)
 		else
-			assert_equal(r.code.to_i, responseCode.to_i)
+			assert_equal(responseCode.to_i, r.code.to_i)
 			if responseBody != nil
 				if responseBody.class == Hash
 					assert(json_eq(r.body, responseBody))
 				else
-					assert_equal(r.body.downcase, responseBody.downcase)
+					assert_equal(responseBody.downcase, r.body.downcase)
 				end
 			end
 		end
@@ -292,4 +292,39 @@ class AdminTasks < AuthBase
 			assert(enabled != nil && enabled["Roles"].length == 1)
 		}
 	end
+
+	def test_create_group_neg
+		#negative test, non-admin usage
+		doput("/create_group?groupname=testgroup", nil, basicauth_joe, 403, "you are not an administrator")
+	end
+
+	def test_create_group
+		doput("/create_group?groupname=testgroup", nil, basicauth_admin, 200, "group created ('testgroup')")
+		doget("/groups", basicauth_admin, 200) { |r|
+			groups_list = JSON.parse(r.body)
+			groups_by_name = {}
+			groups_list.each { |g| groups_by_name[g["Name"]] = g }
+			testgroup = groups_by_name["testgroup"]
+			assert(testgroup != nil && testgroup["Roles"].length == 0)
+		}
+	end
+
+	def test_set_group_roles_neg
+		doput("/set_group_roles?groupname=testgroup&roles=1,2", nil, basicauth_joe, 403, "you are not an administrator")
+		doput("/set_group_roles?groupname=testgroup1&roles=1,2", nil, basicauth_admin, 404, "group not found ('testgroup1')")
+	end
+
+	def test_set_group_roles
+		doput("/create_group?groupname=testgroup", nil, basicauth_admin, 200, "group created ('testgroup')")
+		doput("/set_group_roles?groupname=testgroup&roles=1,2", nil, basicauth_admin, 200, "set group roles for 'testgroup'")
+
+		doget("/groups", basicauth_admin, 200) { |r|
+			groups_list = JSON.parse(r.body)
+			groups_by_name = {}
+			groups_list.each { |g| groups_by_name[g["Name"]] = g }
+			testgroup = groups_by_name["testgroup"]
+			assert(testgroup != nil && testgroup["Roles"].length == 2)
+		}
+	end
+
 end
