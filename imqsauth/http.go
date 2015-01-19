@@ -366,7 +366,7 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	if err := central.Central.CreateAuthenticatorIdentity(identity, password); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
-		authaus.HttpSendTxt(w, http.StatusOK, "Created identity '"+identity+"'")
+		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Created identity '%v'", identity))
 		/* // This has been moved to Login
 		if yfErr := central.Yellowfin.CreateUser(identity); yfErr != nil {
 			central.Central.Log.Printf("Error creating Yellowfin user '%v': %v", identity, yfErr)
@@ -382,13 +382,13 @@ func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *http
 		return
 	}
 
-	if _, error := authaus.LoadOrCreateGroup(central.Central, groupname, true); error == nil {
-		central.Central.Log.Printf("New group added: '" + groupname + "'")
-		authaus.HttpSendTxt(w, http.StatusOK, "Group created ('"+groupname+"')")
+	if _, err := authaus.LoadOrCreateGroup(central.Central, groupname, true); err == nil {
+		central.Central.Log.Printf("New group added: %v\n", groupname)
+		authaus.HttpSendTxt(w, http.StatusOK, "")
 		return
 	} else {
-		central.Central.Log.Printf("Error creating group ('" + groupname + "') ")
-		authaus.HttpSendTxt(w, http.StatusBadRequest, "Error creating group ('"+groupname+"') ")
+		central.Central.Log.Printf("Error creating group (%v): %v\n", groupname, err)
+		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Error creating group (%v): %v", groupname, err))
 		return
 	}
 }
@@ -398,29 +398,26 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 	groupname := strings.TrimSpace(r.http.URL.Query().Get("groupname"))
 	rolesstring := strings.TrimSpace(r.http.URL.Query().Get("roles"))
 
-	roles := strings.Split(rolesstring, ",")
+	perms := authaus.PermissionList{}
 
-	perms := []authaus.PermissionU16{}
-	permsString := []string{}
-
-	for _, pname := range roles {
+	for _, pname := range strings.Split(rolesstring, ",") {
 		perm, _ := strconv.ParseInt(pname, 10, 16)
 		perms = append(perms, authaus.PermissionU16(perm))
-		permsString = append(permsString, pname)
 	}
 
-	central.Central.Log.Printf("Roles " + strings.Join(permsString, ",") + " added to group '" + groupname + "'\n")
-
 	if group, e := authaus.LoadOrCreateGroup(central.Central, groupname, false); e == nil {
-		group.PermList = make(authaus.PermissionList, len(perms))
-		copy(group.PermList, perms)
-		if authaus.SaveGroup(central.Central, group) {
-			authaus.HttpSendTxt(w, http.StatusOK, "Set group roles for '"+groupname+"'")
+		central.Central.Log.Printf("Roles %v set for group %v\n", rolesstring, groupname)
+		group.PermList = perms
+		if err := central.Central.GetRoleGroupDB().UpdateGroup(group); err == nil {
+			central.Central.Log.Printf("Set group roles for %v\n", groupname)
+			authaus.HttpSendTxt(w, http.StatusOK, "")
 		} else {
-			authaus.HttpSendTxt(w, http.StatusNotAcceptable, "Could not set group roles for '"+groupname+"'")
+			central.Central.Log.Printf("Could not set group roles for %v: %v\n", groupname, err)
+			authaus.HttpSendTxt(w, http.StatusNotAcceptable, fmt.Sprintf("Could not set group roles for %v: %v", groupname, err))
 		}
 	} else {
-		authaus.HttpSendTxt(w, http.StatusNotFound, "Group not found ('"+groupname+"')")
+		central.Central.Log.Printf("Group '%v' not found: %v\n", groupname, e)
+		authaus.HttpSendTxt(w, http.StatusNotFound, fmt.Sprintf("Group '%v' not found: %v", groupname, e))
 	}
 }
 
@@ -459,7 +456,7 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	summary := strings.Join(groups, ",")
-	authaus.HttpSendTxt(w, http.StatusOK, "'"+identity+"' groups set to ("+summary+")")
+	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("'%v' groups set to (%v)", identity, summary))
 
 	// Change yellowfin permissions
 	/* // this has been moved into Login
@@ -483,17 +480,17 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 		return
 	}
 
-	central.Central.Log.Printf("Setting password for %v", identity)
+	central.Central.Log.Printf("Setting password for %v\n", identity)
 
 	err := central.Central.SetPassword(identity, password)
 	if err == nil {
 		if err = central.Yellowfin.UpdatePassword(identity, password); err != nil {
-			central.Central.Log.Printf("Error setting Yellowfin password for %v: %v", identity, err)
-			authaus.HttpSendTxt(w, http.StatusInternalServerError, "Yellowfin password update failed")
+			central.Central.Log.Printf("Error setting Yellowfin password for %v: %v\n", identity, err)
+			authaus.HttpSendTxt(w, http.StatusInternalServerError, fmt.Sprintf("Yellowfin password update failed for %v: %v", identity, err))
 			return
 		}
 	} else {
-		central.Central.Log.Printf("Error setting password for %v: %v", identity, err)
+		central.Central.Log.Printf("Error setting password for %v: %v\n", identity, err)
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 		return
 	}

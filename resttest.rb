@@ -299,7 +299,7 @@ class AdminTasks < AuthBase
 	end
 
 	def test_create_group
-		doput("/create_group?groupname=testgroup", nil, basicauth_admin, 200, "group created ('testgroup')")
+		doput("/create_group?groupname=testgroup", nil, basicauth_admin, 200, "")
 		doget("/groups", basicauth_admin, 200) { |r|
 			groups_list = JSON.parse(r.body)
 			groups_by_name = {}
@@ -311,12 +311,12 @@ class AdminTasks < AuthBase
 
 	def test_set_group_roles_neg
 		doput("/set_group_roles?groupname=testgroup&roles=1,2", nil, basicauth_joe, 403, "you are not an administrator")
-		doput("/set_group_roles?groupname=testgroup1&roles=1,2", nil, basicauth_admin, 404, "group not found ('testgroup1')")
+		doput("/set_group_roles?groupname=testgroup1&roles=1,2", nil, basicauth_admin, 404, "group 'testgroup1' not found: group does not exist")
 	end
 
 	def test_set_group_roles
-		doput("/create_group?groupname=testgroup", nil, basicauth_admin, 200, "group created ('testgroup')")
-		doput("/set_group_roles?groupname=testgroup&roles=1,2", nil, basicauth_admin, 200, "set group roles for 'testgroup'")
+		doput("/create_group?groupname=testgroup", nil, basicauth_admin, 200, "")
+		doput("/set_group_roles?groupname=testgroup&roles=1,2", nil, basicauth_admin, 200, "")
 
 		doget("/groups", basicauth_admin, 200) { |r|
 			groups_list = JSON.parse(r.body)

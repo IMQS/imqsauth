@@ -461,6 +461,16 @@ const (
 	groupModifyRemove
 )
 
+func saveGroup(icentral *imqsauth.ImqsCentral, group *authaus.AuthGroup) bool {
+	if err := icentral.Central.GetRoleGroupDB().UpdateGroup(group); err == nil {
+		fmt.Printf("Group %v updated\n", group.Name)
+		return true
+	} else {
+		fmt.Printf("Error updating group of %v: %v\n", group.Name, err)
+		return false
+	}
+}
+
 func modifyGroup(icentral *imqsauth.ImqsCentral, mode groupModifyMode, groupName string, perms authaus.PermissionList) bool {
 	if group, e := loadOrCreateGroup(icentral, groupName, true); e == nil {
 		switch mode {
@@ -478,7 +488,7 @@ func modifyGroup(icentral *imqsauth.ImqsCentral, mode groupModifyMode, groupName
 		default:
 			panic(fmt.Sprintf("Unrecognized permission set mode %v", mode))
 		}
-		if authaus.SaveGroup(icentral.Central, group) {
+		if saveGroup(icentral, group) {
 			return true
 		} else {
 			return false
