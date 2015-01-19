@@ -382,7 +382,7 @@ func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *http
 		return
 	}
 
-	if _, err := authaus.LoadOrCreateGroup(central.Central, groupname, true); err == nil {
+	if _, err := authaus.LoadOrCreateGroup(central.Central.GetRoleGroupDB(), groupname, true); err == nil {
 		central.Central.Log.Printf("New group added: %v\n", groupname)
 		authaus.HttpSendTxt(w, http.StatusOK, "")
 		return
@@ -405,7 +405,7 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 		perms = append(perms, authaus.PermissionU16(perm))
 	}
 
-	if group, e := authaus.LoadOrCreateGroup(central.Central, groupname, false); e == nil {
+	if group, e := authaus.LoadOrCreateGroup(central.Central.GetRoleGroupDB(), groupname, false); e == nil {
 		central.Central.Log.Printf("Roles %v set for group %v\n", rolesstring, groupname)
 		group.PermList = perms
 		if err := central.Central.GetRoleGroupDB().UpdateGroup(group); err == nil {

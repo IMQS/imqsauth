@@ -235,7 +235,7 @@ func createDB(config *authaus.Config) (success bool) {
 }
 
 func loadOrCreateGroup(icentral *imqsauth.ImqsCentral, groupName string, createIfNotExist bool) (*authaus.AuthGroup, error) {
-	if group, error := authaus.LoadOrCreateGroup(icentral.Central, groupName, createIfNotExist); error == nil {
+	if group, error := authaus.LoadOrCreateGroup(icentral.Central.GetRoleGroupDB(), groupName, createIfNotExist); error == nil {
 		fmt.Printf("Group %v created\n", groupName)
 		return group, nil
 	} else {
