@@ -148,7 +148,7 @@ class AuthBase < RestBase
 	
 	def setup
 		@baseurl = "http://127.0.0.1:3377"
-		@pid = spawn("bin/imqsauth -c=!TESTCONFIG1 run")
+		@pid = spawn("bin/imqsauth -c=!TESTCONFIG1 -nosvc run")
 	end
 
 	def teardown
