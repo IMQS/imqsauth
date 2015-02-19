@@ -58,10 +58,13 @@ func main() {
 	app.AddValueOption("c", "configfile", "Specify the imqsauth config file. A pseudo file called "+TestConfig1+" is "+
 		"used by the REST test suite to load a test configuration. This option is mandatory.")
 
+	app.AddBoolOption("nosvc", "Do not try to run as a Windows Service. Normally, the 'run' command detects whether this is an "+
+		"'interactive session', and if not interactive, runs as a Windows Service. Specifying -nosvc forces us to launch as a regular process.")
+
 	app.Run()
 }
 
-func exec(cmdName string, args []string, options map[string]string) {
+func exec(cmdName string, args []string, options cli.OptionSet) {
 
 	// panic(string) to show an error message.
 	// panic(error) will show a stack trace
@@ -159,7 +162,7 @@ func exec(cmdName string, args []string, options map[string]string) {
 	case "resetauthgroups":
 		success = resetAuthGroups(ic)
 	case "run":
-		if !authaus.RunAsService(handlerNoRetVal) {
+		if options.Has("nosvc") || !authaus.RunAsService(handlerNoRetVal) {
 			success = false
 			fmt.Print(handler())
 		}

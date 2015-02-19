@@ -128,6 +128,7 @@ func (x *ImqsCentral) RunHttp() error {
 	}
 
 	smux := http.NewServeMux()
+	smux.HandleFunc("/hello", makehandler(HttpMethodGet, httpHandlerHello, 0))
 	smux.HandleFunc("/login", makehandler(HttpMethodPost, httpHandlerLogin, 0))
 	smux.HandleFunc("/logout", makehandler(HttpMethodPost, httpHandlerLogout, 0))
 	smux.HandleFunc("/check", makehandler(HttpMethodGet, httpHandlerCheck, 0))
@@ -143,7 +144,7 @@ func (x *ImqsCentral) RunHttp() error {
 	server.Handler = smux
 	server.Addr = x.Config.Authaus.HTTP.Bind + ":" + strconv.Itoa(x.Config.Authaus.HTTP.Port)
 
-	x.Central.Log.Printf("ImqsAuth is listening on %v:%v", x.Config.Authaus.HTTP.Bind, x.Config.Authaus.HTTP.Port)
+	x.Central.Log.Printf("ImqsAuth is trying to listen on %v:%v", x.Config.Authaus.HTTP.Bind, x.Config.Authaus.HTTP.Port)
 
 	if err := server.ListenAndServe(); err != nil {
 		return err
@@ -496,6 +497,10 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 	}
 
 	authaus.HttpSendTxt(w, http.StatusOK, "Password changed")
+}
+
+func httpHandlerHello(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	authaus.HttpSendTxt(w, http.StatusOK, "Hello!")
 }
 
 func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
