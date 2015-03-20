@@ -233,8 +233,6 @@ class AdminTasks < AuthBase
 		%w(
 			PUT  create_user
 			POST set_user_groups
-			GET  users
-			GET  groups
 		)
 		(0 .. admin_commands.length - 1).step(2) { |i|
 			verb = admin_commands[i]
@@ -280,6 +278,14 @@ class AdminTasks < AuthBase
 		dopost("/set_user_groups?identity=saM&groups=enabled", nil, basicauth_admin, 200, "'sam' groups set to (enabled)")
 		verify_role_groups("sAm", ["enabled"])
 	end
+
+	def test_list_users_noadmin
+		doget("/users", basicauth_joe, 200);
+	end
+
+	def test_list_groups_noadmin
+		doget("/groups", basicauth_joe, 200);
+	end	
 
 	def test_list_groups
 		doget("/groups", basicauth_admin, 200) { |r|
