@@ -137,8 +137,8 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/set_group_roles", makehandler(HttpMethodPut, httpHandlerSetGroupRoles, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_user_groups", makehandler(HttpMethodPost, httpHandlerSetUserGroups, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_password", makehandler(HttpMethodPost, httpHandlerSetPassword, handlerFlagNeedToken))
-	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/groups", makehandler(HttpMethodGet, httpHandlerGetGroups, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetUsers, 0))
+	smux.HandleFunc("/groups", makehandler(HttpMethodGet, httpHandlerGetGroups, 0))
 
 	server := &http.Server{}
 	server.Handler = smux
