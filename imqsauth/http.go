@@ -134,6 +134,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/check", makehandler(HttpMethodGet, httpHandlerCheck, 0))
 	smux.HandleFunc("/create_user", makehandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/create_group", makehandler(HttpMethodPut, httpHandlerCreateGroup, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/rename_user", makehandler(HttpMethodPost, httpHandlerRenameUser, handlerFlagNeedToken))
 	smux.HandleFunc("/set_group_roles", makehandler(HttpMethodPut, httpHandlerSetGroupRoles, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_user_groups", makehandler(HttpMethodPost, httpHandlerSetUserGroups, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_password", makehandler(HttpMethodPost, httpHandlerSetPassword, handlerFlagNeedToken))
@@ -391,6 +392,38 @@ func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *http
 		central.Central.Log.Printf("Error creating group (%v): %v", groupname, err)
 		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Error creating group (%v): %v", groupname, err))
 		return
+	}
+}
+
+func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	oldIdent := authaus.CanonicalizeIdentity(strings.TrimSpace(r.http.URL.Query().Get("old")))
+	newIdent := authaus.CanonicalizeIdentity(strings.TrimSpace(r.http.URL.Query().Get("new")))
+	if oldIdent == "" {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, "No 'old' identity given")
+		return
+	}
+	if newIdent == "" {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, "No 'new' identity given")
+		return
+	}
+	if !r.permList.Has(PermAdmin) {
+		token, err := authaus.HttpHandlerBasicAuth(central.Central, r.http)
+		authMsg := "'rename_user' must be accompanied by HTTP BASIC authentication of the user that is being renamed (this confirms that you know your own password). " +
+			"Alternatively, if you have admin rights, you can rename any user."
+		if err != nil {
+			authaus.HttpSendTxt(w, http.StatusForbidden, authMsg+" Error: "+err.Error())
+			return
+		}
+		if token.Identity != oldIdent {
+			authaus.HttpSendTxt(w, http.StatusForbidden, authMsg+" Authenticated with '"+token.Identity+"', but tried to rename user '"+oldIdent+"'")
+			return
+		}
+	}
+
+	if err := central.Central.RenameIdentity(oldIdent, newIdent); err == nil {
+		authaus.HttpSendTxt(w, http.StatusOK, "Renamed '"+oldIdent+"' to '"+newIdent+"'")
+	} else {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
 	}
 }
 

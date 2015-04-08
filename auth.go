@@ -45,6 +45,7 @@ func main() {
 	app.AddCommand("setpassword", "Set a user's password in Authaus", "identity", "password")
 	app.AddCommand("setpassword-yf", "Set a user's password in Yellowfin", "identity", "password")
 	app.AddCommand("setgroup", "Add or modify a group\nThe list of roles specified replaces the existing roles completely.", "groupname", "...role")
+	app.AddCommand("renameuser", "Rename a user\nThe user will be logged out of any current sessions", "old", "new")
 	app.AddCommand("permgroupadd", "Add a group to a permit", "identity", "groupname")
 	app.AddCommand("permgroupdel", "Remove a group from a permit", "identity", "groupname")
 	app.AddCommand("permshow", "Show the groups of a permit", "identity")
@@ -172,6 +173,8 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 		success = setPassword(ic, args[0], args[1])
 	case "setpassword-yf":
 		success = setPasswordYellowfin(ic, args[0], args[1])
+	case "renameuser":
+		success = renameUser(ic, args[0], args[1])
 	case "showgroups":
 		success = showAllGroups(ic)
 	case "showidentities":
@@ -193,6 +196,7 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 		ic.Central = authaus.NewCentralDummy(log.New(os.Stdout, "", 0))
 		resetAuthGroups(ic)
 		ic.Central.CreateAuthenticatorIdentity("joe", "JOE")
+		ic.Central.CreateAuthenticatorIdentity("jack", "JACK")
 		ic.Central.CreateAuthenticatorIdentity("admin", "ADMIN")
 		ic.Central.CreateAuthenticatorIdentity("admin_disabled", "ADMIN_DISABLED")
 		groupAdmin, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupAdmin)
@@ -204,6 +208,7 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 		permitAdminDisabled := &authaus.Permit{}
 		permitAdminDisabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupAdmin.ID})
 		ic.Central.SetPermit("joe", permitEnabled)
+		ic.Central.SetPermit("jack", permitEnabled)
 		ic.Central.SetPermit("admin", permitAdminEnabled)
 		ic.Central.SetPermit("admin_disabled", permitAdminDisabled)
 		return true
@@ -438,6 +443,16 @@ func setPassword(icentral *imqsauth.ImqsCentral, identity string, password strin
 		return true
 	} else {
 		fmt.Printf("Error resetting password: %v\n", e)
+		return false
+	}
+}
+
+func renameUser(icentral *imqsauth.ImqsCentral, oldIdent string, newIdent string) bool {
+	if e := icentral.Central.RenameIdentity(oldIdent, newIdent); e == nil {
+		fmt.Printf("Renamed %v to %v\n", oldIdent, newIdent)
+		return true
+	} else {
+		fmt.Printf("Error renaming: %v\n", e)
 		return false
 	}
 }

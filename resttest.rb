@@ -29,7 +29,7 @@ class RestBase < Test::Unit::TestCase
 			raise "RestBase: unknown verb #{verb}"
 		end
 
-		print(">>  #{path}  =>  #{r.code} #{r.body[0,100]} (#{r.class})\n")
+		print(">>  #{path}  =>  #{r.code} #{r.body[0,300]} (#{r.class})\n")
 		if block_given?
 			yield(r)
 		else
@@ -159,6 +159,10 @@ class AuthBase < RestBase
 		return basicauth("joe", "JOE")
 	end
 
+	def basicauth_jack
+		return basicauth("jack", "JACK")
+	end
+
 	def basicauth_admin
 		return basicauth("admin", "ADMIN")
 	end
@@ -215,6 +219,19 @@ class Authorization < AuthBase
 		doget("/check", basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
 	end
 
+	def test_rename_as_user()
+		# TODO: Verify that a session cookie is not enough. ie. that BASIC auth needs to be present.
+		dopost("/rename_user?old=joe&new=jack", nil, basicauth_joe, 400, "Identity already exists")
+		dopost("/rename_user?old=joe&new=joe", nil, basicauth_joe, 200, "Renamed 'joe' to 'joe'")
+		dopost("/rename_user?old=joe&new=jack", nil, basicauth_jack, 403, "'rename_user' must be accompanied by http basic authentication of the user that is being renamed (this confirms that you know your own password). alternatively, if you have admin rights, you can rename any user. authenticated with 'jack', but tried to rename user 'joe'")
+		dopost("/rename_user?old=joe&new=sarah", nil, basicauth_joe, 200, "Renamed 'joe' to 'sarah'")
+	end
+
+	def test_rename_as_admin()
+		dopost("/rename_user?old=joe&new=jack", nil, basicauth_admin, 400, "Identity already exists")
+		dopost("/rename_user?old=joe&new=sarah", nil, basicauth_admin, 200, "Renamed 'joe' to 'sarah'")
+		dopost("/rename_user?old=sarah&new=sarah@abc.com", nil, basicauth_admin, 200, "Renamed 'sarah' to 'sarah@abc.com'")
+	end
 end
 
 class AdminTasks < AuthBase
