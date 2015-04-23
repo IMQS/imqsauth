@@ -125,7 +125,8 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 
 	// "createdb" is different to the other command.
 	// We cannot initialize an authaus Central object until the DB has been created.
-	createCentral := cmdName != "createdb" && !isTestConfig
+	// The "run" command already creates a new Central object.
+	createCentral := cmdName != "createdb" && cmdName != "run" && !isTestConfig
 
 	if createCentral {
 		var err error
