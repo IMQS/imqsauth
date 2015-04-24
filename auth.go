@@ -113,12 +113,11 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	}
 
 	handler := func() error {
-		if isTestConfig {
-			return ic.RunHttp()
-		} else {
-			return ic.LoadConfigAndRunHttp()
-		}
+		err := ic.RunHttp()
+		ic.Central.Close()
+		return err
 	}
+
 	handlerNoRetVal := func() {
 		handler()
 	}
@@ -126,7 +125,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	// "createdb" is different to the other command.
 	// We cannot initialize an authaus Central object until the DB has been created.
 	// The "run" command already creates a new Central object.
-	createCentral := cmdName != "createdb" && cmdName != "run" && !isTestConfig
+	createCentral := cmdName != "createdb" && !isTestConfig
 
 	if createCentral {
 		var err error

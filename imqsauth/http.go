@@ -154,17 +154,6 @@ func (x *ImqsCentral) RunHttp() error {
 	return nil
 }
 
-func (x *ImqsCentral) LoadConfigAndRunHttp() error {
-	var err error
-	if x.Central, err = authaus.NewCentralFromConfig(&x.Config.Authaus); err != nil {
-		return err
-	} else {
-		err := x.RunHttp()
-		x.Central.Close()
-		return err
-	}
-}
-
 func (x *ImqsCentral) IsAdmin(r *http.Request) (bool, error) {
 	if token, err := authaus.HttpHandlerPrelude(&x.Config.Authaus.HTTP, x.Central, r); err == nil {
 		if pbits, egroup := authaus.PermitResolveToList(token.Permit.Roles, x.Central.GetRoleGroupDB()); egroup == nil {
