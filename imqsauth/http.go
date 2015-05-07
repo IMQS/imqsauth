@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/IMQS/authaus"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -129,6 +131,7 @@ func (x *ImqsCentral) RunHttp() error {
 
 	smux := http.NewServeMux()
 	smux.HandleFunc("/hello", makehandler(HttpMethodGet, httpHandlerHello, 0))
+	smux.HandleFunc("/ping", makehandler(HttpMethodGet, httpHandlerPing, 0))
 	smux.HandleFunc("/login", makehandler(HttpMethodPost, httpHandlerLogin, 0))
 	smux.HandleFunc("/logout", makehandler(HttpMethodPost, httpHandlerLogout, 0))
 	smux.HandleFunc("/check", makehandler(HttpMethodGet, httpHandlerCheck, 0))
@@ -138,6 +141,8 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/set_group_roles", makehandler(HttpMethodPut, httpHandlerSetGroupRoles, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_user_groups", makehandler(HttpMethodPost, httpHandlerSetUserGroups, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_password", makehandler(HttpMethodPost, httpHandlerSetPassword, handlerFlagNeedToken))
+	smux.HandleFunc("/reset_password_start", makehandler(HttpMethodPost, httpHandlerResetPasswordStart, 0))
+	smux.HandleFunc("/reset_password_finish", makehandler(HttpMethodPost, httpHandlerResetPasswordFinish, 0))
 	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetUsers, 0))
 	smux.HandleFunc("/groups", makehandler(HttpMethodGet, httpHandlerGetGroups, 0))
 
@@ -164,6 +169,30 @@ func (x *ImqsCentral) IsAdmin(r *http.Request) (bool, error) {
 	} else {
 		return false, err
 	}
+}
+
+// Returns an error if 'hostname' is not configured on this server
+// Why don't we just use the "host" header of the HTTP request? Basically, it's unreliable,
+// especially when our server sits behind a proxy that we don't control.
+func (x *ImqsCentral) makeAbsoluteUrl(relativeUrl string) (string, error) {
+	hostname := x.Config.GetHostname()
+	if hostname == "" {
+		return "", fmt.Errorf("'hostname' is not configured on this server")
+	}
+
+	absolute := ""
+	if strings.Index(hostname, "http:") == 0 || strings.Index(hostname, "https:") == 0 {
+		absolute = hostname
+	} else {
+		absolute = "https://" + hostname
+	}
+
+	if absolute[len(absolute)-1] != '/' && relativeUrl[0] != '/' {
+		absolute += "/"
+	}
+
+	absolute += relativeUrl
+	return absolute, nil
 }
 
 func makeYellowfinGroup(permList authaus.PermissionList) YellowfinGroup {
@@ -276,9 +305,9 @@ func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *httpReque
 
 // Handle the 'login' request, sending back a session token (via Set-Cookie),
 func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	identity, password, eBasic := authaus.HttpReadBasicAuth(r.http)
-	if eBasic != nil {
-		authaus.HttpSendTxt(w, http.StatusBadRequest, eBasic.Error())
+	identity, password, basicOK := r.http.BasicAuth()
+	if !basicOK {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, authaus.ErrHttpBasicAuth.Error())
 		return
 	}
 	if identity == "" {
@@ -497,6 +526,12 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
 	password := strings.TrimSpace(r.http.URL.Query().Get("password"))
 
+	// TODO: get rid of the URL-transmitted password, because it leaks into HTTP logs
+	passwordFromHeader := strings.TrimSpace(r.http.Header.Get("X-NewPassword"))
+	if passwordFromHeader != "" {
+		password = passwordFromHeader
+	}
+
 	// admin permission allows you to change anybody's password
 	if identity != r.token.Identity && !r.permList.Has(PermAdmin) {
 		authaus.HttpSendTxt(w, http.StatusForbidden, msgNotAdmin)
@@ -505,14 +540,11 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 
 	central.Central.Log.Printf("Setting password for %v", identity)
 
+	// There is no need to update the Yellowfin user's password, because we use a fixed
+	// secret password for all yellowfin users.
+
 	err := central.Central.SetPassword(identity, password)
-	if err == nil {
-		if err = central.Yellowfin.UpdatePassword(identity, password); err != nil {
-			central.Central.Log.Printf("Error setting Yellowfin password for %v: %v", identity, err)
-			authaus.HttpSendTxt(w, http.StatusInternalServerError, fmt.Sprintf("Yellowfin password update failed for %v: %v", identity, err))
-			return
-		}
-	} else {
+	if err != nil {
 		central.Central.Log.Printf("Error setting password for %v: %v", identity, err)
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 		return
@@ -521,8 +553,74 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 	authaus.HttpSendTxt(w, http.StatusOK, "Password changed")
 }
 
+func httpHandlerResetPasswordStart(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
+
+	if central.Config.SendMailPassword == "" {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, "No password for sending email")
+		return
+	}
+
+	token, err := central.Central.ResetPasswordStart(identity, time.Now().Add(time.Duration(central.Config.PasswordResetExpirySeconds)*time.Second))
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusForbidden, "Error resetting password: "+err.Error())
+		return
+	}
+
+	// &welcome=true -- use this for welcome email
+	resetUrl, err := central.makeAbsoluteUrl("/#resetpassword=true&identity=" + url.QueryEscape(identity) + "&token=" + url.QueryEscape(token))
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusServiceUnavailable, "Error constructing reset URL: "+err.Error())
+		return
+	}
+
+	mailQuery := fmt.Sprintf("newAccount=false&email=%v&resetUrl=%v&expireTime=%v", url.QueryEscape(identity), url.QueryEscape(resetUrl), central.Config.PasswordResetExpirySeconds)
+	client := http.Client{}
+	sendMailReq, err := http.NewRequest("POST", "https://imqs-mailer.appspot.com/passwordReset?"+mailQuery, nil)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusServiceUnavailable, "Error sending mail: "+err.Error())
+		return
+	}
+	sendMailReq.SetBasicAuth("imqs", central.Config.SendMailPassword)
+
+	mailResp, err := client.Do(sendMailReq)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusServiceUnavailable, "Error sending email: "+err.Error())
+		return
+	}
+	defer mailResp.Body.Close()
+	respBody, _ := ioutil.ReadAll(mailResp.Body)
+	if mailResp.StatusCode != http.StatusOK {
+		authaus.HttpSendTxt(w, http.StatusServiceUnavailable, fmt.Sprintf("Error sending email: %v\n%v", mailResp.Status, string(respBody)))
+		return
+	}
+
+	authaus.HttpSendTxt(w, http.StatusOK, "")
+}
+
+func httpHandlerResetPasswordFinish(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
+	token := r.http.Header.Get("X-ResetToken")
+	password := strings.TrimSpace(r.http.Header.Get("X-NewPassword"))
+	if identity == "" || token == "" || password == "" {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, "Need identity in URL, and the two headers X-ResetToken and X-NewPassword")
+		return
+	}
+	err := central.Central.ResetPasswordFinish(identity, token, password)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+		return
+	}
+
+	authaus.HttpSendTxt(w, http.StatusOK, "Password reset")
+}
+
 func httpHandlerHello(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	authaus.HttpSendTxt(w, http.StatusOK, "Hello!")
+}
+
+func httpHandlerPing(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("{\"Timestamp\": %v}", time.Now().Unix()))
 }
 
 func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {

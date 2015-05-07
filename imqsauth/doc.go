@@ -36,7 +36,10 @@ Example config file:
 	},
 	"Yellowfin": {
 		"Enabled": true
-	}
+	},
+	"PasswordResetExpirySeconds": 3600,
+	"HostnameFile": "c:\\imqsbin\\conf\\hostname",
+	"SendMailPassword": "password123"
 }
 */
 package imqsauth
