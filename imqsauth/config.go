@@ -20,6 +20,7 @@ type Config struct {
 	Authaus                    authaus.Config
 	Yellowfin                  ConfigYellowfin
 	PasswordResetExpirySeconds float64
+	NewAccountExpirySeconds    float64
 	SendMailPassword           string
 	HostnameFile               string
 	hostname                   string // This is read from HostnameFile the first time GetHostname is called
@@ -29,6 +30,7 @@ type Config struct {
 func (x *Config) Reset() {
 	*x = Config{}
 	x.PasswordResetExpirySeconds = 24 * 3600
+	x.NewAccountExpirySeconds = 5 * 365 * 24 * 3600
 	x.Authaus.Reset()
 }
 
