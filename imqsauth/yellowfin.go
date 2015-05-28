@@ -184,6 +184,7 @@ func NewYellowfin(logger *log.Logger) *Yellowfin {
 
 func (y *Yellowfin) LoadConfig(config ConfigYellowfin, adminPasswordFile, userPasswordFile string) error {
 	y.Enabled = config.Enabled
+	y.Url = config.Url
 
 	// Read admin password. If this file is not found, then we assume that the password
 	// is "test", because that is the password set by the yellowfin installer.
@@ -206,7 +207,6 @@ func (y *Yellowfin) LoadConfig(config ConfigYellowfin, adminPasswordFile, userPa
 	} else if y.Enabled {
 		return err
 	}
-
 	return nil
 }
 

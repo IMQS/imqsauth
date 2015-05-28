@@ -9,6 +9,7 @@ import (
 
 type ConfigYellowfin struct {
 	Enabled bool
+	Url     string
 }
 
 type Config struct {
