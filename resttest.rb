@@ -223,23 +223,6 @@ class Authorization < AuthBase
 		doget("/check", basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
 	end
 
-	def test_reset_password()
-		token = post("/reset_password_start?identity=joe", nil).body
-		assert(token.length != 0)
-		doget("/check", basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
-		session = post("/login", nil, basicauth_joe).cookies["session"]
-		doget("/check", session_cookie(session), 200, {:Identity => "joe", :Roles => ["2"]})
-		headers = {
-			"X-ResetToken" => token,
-			"X-NewPassword" => "12345",
-		}
-		dopost("/reset_password_finish?identity=joe", nil, headers, 200, "Password reset")
-		dopost("/reset_password_finish?identity=joe", nil, headers, 403, "Invalid password token")
-		doget("/check", basicauth_joe, 403, "Invalid password")
-		doget("/check", session_cookie(session), 403, "Invalid session token")
-		doget("/check", basicauth("joe", "12345"), 200, {:Identity => "joe", :Roles => ["2"]})
-	end
-
 	def test_rename_as_user()
 		session = post("/login", nil, basicauth_joe).cookies["session"]
 		longmsg_base = "'rename_user' must be accompanied by http basic authentication of the user that is being renamed (this confirms that you know your own password). alternatively, if you have admin rights, you can rename any user."
