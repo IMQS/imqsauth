@@ -608,14 +608,13 @@ func resetPasswordStart(central *ImqsCentral, identity string, isNewAccount bool
 		mailQuery += "&newAccount=false"
 	}
 
-	client := http.Client{}
 	sendMailReq, err := http.NewRequest("POST", "https://imqs-mailer.appspot.com/passwordReset?"+mailQuery, nil)
 	if err != nil {
 		return http.StatusServiceUnavailable, "Error sending mail: " + err.Error()
 	}
 	sendMailReq.SetBasicAuth("imqs", central.Config.SendMailPassword)
 
-	mailResp, err := client.Do(sendMailReq)
+	mailResp, err := http.DefaultClient.Do(sendMailReq)
 	if err != nil {
 		return http.StatusServiceUnavailable, "Error sending email: " + err.Error()
 	}
