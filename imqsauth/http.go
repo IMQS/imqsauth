@@ -195,6 +195,57 @@ func (x *ImqsCentral) makeAbsoluteUrl(relativeUrl string) (string, error) {
 	return absolute, nil
 }
 
+// Returns (responseCode, message)
+func (x *ImqsCentral) ResetPasswordStart(identity string, isNewAccount bool) (int, string) {
+	if x.Config.SendMailPassword == "" {
+		return http.StatusInternalServerError, "No password for sending email"
+	}
+
+	expireSeconds := x.Config.PasswordResetExpirySeconds
+	if isNewAccount {
+		expireSeconds = x.Config.NewAccountExpirySeconds
+	}
+
+	token, err := x.Central.ResetPasswordStart(identity, time.Now().Add(time.Duration(expireSeconds)*time.Second))
+	if err != nil {
+		return http.StatusForbidden, "Error resetting password: " + err.Error()
+	}
+
+	// &welcome=true -- use this for welcome email
+	resetUrl, err := x.makeAbsoluteUrl("/#resetpassword=true&identity=" + url.QueryEscape(identity) + "&token=" + url.QueryEscape(token))
+	if err != nil {
+		return http.StatusServiceUnavailable, "Error constructing reset URL: " + err.Error()
+	}
+	if isNewAccount {
+		resetUrl += "&welcome=true"
+	}
+
+	mailQuery := fmt.Sprintf("email=%v&resetUrl=%v&expireTime=%.0f", url.QueryEscape(identity), url.QueryEscape(resetUrl), expireSeconds)
+	if isNewAccount {
+		mailQuery += "&newAccount=true"
+	} else {
+		mailQuery += "&newAccount=false"
+	}
+
+	sendMailReq, err := http.NewRequest("POST", "https://imqs-mailer.appspot.com/passwordReset?"+mailQuery, nil)
+	if err != nil {
+		return http.StatusServiceUnavailable, "Error sending mail: " + err.Error()
+	}
+	sendMailReq.SetBasicAuth("imqs", x.Config.SendMailPassword)
+
+	mailResp, err := http.DefaultClient.Do(sendMailReq)
+	if err != nil {
+		return http.StatusServiceUnavailable, "Error sending email: " + err.Error()
+	}
+	defer mailResp.Body.Close()
+	respBody, _ := ioutil.ReadAll(mailResp.Body)
+	if mailResp.StatusCode != http.StatusOK {
+		return http.StatusServiceUnavailable, fmt.Sprintf("Error sending email: %v\n%v", mailResp.Status, string(respBody))
+	}
+
+	return http.StatusOK, ""
+}
+
 func makeYellowfinGroup(permList authaus.PermissionList) YellowfinGroup {
 	table := []struct {
 		perm  authaus.PermissionU16
@@ -397,7 +448,7 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		if sendPasswordResetEmail {
-			code, msg := resetPasswordStart(central, identity, true)
+			code, msg := central.ResetPasswordStart(identity, true)
 			if code != http.StatusOK {
 				authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Created identity '%v'. However, failed to initiate password reset: ", identity, msg))
 				return
@@ -572,59 +623,8 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 
 func httpHandlerResetPasswordStart(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
-	code, msg := resetPasswordStart(central, identity, false)
+	code, msg := central.ResetPasswordStart(identity, false)
 	authaus.HttpSendTxt(w, code, msg)
-}
-
-// Returns (responseCode, message)
-func resetPasswordStart(central *ImqsCentral, identity string, isNewAccount bool) (int, string) {
-	if central.Config.SendMailPassword == "" {
-		return http.StatusInternalServerError, "No password for sending email"
-	}
-
-	expireSeconds := central.Config.PasswordResetExpirySeconds
-	if isNewAccount {
-		expireSeconds = central.Config.NewAccountExpirySeconds
-	}
-
-	token, err := central.Central.ResetPasswordStart(identity, time.Now().Add(time.Duration(expireSeconds)*time.Second))
-	if err != nil {
-		return http.StatusForbidden, "Error resetting password: " + err.Error()
-	}
-
-	// &welcome=true -- use this for welcome email
-	resetUrl, err := central.makeAbsoluteUrl("/#resetpassword=true&identity=" + url.QueryEscape(identity) + "&token=" + url.QueryEscape(token))
-	if err != nil {
-		return http.StatusServiceUnavailable, "Error constructing reset URL: " + err.Error()
-	}
-	if isNewAccount {
-		resetUrl += "&welcome=true"
-	}
-
-	mailQuery := fmt.Sprintf("email=%v&resetUrl=%v&expireTime=%.0f", url.QueryEscape(identity), url.QueryEscape(resetUrl), expireSeconds)
-	if isNewAccount {
-		mailQuery += "&newAccount=true"
-	} else {
-		mailQuery += "&newAccount=false"
-	}
-
-	sendMailReq, err := http.NewRequest("POST", "https://imqs-mailer.appspot.com/passwordReset?"+mailQuery, nil)
-	if err != nil {
-		return http.StatusServiceUnavailable, "Error sending mail: " + err.Error()
-	}
-	sendMailReq.SetBasicAuth("imqs", central.Config.SendMailPassword)
-
-	mailResp, err := http.DefaultClient.Do(sendMailReq)
-	if err != nil {
-		return http.StatusServiceUnavailable, "Error sending email: " + err.Error()
-	}
-	defer mailResp.Body.Close()
-	respBody, _ := ioutil.ReadAll(mailResp.Body)
-	if mailResp.StatusCode != http.StatusOK {
-		return http.StatusServiceUnavailable, fmt.Sprintf("Error sending email: %v\n%v", mailResp.Status, string(respBody))
-	}
-
-	return http.StatusOK, ""
 }
 
 func httpHandlerResetPasswordFinish(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {

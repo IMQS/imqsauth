@@ -44,6 +44,7 @@ func main() {
 		"sessions, so you must stop the server, run this command, and then start the server again to kill sessions correctly.", "identity")
 	app.AddCommand("setpassword", "Set a user's password in Authaus", "identity", "password")
 	app.AddCommand("setpassword-yf", "Set a user's password in Yellowfin", "identity", "password")
+	app.AddCommand("resetpassword", "Send a password reset email", "identity")
 	app.AddCommand("setgroup", "Add or modify a group\nThe list of roles specified replaces the existing roles completely.", "groupname", "...role")
 	app.AddCommand("renameuser", "Rename a user\nThe user will be logged out of any current sessions", "old", "new")
 	app.AddCommand("permgroupadd", "Add a group to a permit", "identity", "groupname")
@@ -173,6 +174,8 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 		success = setPassword(ic, args[0], args[1])
 	case "setpassword-yf":
 		success = setPasswordYellowfin(ic, args[0], args[1])
+	case "resetpassword":
+		success = resetPassword(ic, args[0])
 	case "renameuser":
 		success = renameUser(ic, args[0], args[1])
 	case "showgroups":
@@ -468,6 +471,17 @@ func setPasswordYellowfin(icentral *imqsauth.ImqsCentral, identity string, passw
 		return true
 	} else {
 		fmt.Printf("Failed to set yellowfin password of %v: %v\n", identity, e)
+		return false
+	}
+}
+
+func resetPassword(icentral *imqsauth.ImqsCentral, identity string) bool {
+	code, msg := icentral.ResetPasswordStart(identity, false)
+	if code == 200 {
+		fmt.Printf("Message sent\n")
+		return true
+	} else {
+		fmt.Printf("Error %v %v\n", code, msg)
 		return false
 	}
 }
