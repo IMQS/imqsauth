@@ -21,7 +21,7 @@ type Config struct {
 	Yellowfin                  ConfigYellowfin
 	PasswordResetExpirySeconds float64
 	NewAccountExpirySeconds    float64
-	SendMailPassword           string
+	SendMailPassword           string // NB: When moving SendMailPassword to a standalone secrets file, change for PCS also
 	HostnameFile               string
 	hostname                   string // This is read from HostnameFile the first time GetHostname is called
 	lastFileLoaded             string // Used for relative paths (such as HostnameFile)
