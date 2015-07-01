@@ -2,8 +2,10 @@ package imqsauth
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/IMQS/authaus"
+	"github.com/IMQS/serviceauth"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -481,6 +483,43 @@ func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *http
 	}
 }
 
+func pcsRenameUser(hostname, oldIdent, newIdent string) error {
+	servicenames, ioerr := ioutil.ReadFile("c:/imqsbin/conf/service-names.txt")
+	if ioerr != nil {
+		return fmt.Errorf("Unable to read c:/imqsbin/conf/service-names.txt: %v", ioerr)
+	}
+
+	// if service-names.txt file could not be read: we assume there is no pcs service
+	if !strings.Contains(string(servicenames), "imqs-pcs-webservice") {
+		return nil
+	}
+
+	r, err := http.NewRequest("PUT", hostname+"/pcs/changeUsername?fromName="+url.QueryEscape(oldIdent)+"&toName="+url.QueryEscape(newIdent), nil)
+	if err != nil {
+		return err
+	}
+
+	r.Header.Add("Date", time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05 GMT"))
+
+	if err = serviceauth.AuthenticateInterServiceRequest(r, nil); err != nil {
+		return err
+	}
+
+	response, err := http.DefaultClient.Do(r)
+	if err != nil {
+		return err
+	}
+	if response.Body != nil {
+		defer response.Body.Close()
+	}
+
+	if response.StatusCode != 200 {
+		body, _ := ioutil.ReadAll(response.Body)
+		return errors.New("PCS rename: " + strconv.Itoa(response.StatusCode) + "; body: " + string(body))
+	}
+	return nil
+}
+
 func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	oldIdent := authaus.CanonicalizeIdentity(strings.TrimSpace(r.http.URL.Query().Get("old")))
 	newIdent := authaus.CanonicalizeIdentity(strings.TrimSpace(r.http.URL.Query().Get("new")))
@@ -492,6 +531,7 @@ func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		authaus.HttpSendTxt(w, http.StatusBadRequest, "No 'new' identity given")
 		return
 	}
+
 	if !r.permList.Has(PermAdmin) {
 		token, err := authaus.HttpHandlerBasicAuth(central.Central, r.http)
 		authMsg := "'rename_user' must be accompanied by HTTP BASIC authentication of the user that is being renamed (this confirms that you know your own password). " +
@@ -506,11 +546,23 @@ func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		}
 	}
 
-	if err := central.Central.RenameIdentity(oldIdent, newIdent); err == nil {
-		authaus.HttpSendTxt(w, http.StatusOK, "Renamed '"+oldIdent+"' to '"+newIdent+"'")
-	} else {
+	if err := central.Central.RenameIdentity(oldIdent, newIdent); err != nil {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
 	}
+
+	if err := pcsRenameUser(central.Config.GetHostname(), oldIdent, newIdent); err != nil {
+		central.Central.Log.Printf("Error: failed to rename PCS: %v", err)
+		rollbackErrorTxt := ""
+		if err_rollback := central.Central.RenameIdentity(newIdent, oldIdent); err_rollback != nil {
+			rollbackErrorTxt = "Rollback failed: " + err_rollback.Error()
+			central.Central.Log.Printf("Error: failed to roll back username rename: %v", err_rollback)
+		}
+
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error()+"\n"+rollbackErrorTxt)
+		return
+	}
+
+	authaus.HttpSendTxt(w, http.StatusOK, "Renamed '"+oldIdent+"' to '"+newIdent+"'")
 }
 
 func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
