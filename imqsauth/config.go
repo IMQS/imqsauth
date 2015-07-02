@@ -24,6 +24,7 @@ type Config struct {
 	HostnameFile               string
 	hostname                   string // This is read from HostnameFile the first time GetHostname is called
 	lastFileLoaded             string // Used for relative paths (such as HostnameFile)
+	enablePcsRename            bool   // Disabled by unit tests
 }
 
 func (x *Config) Reset() {
@@ -63,4 +64,10 @@ func (x *Config) GetHostname() string {
 		}
 	}
 	return x.hostname
+}
+
+// Performs setup specific to unit tests
+func (x *Config) ResetForUnitTests() {
+	x.Reset()
+	x.enablePcsRename = false
 }

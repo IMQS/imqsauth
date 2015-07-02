@@ -194,7 +194,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 
 func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 	if testConfigName == TestConfig1 {
-		ic.Config.Reset()
+		ic.Config.ResetForUnitTests()
 		ic.Config.Authaus.HTTP.Bind = "127.0.0.1"
 		ic.Config.Authaus.HTTP.Port = TestPort
 		ic.Central = authaus.NewCentralDummy(log.New(os.Stdout, "", 0))

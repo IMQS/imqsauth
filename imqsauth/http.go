@@ -489,9 +489,12 @@ func pcsRenameUser(hostname, oldIdent, newIdent string) error {
 		return fmt.Errorf("Unable to read c:/imqsbin/conf/service-names.txt: %v", ioerr)
 	}
 
-	// if service-names.txt file could not be read: we assume there is no pcs service
 	if !strings.Contains(string(servicenames), "imqs-pcs-webservice") {
 		return nil
+	}
+
+	if hostname == "" {
+		return fmt.Errorf("'hostname' not configured")
 	}
 
 	r, err := http.NewRequest("PUT", hostname+"/pcs/changeUsername?fromName="+url.QueryEscape(oldIdent)+"&toName="+url.QueryEscape(newIdent), nil)
@@ -548,18 +551,21 @@ func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 
 	if err := central.Central.RenameIdentity(oldIdent, newIdent); err != nil {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		return
 	}
 
-	if err := pcsRenameUser(central.Config.GetHostname(), oldIdent, newIdent); err != nil {
-		central.Central.Log.Printf("Error: failed to rename PCS: %v", err)
-		rollbackErrorTxt := ""
-		if err_rollback := central.Central.RenameIdentity(newIdent, oldIdent); err_rollback != nil {
-			rollbackErrorTxt = "Rollback failed: " + err_rollback.Error()
-			central.Central.Log.Printf("Error: failed to roll back username rename: %v", err_rollback)
-		}
+	if central.Config.enablePcsRename {
+		if err := pcsRenameUser(central.Config.GetHostname(), oldIdent, newIdent); err != nil {
+			central.Central.Log.Printf("Error: failed to rename PCS: %v", err)
+			rollbackErrorTxt := ""
+			if err_rollback := central.Central.RenameIdentity(newIdent, oldIdent); err_rollback != nil {
+				rollbackErrorTxt = "Rollback failed: " + err_rollback.Error()
+				central.Central.Log.Printf("Error: failed to roll back username rename: %v", err_rollback)
+			}
 
-		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error()+"\n"+rollbackErrorTxt)
-		return
+			authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error()+"\n"+rollbackErrorTxt)
+			return
+		}
 	}
 
 	authaus.HttpSendTxt(w, http.StatusOK, "Renamed '"+oldIdent+"' to '"+newIdent+"'")
