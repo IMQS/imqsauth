@@ -335,7 +335,7 @@ func httpSendNoIdentity(w http.ResponseWriter) {
 
 func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	identity := ""
-	if token, err := authaus.HttpHandlerPreludeWithError(&central.Config.Authaus.HTTP, central.Central, w, r.http); err == nil {
+	if token, err := authaus.HttpHandlerPrelude(&central.Config.Authaus.HTTP, central.Central, r.http); err == nil {
 		identity = token.Identity
 	}
 
