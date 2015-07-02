@@ -38,7 +38,7 @@ Example config file:
 		"Enabled": true
 	},
 	"PasswordResetExpirySeconds": 3600,
-	"HostnameFile": "c:\\imqsbin\\conf\\hostname",
+	"HostnameFile": "hostname",						-- Relative to the location of imqsauthconfig.json, or an absolute path
 	"SendMailPassword": "password123"
 }
 */

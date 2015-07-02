@@ -11,7 +11,6 @@ import (
 
 type ConfigYellowfin struct {
 	Enabled bool
-	Url     string
 }
 
 // Note: Be sure to keep doc.go up to date with the Config structure here
@@ -21,7 +20,7 @@ type Config struct {
 	Yellowfin                  ConfigYellowfin
 	PasswordResetExpirySeconds float64
 	NewAccountExpirySeconds    float64
-	SendMailPassword           string // NB: When moving SendMailPassword to a standalone secrets file, change for PCS also
+	SendMailPassword           string // NB: When moving SendMailPassword to a standalone secrets file, change for PCS also. PCS reads imqsauth config file.
 	HostnameFile               string
 	hostname                   string // This is read from HostnameFile the first time GetHostname is called
 	lastFileLoaded             string // Used for relative paths (such as HostnameFile)
