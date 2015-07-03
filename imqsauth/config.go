@@ -31,7 +31,14 @@ func (x *Config) Reset() {
 	*x = Config{}
 	x.PasswordResetExpirySeconds = 24 * 3600
 	x.NewAccountExpirySeconds = 5 * 365 * 24 * 3600
+	x.enablePcsRename = true
 	x.Authaus.Reset()
+}
+
+// Performs setup specific to unit tests
+func (x *Config) ResetForUnitTests() {
+	x.Reset()
+	x.enablePcsRename = false
 }
 
 func (x *Config) LoadFile(filename string) error {
@@ -64,10 +71,4 @@ func (x *Config) GetHostname() string {
 		}
 	}
 	return x.hostname
-}
-
-// Performs setup specific to unit tests
-func (x *Config) ResetForUnitTests() {
-	x.Reset()
-	x.enablePcsRename = false
 }
