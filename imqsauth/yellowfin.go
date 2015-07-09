@@ -1,127 +1,12 @@
 package imqsauth
 
 import (
-	"encoding/xml"
-	"errors"
-	"fmt"
+	"github.com/IMQS/yfws"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
-)
-
-// Functions to allow for parallel login to yellowfin. This is done via a webservice; the first page
-// is then called to receive the cookies and injected into the auth login result.
-
-// These are contants because the unmarshalling is tightly bound to the xml - a change in xml
-// will result in a change in code as well.
-
-const (
-	soapCreateUser = `<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.web.mi.hof.com" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <ser:remoteAdministrationCall soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-         <in0 xsi:type="ser:AdministrationServiceRequest">
-            <function xsi:type="xsd:string">ADDUSER</function>
-            <loginId xsi:type="xsd:string">%ADMIN%</loginId>
-            <orgId xsi:type="xsd:int">1</orgId>
-            <password xsi:type="xsd:string">%PASSWORD%</password>
-            <person xsi:type="ser:AdministrationPerson">
-               <emailAddress xsi:type="xsd:string">%EMAIL%</emailAddress>
-               <firstName xsi:type="xsd:string">%FIRSTNAME%</firstName>
-               <initial xsi:type="xsd:string"></initial>
-               <ipId xsi:type="xsd:int"></ipId>
-               <languageCode xsi:type="xsd:string"></languageCode>
-               <lastName xsi:type="xsd:string">%LASTNAME%</lastName>
-               <password xsi:type="xsd:string">%USERPASSWORD%</password>
-               <roleCode xsi:type="xsd:string">YFREPORTCONSUMER</roleCode>
-               <salutationCode xsi:type="xsd:string">DR</salutationCode>
-               <timeZoneCode xsi:type="xsd:string"></timeZoneCode>
-               <userId xsi:type="xsd:string">%USERID%</userId>
-            </person>
-         </in0>
-      </ser:remoteAdministrationCall>
-   </soapenv:Body>
-</soapenv:Envelope>`
-	soapChangePassword = `<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.web.mi.hof.com" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <ser:remoteAdministrationCall soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-         <in0 xsi:type="ser:AdministrationServiceRequest">
-            <function xsi:type="xsd:string">CHANGEPASSWORD</function>
-            <loginId xsi:type="xsd:string">%ADMIN%</loginId>
-            <orgId xsi:type="xsd:int">1</orgId>
-            <password xsi:type="xsd:string">%PASSWORD%</password>
-            <person xsi:type="ser:AdministrationPerson">
-               <userId xsi:type="xsd:string">%USERID%</userId>
-               <password xsi:type="xsd:string">%USERPASSWORD%</password>
-            </person>
-         </in0>
-      </ser:remoteAdministrationCall>
-   </soapenv:Body>
-</soapenv:Envelope>`
-	soapGroup = `<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.web.mi.hof.com" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <ser:remoteAdministrationCall soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-         <in0 xsi:type="ser:AdministrationServiceRequest">
-            <function xsi:type="xsd:string">UPDATEUSER</function>
-            <loginId xsi:type="xsd:string">%ADMIN%</loginId>
-            <orgId xsi:type="xsd:int">1</orgId>
-            <password xsi:type="xsd:string">%PASSWORD%</password>
-            <person xsi:type="ser:AdministrationPerson">
-               <roleCode xsi:type="xsd:string">%ROLE%</roleCode>
-               <userId xsi:type="xsd:string">%USERID%</userId>
-            </person>
-         </in0>
-      </ser:remoteAdministrationCall>
-   </soapenv:Body>
-</soapenv:Envelope>`
-	soapLogin = `<?xml version="1.0" encoding="UTF-8"?>
-<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.web.mi.hof.com" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <ser:remoteAdministrationCall soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-         <in0 xsi:type="ser:AdministrationServiceRequest">
-            <function xsi:type="xsd:string">LOGINUSERNOPASSWORD</function>
-            <loginId xsi:type="xsd:string">%ADMIN%</loginId>
-            <orgId xsi:type="xsd:int">1</orgId>
-            <orgRef xsi:type="xsd:string">Default</orgRef>
-            <password xsi:type="xsd:string">%PASSWORD%</password>
-            <person xsi:type="ser:AdministrationPerson">
-               <userId xsi:type="xsd:string">%USER%</userId>
-            </person>
-         </in0>
-      </ser:remoteAdministrationCall>
-   </soapenv:Body>
-</soapenv:Envelope>`
-	soapLogout = `<?xml version="1.0" encoding="UTF-8"?>
-<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.web.mi.hof.com" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <ser:remoteAdministrationCall soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-         <in0 xsi:type="ser:AdministrationServiceRequest">
-            <function xsi:type="xsd:string">LOGOUTUSER</function>
-            <loginId xsi:type="xsd:string">%ADMIN%</loginId>
-            <orgId xsi:type="xsd:int">1</orgId>
-            <orgRef xsi:type="xsd:string">Default</orgRef>
-            <password xsi:type="xsd:string">%PASSWORD%</password>
-            <loginSessionId xsi:type="xsd:string">%SESSIONID%</loginSessionId>
-            <person xsi:type="ser:AdministrationPerson">
-               <userId xsi:type="xsd:string">%USER%</userId>
-            </person>
-         </in0>
-      </ser:remoteAdministrationCall>
-   </soapenv:Body>
-</soapenv:Envelope>`
-)
-
-var (
-	ErrYellowfinAuthFailed      = errors.New("Yellowfin authentication failed")
-	ErrYellowfinPasswordTooLong = errors.New("Yellowfin password must be 20 characters or less")
-	ErrYellowfinInvalidGroup    = errors.New("Invalid yellowfind group")
 )
 
 type YellowfinGroup int
@@ -215,55 +100,41 @@ func (y *Yellowfin) CreateUser(identity string) error {
 	}
 	// See comments higher in file, about why we use a fixed password for all users
 	password := y.UserPassword
-	create := strings.Replace(soapCreateUser, "%ADMIN%", AdminUser, -1)
-	create = strings.Replace(create, "%PASSWORD%", y.AdminPassword, -1)
-	create = strings.Replace(create, "%USERID%", identity, -1)
-	create = strings.Replace(create, "%EMAIL%", identity+"@imqs.co.za", -1)
-	create = strings.Replace(create, "%FIRSTNAME%", identity, -1)
-	create = strings.Replace(create, "%LASTNAME%", identity, -1)
-	create = strings.Replace(create, "%USERPASSWORD%", password, -1)
-	req, err := http.NewRequest("POST", y.Url+"services/AdministrationService", strings.NewReader(create))
+	var params = map[string]string{
+		"%ADMIN%":        AdminUser,
+		"%PASSWORD%":     y.AdminPassword,
+		"%USERID%":       identity,
+		"%EMAIL%":        identity + "@imqs.co.za",
+		"%FIRSTNAME%":    identity,
+		"%LASTNAME%":     identity,
+		"%USERPASSWORD%": password,
+	}
+
+	_, err := yfws.SendRequest(y.Url+"services/AdministrationService", "createuser", params)
 	if err != nil {
 		return err
 	}
-	setupSoapRequestHeaders(req)
-	if resp, err := y.Transport.RoundTrip(req); err == nil {
-		if resp.StatusCode != 200 {
-			return errors.New(fmt.Sprintf("Error creating yellowfin user: HTTP code %v", resp.StatusCode))
-		}
-		result := y.parsexml(resp)
-		if result.StatusCode == "SUCCESS" && result.ErrorCode == "0" {
-			return y.UpdatePassword(identity, password)
-		}
-		return makeYellowfinError(result, "Error creating yellowfin user")
-	} else {
-		return err
-	}
-	return nil
+
+	return y.UpdatePassword(identity, password)
+
 }
 
 func (y *Yellowfin) UpdatePassword(identity, password string) error {
 	if !y.Enabled {
 		return nil
 	}
-	passwd := strings.Replace(soapChangePassword, "%ADMIN%", AdminUser, -1)
-	passwd = strings.Replace(passwd, "%PASSWORD%", y.AdminPassword, -1)
-	passwd = strings.Replace(passwd, "%USERID%", identity, -1)
-	passwd = strings.Replace(passwd, "%USERPASSWORD%", password, -1)
-	req, err := http.NewRequest("POST", y.Url+"services/AdministrationService", strings.NewReader(passwd))
+	var params = map[string]string{
+		"%ADMIN%":        AdminUser,
+		"%PASSWORD%":     y.AdminPassword,
+		"%USERID%":       identity,
+		"%USERPASSWORD%": password,
+	}
+
+	_, err := yfws.SendRequest(y.Url+"services/AdministrationService", "changepassword", params)
 	if err != nil {
 		return err
 	}
-	setupSoapRequestHeaders(req)
-	if resp, err := y.Transport.RoundTrip(req); err == nil {
-		if resp.StatusCode != 200 {
-			return errors.New(fmt.Sprintf("Error updating yellowfin password: HTTP code %v", resp.StatusCode))
-		}
-		result := y.parsexml(resp)
-		return makeYellowfinError(result, "Error updating yellowfin password")
-	} else {
-		return err
-	}
+
 	return nil
 }
 
@@ -271,31 +142,24 @@ func (y *Yellowfin) ChangeGroup(identity string, group YellowfinGroup) error {
 	if !y.Enabled {
 		return nil
 	}
-	act := strings.Replace(soapGroup, "%ADMIN%", AdminUser, -1)
-	act = strings.Replace(act, "%PASSWORD%", y.AdminPassword, -1)
+	var params = map[string]string{
+		"%ADMIN%":    AdminUser,
+		"%PASSWORD%": y.AdminPassword,
+		"%USERID%":   identity,
+	}
 	switch group {
 	case YellowfinGroupAdmin:
-		act = strings.Replace(act, "%ROLE%", "YFADMIN", -1)
+		params["%ROLE%"] = "YFADMIN"
 	case YellowfinGroupWriter:
-		act = strings.Replace(act, "%ROLE%", "YFREPORTWRITER", -1)
+		params["%ROLE%"] = "YFREPORTWRITER"
 	case YellowfinGroupConsumer:
-		act = strings.Replace(act, "%ROLE%", "YFREPORTCONSUMER", -1)
+		params["%ROLE%"] = "YFREPORTCONSUMER"
 	default:
-		return ErrYellowfinInvalidGroup
+		return yfws.YFInvalidGroup
 	}
-	act = strings.Replace(act, "%USERID%", identity, -1)
-	req, err := http.NewRequest("POST", y.Url+"services/AdministrationService", strings.NewReader(act))
+
+	_, err := yfws.SendRequest(y.Url+"services/AdministrationService", "updateuser", params)
 	if err != nil {
-		return err
-	}
-	setupSoapRequestHeaders(req)
-	if resp, err := y.Transport.RoundTrip(req); err == nil {
-		if resp.StatusCode != 200 {
-			return errors.New(fmt.Sprintf("Error changing yellowfin group: HTTP code %v", resp.StatusCode))
-		}
-		result := y.parsexml(resp)
-		return makeYellowfinError(result, "Error changing yellowfin group")
-	} else {
 		return err
 	}
 	return nil
@@ -315,40 +179,35 @@ func (y *Yellowfin) Login(identity string) ([]*http.Cookie, error) {
 	if !y.Enabled {
 		return nil, nil
 	}
-	//y.Log.Printf("YF Logging in %v:%v %v", AdminUser, y.AdminPassword, identity)
-	act := strings.Replace(soapLogin, "%ADMIN%", AdminUser, -1)
-	act = strings.Replace(act, "%PASSWORD%", y.AdminPassword, -1)
-	act = strings.Replace(act, "%USER%", identity, -1)
-	req, err := http.NewRequest("POST", y.Url+"services/AdministrationService", strings.NewReader(act))
+	var params = map[string]string{
+		"%ADMIN%":    AdminUser,
+		"%PASSWORD%": y.AdminPassword,
+		"%USER%":     identity,
+	}
+
+	multirefs, err := yfws.SendRequest(y.Url+"services/AdministrationService", "login", params)
 	if err != nil {
 		return nil, err
 	}
-	setupSoapRequestHeaders(req)
-	if resp, err := y.Transport.RoundTrip(req); err == nil {
-		if resp.StatusCode != 200 {
-			return nil, errors.New(fmt.Sprintf("Login error (HTTP): %v", resp.StatusCode))
-		}
-		result := y.parsexml(resp)
-		if result.StatusCode == "SUCCESS" && result.ErrorCode == "0" {
-			url := y.Url + "logon.i4?LoginWebserviceId=" + result.SessionId
-			req, err := http.NewRequest("GET", url, nil)
-			if err != nil {
-				return nil, err
-			}
-			req.Header["Accept"] = []string{"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"}
-			req.Header["Connection"] = []string{"Close"}
-			resp, err := y.Transport.RoundTrip(req)
-			if err != nil {
-				return nil, err
-			}
 
-			return resp.Cookies(), nil
-		} else {
-			return nil, makeYellowfinError(result, "Error logging in to yellowfin")
-		}
-	} else {
+	sessionid, err := multirefs[0].ValueForPathString("loginSessionId.#text")
+	if err != nil {
 		return nil, err
 	}
+
+	url := y.Url + "logon.i4?LoginWebserviceId=" + sessionid
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header["Accept"] = []string{"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"}
+	req.Header["Connection"] = []string{"Close"}
+	resp, err := y.Transport.RoundTrip(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Cookies(), nil
 }
 
 func (y *Yellowfin) Logout(identity string, r *http.Request) error {
@@ -360,61 +219,18 @@ func (y *Yellowfin) Logout(identity string, r *http.Request) error {
 		return err
 	}
 	sessionid := sessionidCookie.Value
-	act := strings.Replace(soapLogout, "%ADMIN%", AdminUser, -1)
-	act = strings.Replace(act, "%PASSWORD%", y.AdminPassword, -1)
-	act = strings.Replace(act, "%USER%", identity, -1)
-	act = strings.Replace(act, "%SESSIONID%", sessionid, -1)
-	req, err := http.NewRequest("POST", y.Url+"services/AdministrationService", strings.NewReader(act))
-	if err != nil {
-		return nil
+
+	var params = map[string]string{
+		"%ADMIN%":     AdminUser,
+		"%PASSWORD%":  y.AdminPassword,
+		"%USER%":      identity,
+		"%SESSIONID%": sessionid,
 	}
-	setupSoapRequestHeaders(req)
-	resp, err := y.Transport.RoundTrip(req)
+
+	_, err = yfws.SendRequest(y.Url+"services/AdministrationService", "logout", params)
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != 200 {
-		return errors.New(fmt.Sprintf("Error logging out of yellowfin: HTTP code %s", resp.StatusCode))
-	}
-	result := y.parsexml(resp)
-	return makeYellowfinError(result, "Error loggout out of yellowfin")
+	return nil
 }
 
-type XMLResult struct {
-	XMLName    xml.Name `xml:"Envelope"`
-	ErrorCode  string   `xml:"Body>multiRef>errorCode"`
-	SessionId  string   `xml:"Body>multiRef>loginSessionId"`
-	StatusCode string   `xml:"Body>multiRef>statusCode"`
-}
-
-func (y *Yellowfin) parsexml(r *http.Response) *XMLResult {
-	bdy, _ := ioutil.ReadAll(r.Body)
-	r.Body.Close()
-	result := XMLResult{}
-	err := xml.Unmarshal(bdy, &result)
-	if err != nil {
-		return nil
-	}
-	return &result
-}
-
-func setupSoapRequestHeaders(req *http.Request) {
-	req.Header["SOAPAction"] = []string{"\"\""}
-	req.Header["Content-Type"] = []string{"text/xml;charset=UTF-8"}
-	req.Header["Connection"] = []string{"Close"}
-}
-
-func makeYellowfinError(result *XMLResult, baseMsg string) error {
-	if result.StatusCode == "SUCCESS" && result.ErrorCode == "0" {
-		return nil
-	}
-
-	switch result.ErrorCode {
-	case "25":
-		return ErrYellowfinAuthFailed
-	case "38":
-		return ErrYellowfinPasswordTooLong
-	}
-
-	return errors.New(fmt.Sprintf("%v: %v, %v", baseMsg, result.StatusCode, result.ErrorCode))
-}
