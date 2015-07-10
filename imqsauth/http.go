@@ -402,7 +402,7 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 	yfGroup := makeYellowfinGroup(permList)
 	if yfGroup != YellowfinGroupNone {
 		cookies, err := central.Yellowfin.LoginAndUpdateGroup(identity, yfGroup)
-		if err == yfws.YFCouldNotAuthenticateUser {
+		if err == yfws.ErrYFCouldNotAuthenticateUser {
 			
 			// Try to create the identity in yellowfin
 			if err = central.Yellowfin.CreateUser(identity); err == nil {

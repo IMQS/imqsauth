@@ -155,7 +155,7 @@ func (y *Yellowfin) ChangeGroup(identity string, group YellowfinGroup) error {
 	case YellowfinGroupConsumer:
 		params["%ROLE%"] = "YFREPORTCONSUMER"
 	default:
-		return yfws.YFInvalidGroup
+		return yfws.ErrYFInvalidGroup
 	}
 
 	_, err := yfws.SendRequest(y.Url+"services/AdministrationService", "updateuser", params)
