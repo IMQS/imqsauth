@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/serviceauth"
+	"github.com/IMQS/yfws"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -401,7 +402,8 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 	yfGroup := makeYellowfinGroup(permList)
 	if yfGroup != YellowfinGroupNone {
 		cookies, err := central.Yellowfin.LoginAndUpdateGroup(identity, yfGroup)
-		if err == ErrYellowfinAuthFailed {
+		if err == yfws.ErrYFCouldNotAuthenticateUser {
+			
 			// Try to create the identity in yellowfin
 			if err = central.Yellowfin.CreateUser(identity); err == nil {
 				// Try again to login
