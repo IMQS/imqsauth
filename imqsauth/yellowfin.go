@@ -2,8 +2,8 @@ package imqsauth
 
 import (
 	"github.com/IMQS/yfws"
+	"github.com/IMQS/log"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -58,7 +58,7 @@ func NewYellowfin(logger *log.Logger) *Yellowfin {
 		Url:     "http://127.0.0.1:2005/yellowfin/",
 	}
 	if y.Log == nil {
-		y.Log = log.New(os.Stdout, "", 0)
+		y.Log = log.New(log.Stdout)
 	}
 	y.Transport = &http.Transport{
 		DisableKeepAlives:  true,
@@ -169,7 +169,7 @@ func (y *Yellowfin) LoginAndUpdateGroup(identity string, group YellowfinGroup) (
 	// We must change the group before logging in, otherwise the user's UI will not reflect his new status
 	err := y.ChangeGroup(identity, group)
 	if err != nil {
-		y.Log.Printf("Failed to update yellowfin group for %v to %v", identity, group)
+		y.Log.Errorf("Failed to update yellowfin group for %v to %v", identity, group)
 	}
 
 	return y.Login(identity)

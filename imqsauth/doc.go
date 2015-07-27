@@ -12,28 +12,7 @@ system to accomodate that kind of thing.
 Example config file:
 
 {
-	"Authaus": {
-		"Log": {
-			"Filename":		"c:\\imqsvar\\logs\\imqsauth.log"
-		},
-		"HTTP": {
-			"Bind": 		"127.0.0.1",
-			"Port": 		2003
-		},
-		"Authenticator": {
-			"Type": 		"db",
-			"DB": {...}
-		},
-		"PermitDB": {
-			"DB": {...}
-		},
-		"SessionDB": {
-			"DB": {...}
-		},
-		"RoleGroupDB": {
-			"DB": {...}
-		}
-	},
+	"Authaus": {...},								-- See config.go in Authaus package for description of the Authaus config
 	"Yellowfin": {
 		"Enabled": true
 	},

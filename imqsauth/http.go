@@ -153,7 +153,7 @@ func (x *ImqsCentral) RunHttp() error {
 	server.Handler = smux
 	server.Addr = x.Config.Authaus.HTTP.Bind + ":" + strconv.Itoa(x.Config.Authaus.HTTP.Port)
 
-	x.Central.Log.Printf("ImqsAuth is trying to listen on %v:%v", x.Config.Authaus.HTTP.Bind, x.Config.Authaus.HTTP.Port)
+	x.Central.Log.Infof("ImqsAuth is trying to listen on %v:%v", x.Config.Authaus.HTTP.Bind, x.Config.Authaus.HTTP.Port)
 
 	if err := server.ListenAndServe(); err != nil {
 		return err
@@ -352,7 +352,7 @@ func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *httpReque
 	}
 
 	if err := central.Yellowfin.Logout(identity, r.http); err != nil {
-		central.Central.Log.Printf("Yellowfin logout error: %v", err)
+		central.Central.Log.Errorf("Yellowfin logout error: %v", err)
 	}
 	authaus.HttpSendTxt(w, http.StatusOK, "")
 }
@@ -411,7 +411,7 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 			}
 		}
 		if err != nil {
-			central.Central.Log.Printf("Yellowfin login error: %v", err)
+			central.Central.Log.Errorf("Yellowfin login error: %v", err)
 		} else if cookies != nil {
 			for _, cookie := range cookies {
 				// Despite raising the tomcat session timeout in web.xml to 31 days,
@@ -475,11 +475,11 @@ func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *http
 	}
 
 	if _, err := authaus.LoadOrCreateGroup(central.Central.GetRoleGroupDB(), groupname, true); err == nil {
-		central.Central.Log.Printf("New group added: %v", groupname)
+		central.Central.Log.Infof("New group added: %v", groupname)
 		authaus.HttpSendTxt(w, http.StatusOK, "")
 		return
 	} else {
-		central.Central.Log.Printf("Error creating group (%v): %v", groupname, err)
+		central.Central.Log.Errorf("Error creating group (%v): %v", groupname, err)
 		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Error creating group (%v): %v", groupname, err))
 		return
 	}
@@ -558,11 +558,11 @@ func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 
 	if central.Config.enablePcsRename {
 		if err := pcsRenameUser(central.Config.GetHostname(), oldIdent, newIdent); err != nil {
-			central.Central.Log.Printf("Error: failed to rename PCS: %v", err)
+			central.Central.Log.Errorf("Error: failed to rename PCS: %v", err)
 			rollbackErrorTxt := ""
 			if err_rollback := central.Central.RenameIdentity(newIdent, oldIdent); err_rollback != nil {
 				rollbackErrorTxt = "Rollback failed: " + err_rollback.Error()
-				central.Central.Log.Printf("Error: failed to roll back username rename: %v", err_rollback)
+				central.Central.Log.Errorf("Error: failed to roll back username rename: %v", err_rollback)
 			}
 
 			authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error()+"\n"+rollbackErrorTxt)
@@ -586,17 +586,17 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	if group, e := authaus.LoadOrCreateGroup(central.Central.GetRoleGroupDB(), groupname, false); e == nil {
-		central.Central.Log.Printf("Roles %v set for group %v", rolesstring, groupname)
+		central.Central.Log.Infof("Roles %v set for group %v", rolesstring, groupname)
 		group.PermList = perms
 		if err := central.Central.GetRoleGroupDB().UpdateGroup(group); err == nil {
-			central.Central.Log.Printf("Set group roles for %v", groupname)
+			central.Central.Log.Infof("Set group roles for %v", groupname)
 			authaus.HttpSendTxt(w, http.StatusOK, "")
 		} else {
-			central.Central.Log.Printf("Could not set group roles for %v: %v", groupname, err)
+			central.Central.Log.Errorf("Could not set group roles for %v: %v", groupname, err)
 			authaus.HttpSendTxt(w, http.StatusNotAcceptable, fmt.Sprintf("Could not set group roles for %v: %v", groupname, err))
 		}
 	} else {
-		central.Central.Log.Printf("Group '%v' not found: %v", groupname, e)
+		central.Central.Log.Warnf("Group '%v' not found: %v", groupname, e)
 		authaus.HttpSendTxt(w, http.StatusNotFound, fmt.Sprintf("Group '%v' not found: %v", groupname, e))
 	}
 }
@@ -666,14 +666,14 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 		return
 	}
 
-	central.Central.Log.Printf("Setting password for %v", identity)
+	central.Central.Log.Infof("Setting password for %v", identity)
 
 	// There is no need to update the Yellowfin user's password, because we use a fixed
 	// secret password for all yellowfin users.
 
 	err := central.Central.SetPassword(identity, password)
 	if err != nil {
-		central.Central.Log.Printf("Error setting password for %v: %v", identity, err)
+		central.Central.Log.Infof("Error setting password for %v: %v", identity, err)
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 		return
 	}

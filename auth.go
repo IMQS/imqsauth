@@ -5,7 +5,6 @@ import (
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/cli"
 	"github.com/IMQS/imqsauth/imqsauth"
-	"log"
 	"os"
 	"runtime"
 	"sort"
@@ -197,7 +196,7 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 		ic.Config.ResetForUnitTests()
 		ic.Config.Authaus.HTTP.Bind = "127.0.0.1"
 		ic.Config.Authaus.HTTP.Port = TestPort
-		ic.Central = authaus.NewCentralDummy(log.New(os.Stdout, "", 0))
+		ic.Central = authaus.NewCentralDummy("")
 		resetAuthGroups(ic)
 		ic.Central.CreateAuthenticatorIdentity("joe", "JOE")
 		ic.Central.CreateAuthenticatorIdentity("jack", "JACK")
