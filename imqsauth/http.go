@@ -403,7 +403,7 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 	if yfGroup != YellowfinGroupNone {
 		cookies, err := central.Yellowfin.LoginAndUpdateGroup(identity, yfGroup)
 		if err == yfws.ErrYFCouldNotAuthenticateUser {
-			
+
 			// Try to create the identity in yellowfin
 			if err = central.Yellowfin.CreateUser(identity); err == nil {
 				// Try again to login
@@ -506,7 +506,7 @@ func pcsRenameUser(hostname, oldIdent, newIdent string) error {
 
 	r.Header.Add("Date", time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05 GMT"))
 
-	if err = serviceauth.AuthenticateInterServiceRequest(r, nil); err != nil {
+	if err = serviceauth.CreateInterServiceRequest(r, nil); err != nil {
 		return err
 	}
 
