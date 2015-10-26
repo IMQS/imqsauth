@@ -11,6 +11,11 @@ import (
 
 type ConfigYellowfin struct {
 	Enabled bool
+	// If this is true, then we store yellowfin cookies in the user's browser.
+	// If this is false, then we transparently login to Yellowfin via the Router.
+	// We could probably get rid of this old code path, but it adds minimal
+	// complexity to the code, and might still prove useful.
+	UseLegacyAuth bool
 }
 
 // Note: Be sure to keep doc.go up to date with the Config structure here
