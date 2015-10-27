@@ -107,8 +107,10 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	}
 
 	// Because Yellowfin only allows a single session per user, we need to
-	// make our behaviour the same.
-	if ic.Config.Yellowfin.Enabled {
+	// make our behaviour the same. Note that this is only true for the Legacy case.
+	// When using our new Router-based "transparent" yellowfin login, this
+	// restriction falls away.
+	if ic.Config.Yellowfin.Enabled && ic.Config.Yellowfin.UseLegacyAuth {
 		ic.Config.Authaus.SessionDB.MaxActiveSessions = 1
 	}
 

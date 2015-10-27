@@ -26,6 +26,10 @@ const (
 	msgNotAdmin        = "You are not an administrator"
 )
 
+var (
+	errYellowfinDisabled = errors.New("Yellowfin is disabled")
+)
+
 type HttpMethod string
 
 const (
@@ -136,6 +140,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/hello", makehandler(HttpMethodGet, httpHandlerHello, 0))
 	smux.HandleFunc("/ping", makehandler(HttpMethodGet, httpHandlerPing, 0))
 	smux.HandleFunc("/login", makehandler(HttpMethodPost, httpHandlerLogin, 0))
+	smux.HandleFunc("/login_yellowfin", makehandler(HttpMethodPost, httpHandlerLoginYellowfin, handlerFlagNeedToken))
 	smux.HandleFunc("/logout", makehandler(HttpMethodPost, httpHandlerLogout, 0))
 	smux.HandleFunc("/check", makehandler(HttpMethodGet, httpHandlerCheck, 0))
 	smux.HandleFunc("/create_user", makehandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
@@ -387,17 +392,30 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 					Secure:  central.Config.Authaus.HTTP.CookieSecure,
 				}
 				http.SetCookie(w, cookie)
-				httpLoginYellowfin(central, w, r, identity, permList)
+				if central.Config.Yellowfin.UseLegacyAuth {
+					httpLoginYellowfin(central, w, r, identity, permList)
+				}
 				httpSendCheckJson(w, token, permList)
 			}
 		}
 	}
 }
 
-// This is intended to be called by httpHandlerLogin
-func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequest, identity string, permList authaus.PermissionList) {
+// This is a top-level HTTP API, built to allow an explicit login to Yellowfin only.
+func httpHandlerLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	if err := httpLoginYellowfin(central, w, r, r.token.Identity, r.permList); err == nil {
+		authaus.HttpSendTxt(w, http.StatusOK, "OK")
+	} else {
+		// We could certainly do better here to preserve the yellowfin HTTP response codes.
+		// It would require changing the return paths from the yellowfin function LoginAndUpdateGroup.
+		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+	}
+}
+
+// This is a sub-function, intended to be called by httpHandlerLogin
+func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequest, identity string, permList authaus.PermissionList) error {
 	if !central.Yellowfin.Enabled {
-		return
+		return errYellowfinDisabled
 	}
 	yfGroup := makeYellowfinGroup(permList)
 	if yfGroup != YellowfinGroupNone {
@@ -412,6 +430,7 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 		}
 		if err != nil {
 			central.Central.Log.Errorf("Yellowfin login error: %v", err)
+			return err
 		} else if cookies != nil {
 			for _, cookie := range cookies {
 				// Despite raising the tomcat session timeout in web.xml to 31 days,
@@ -430,6 +449,7 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 			}
 		}
 	}
+	return nil
 }
 
 // Note that we do not create a permit here for the user, so he will not yet be able to login.
