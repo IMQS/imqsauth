@@ -189,7 +189,7 @@ class Authorization < AuthBase
 	end
 
 	def login_and_check(verb, path)
-		doany(verb, path, nil, {}, 400, "http basic authorization must be base64(identity:password)")
+		doany(verb, path, nil, {:Authorization => "Basic invalid_auth"}, 400, "http basic authorization must be base64(identity:password)")
 		doany(verb, path, nil, basicauth("joe","JoE"), 403, "Invalid password")
 		doany(verb, path, nil, basicauth("jjj","JOE"), 403, "Identity authorization not found")
 	end
@@ -197,12 +197,14 @@ class Authorization < AuthBase
 	def test_login
 		doget("/login", basicauth_joe, 400, "API must be accessed using an HTTP POST method")
 		dopost("/login", nil, basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
+		dopost("/login", nil, {}, 400, "http basic authorization must be base64(identity:password)")
 		login_and_check("POST", "/login")
 	end
 
 	def test_check
 		dopost("/check", nil, basicauth_joe, 400, "API must be accessed using an HTTP GET method")
 		doget("/check", basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
+		doget("/check", {}, 401, "No authorization information")
 		login_and_check("GET", "/check")
 	end
 
@@ -226,7 +228,7 @@ class Authorization < AuthBase
 	def test_rename_as_user()
 		session = post("/login", nil, basicauth_joe).cookies["session"]
 		longmsg_base = "'rename_user' must be accompanied by http basic authentication of the user that is being renamed (this confirms that you know your own password). alternatively, if you have admin rights, you can rename any user."
-		longmsg_nobasic = longmsg_base + " error: http basic authorization must be base64(identity:password)"
+		longmsg_nobasic = longmsg_base + " error: no authorization information"
 		longmsg_wronguser = longmsg_base + " authenticated with 'jack', but tried to rename user 'joe'"
 		dopost("/rename_user?old=joe&new=jack", nil, session_cookie(session), 403, longmsg_nobasic)
 		dopost("/rename_user?old=joe&new=jack", nil, basicauth_joe, 400, "Identity already exists")
