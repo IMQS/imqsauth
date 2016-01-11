@@ -30,6 +30,7 @@ const (
 	PermPCSBudgetItemsAvailable   authaus.PermissionU16 = 116 // User is allowed to view the allocatable budget items
 	PermReportCreator             authaus.PermissionU16 = 200 // Can create reports
 	PermReportViewer              authaus.PermissionU16 = 201 // Can view reports
+	PermImporter                  authaus.PermissionU16 = 500 // User is allowed to handle data imports
 )
 
 // Mapping from 16-bit permission integer to string-based name
@@ -65,4 +66,6 @@ func init() {
 
 	PermissionsTable[PermReportCreator] = "reportcreator"
 	PermissionsTable[PermReportViewer] = "reportviewer"
+
+	PermissionsTable[PermImporter] = "importer"
 }
