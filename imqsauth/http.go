@@ -7,11 +7,13 @@ import (
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/serviceauth"
 	"github.com/IMQS/yfws"
+	"golang.org/x/net/websocket"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -22,8 +24,10 @@ import (
 // the worst property of exceptions, which is their opaqueness.
 
 const (
-	msgAccountDisabled = "Account disabled"
-	msgNotAdmin        = "You are not an administrator"
+	msgAccountDisabled  = "Account disabled"
+	msgNotAdmin         = "You are not an administrator"
+	notificationChannel = "auth"
+	notificationType    = "permissions_changed"
 )
 
 var (
@@ -84,9 +88,22 @@ type ImqsCentral struct {
 	Config    *Config
 	Central   *authaus.Central
 	Yellowfin *Yellowfin
+
+	// Guards access to roleChangeSubscribers and lastSubscriberId
+	subscriberLock sync.RWMutex
+
+	// ChangeSubscribers maintains a list of web socket connections for
+	// pushing role changes of connected users to their browsers.
+	// Currently no communication is expected to be received FROM the browser.
+	// On error or EOF the connection is closed and removed from the map.
+	roleChangeSubscribers map[uint64]*websocket.Conn
+
+	// The last id assigned to a new subscriber
+	lastSubscriberId uint64
 }
 
 func (x *ImqsCentral) RunHttp() error {
+	x.roleChangeSubscribers = make(map[uint64]*websocket.Conn)
 
 	// The built-in go ServeMux does not support differentiating based on HTTP verb, so we have to make
 	// the request path unique for each verb. I think this is OK as far as API design is concerned - at least in this domain.
@@ -153,6 +170,8 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/reset_password_finish", makehandler(HttpMethodPost, httpHandlerResetPasswordFinish, 0))
 	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetUsers, 0))
 	smux.HandleFunc("/groups", makehandler(HttpMethodGet, httpHandlerGetGroups, 0))
+
+	smux.Handle("/notifications", websocket.Handler(x.handleWebSocket))
 
 	server := &http.Server{}
 	server.Handler = smux
@@ -614,11 +633,68 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 		} else {
 			central.Central.Log.Errorf("Could not set group roles for %v: %v", groupname, err)
 			authaus.HttpSendTxt(w, http.StatusNotAcceptable, fmt.Sprintf("Could not set group roles for %v: %v", groupname, err))
+			return
 		}
 	} else {
 		central.Central.Log.Warnf("Group '%v' not found: %v", groupname, e)
 		authaus.HttpSendTxt(w, http.StatusNotFound, fmt.Sprintf("Group '%v' not found: %v", groupname, e))
+		return
 	}
+
+	broadcastGroupChange(central, r, groupname)
+}
+
+func broadcastGroupChange(central *ImqsCentral, r *httpRequest, groupname string) {
+	identities, err := central.Central.GetAuthenticatorIdentities()
+	if err != nil {
+		central.Central.Log.Errorf("Unable to broadcast change, unable to read identities: %v", err)
+		return
+	}
+
+	// find group id of changed group
+	groupnamelist := []string{groupname}
+	changedGroupIds, _ := authaus.GroupNamesToIDs(groupnamelist, central.Central.GetRoleGroupDB())
+	changedGroupId := changedGroupIds[0]
+
+	// find all identities which belong to the group in question
+	changedIdentityIds := []string{}
+	for _, identity := range identities {
+		if r.token.Identity == identity {
+			// skip user that performed the request
+			continue
+		}
+		// find all identity's group id's
+		identityGroupIds := getIdentityGroupIDs(central, identity)
+		if containsElement(identityGroupIds, changedGroupId) {
+			changedIdentityIds = append(changedIdentityIds, identity)
+		}
+	}
+
+	if len(changedIdentityIds) > 0 {
+		central.broadcastToAllSubscribers(createNotificationMessage(notificationChannel, notificationType, strings.Join(changedIdentityIds, " ")))
+	}
+}
+
+func containsElement(list []authaus.GroupIDU32, elem authaus.GroupIDU32) bool {
+	for _, s := range list {
+		if s == elem {
+			return true
+		}
+	}
+	return false
+}
+
+func getIdentityGroupIDs(central *ImqsCentral, identity string) []authaus.GroupIDU32 {
+	if perm, e := central.Central.GetPermit(identity); e == nil {
+		if permGroups, eDecode := authaus.DecodePermit(perm.Roles); eDecode == nil {
+			return permGroups
+		} else {
+			central.Central.Log.Warnf("(Http.getRolesList) Error decoding permit: %v\n", eDecode)
+		}
+	} else {
+		central.Central.Log.Warnf("(Http.getRolesList) Error retrieving permit: %v\n", e)
+	}
+	return []authaus.GroupIDU32{}
 }
 
 func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
@@ -668,6 +744,11 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 		}
 	}
 	*/
+	central.broadcastToAllSubscribers(createNotificationMessage(notificationChannel, notificationType, identity))
+}
+
+func createNotificationMessage(channelName string, typeName string, messageContent string) string {
+	return fmt.Sprintf("%v:%v:%v", channelName, typeName, messageContent)
 }
 
 func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
@@ -769,4 +850,74 @@ func httpHandlerGetGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRe
 	} else {
 		httpSendGroupsJson(w, groups)
 	}
+}
+
+func (central *ImqsCentral) handleWebSocket(ws *websocket.Conn) {
+	closeConnection := true
+	var token authaus.Token
+	if token, err := authaus.HttpHandlerPrelude(&central.Config.Authaus.HTTP, central.Central, ws.Request()); err == nil {
+		if permList, errDecodePerms := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); errDecodePerms == nil {
+			closeConnection = !permList.Has(PermEnabled)
+		}
+	}
+
+	if closeConnection {
+		ws.Close()
+		return
+	}
+
+	id := central.addSubscriber(ws)
+
+	central.Central.Log.Infof("Added auth web socket client %v : %v", id, token.Identity)
+	var msg string
+	for {
+		// We want to timeously close and remove the web sockets that send
+		// EOF's or invalid data, not wait until we fail to send and only then close them
+		// We just ignore whatever else we receive
+		if err := websocket.Message.Receive(ws, &msg); err != nil {
+			closeAndDeleteWebSocket(central, id)
+			return
+		}
+	}
+}
+
+func closeAndDeleteWebSocket(central *ImqsCentral, id uint64) {
+	central.subscriberLock.Lock()
+	defer central.subscriberLock.Unlock()
+
+	ws, ok := central.roleChangeSubscribers[id]
+	if ok {
+		ws.Close()
+	}
+	delete(central.roleChangeSubscribers, id)
+}
+
+func (central *ImqsCentral) broadcastToAllSubscribers(msg string) {
+	var deleteIDs []uint64
+	central.subscriberLock.RLock()
+
+	for id, ws := range central.roleChangeSubscribers {
+		err := websocket.Message.Send(ws, msg)
+		if err != nil {
+			// only record the id, since we already have a read lock active at this point
+			deleteIDs = append(deleteIDs, id)
+		}
+	}
+
+	central.subscriberLock.RUnlock()
+
+	// now delete the recorded id's
+	for _, id := range deleteIDs {
+		closeAndDeleteWebSocket(central, id)
+	}
+}
+
+func (central *ImqsCentral) addSubscriber(ws *websocket.Conn) uint64 {
+	central.subscriberLock.Lock()
+	defer central.subscriberLock.Unlock()
+
+	central.lastSubscriberId = central.lastSubscriberId + 1
+	central.roleChangeSubscribers[central.lastSubscriberId] = ws
+
+	return central.lastSubscriberId
 }
