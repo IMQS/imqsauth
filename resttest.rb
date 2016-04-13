@@ -141,7 +141,13 @@ class RestBase < Test::Unit::TestCase
 			print("Headers: #{r.headers}\n")
 		}
 	end
-
+	
+	def getUserId(email)
+		doany("GET", "/users", nil, basicauth("admin", "ADMIN")) { |r|
+			obj = JSON.parse(r.body)
+			return obj[email]["UserId"]
+		}
+	end
 end
 
 class AuthBase < RestBase
@@ -149,6 +155,26 @@ class AuthBase < RestBase
 	def setup
 		@baseurl = "http://127.0.0.1:3377"
 		@pid = spawn("bin/imqsauth -c=!TESTCONFIG1 -nosvc run")
+		
+		# Load user ids
+		doany("GET", "/users", nil, basicauth("admin", "ADMIN")) { |r|
+			obj = JSON.parse(r.body)
+			if obj != nil 
+				if obj["joe"] != nil 
+					@joe_user_id = obj["joe"]["UserId"]
+				end
+				if obj["jack"] != nil 
+					@jack_user_id = obj["jack"]["UserId"]
+				end
+				if obj["admin"] != nil 
+					@admin_user_id = obj["admin"]["UserId"]
+				end
+				if obj["admin_disabled"] != nil 
+					@admin_disabled_user_id = obj["admin_disabled"]["UserId"]
+				end
+			end
+			@unknown_user_id = 999
+		}
 	end
 
 	def teardown
@@ -196,52 +222,65 @@ class Authorization < AuthBase
 
 	def test_login
 		doget("/login", basicauth_joe, 400, "API must be accessed using an HTTP POST method")
-		dopost("/login", nil, basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
+		dopost("/login", nil, basicauth_joe, 200, {:UserId => @joe_user_id, :Identity => "joe", :Roles => ["2"]})
 		dopost("/login", nil, {}, 400, "http basic authorization must be base64(identity:password)")
 		login_and_check("POST", "/login")
 	end
 
 	def test_check
 		dopost("/check", nil, basicauth_joe, 400, "API must be accessed using an HTTP GET method")
-		doget("/check", basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
+		doget("/check", basicauth_joe, 200, {:UserId => @joe_user_id, :Identity => "joe", :Roles => ["2"]})
 		doget("/check", {}, 401, "No authorization information")
 		login_and_check("GET", "/check")
 	end
 
 	def test_set_password()
 		# Cannot change somebody else's password if you're not admin
-		dopost("/set_password?identity=sam&password=123", nil, basicauth_joe, 403, "You are not an administrator")
+		dopost("/set_password?userid=#{@jack_user_id}&password=123", nil, basicauth_joe, 403, "You are not an administrator")
 
 		# Change joe's password, while acting as joe
-		dopost("/set_password?identity=joe&password=123", nil, basicauth_joe, 200, "Password changed")
+		dopost("/set_password?userid=#{@joe_user_id}&password=123", nil, basicauth_joe, 200, "Password changed")
 		doget("/check", basicauth_joe, 403, "Invalid password")
-		dopost("/set_password?identity=joe&password=JOE", nil, basicauth("joe", "123"), 200, "Password changed")
-		doget("/check", basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
+		dopost("/set_password?userid=#{@joe_user_id}&password=JOE", nil, basicauth("joe", "123"), 200, "Password changed")
+		doget("/check", basicauth_joe, 200, {:UserId => @joe_user_id, :Identity => "joe", :Roles => ["2"]})
 
 		# Change joe's password, while acting as administrator
-		dopost("/set_password?identity=joe&password=123", nil, basicauth_admin, 200, "Password changed")
+		dopost("/set_password?userid=#{@joe_user_id}&password=123", nil, basicauth_admin, 200, "Password changed")
 		doget("/check", basicauth_joe, 403, "Invalid password")
-		dopost("/set_password?identity=joe&password=JOE", nil, basicauth_admin, 200, "Password changed")
-		doget("/check", basicauth_joe, 200, {:Identity => "joe", :Roles => ["2"]})
+		dopost("/set_password?userid=#{@joe_user_id}&password=JOE", nil, basicauth_admin, 200, "Password changed")
+		doget("/check", basicauth_joe, 200, {:UserId => @joe_user_id, :Identity => "joe", :Roles => ["2"]})
 	end
 
-	def test_rename_as_user()
-		session = post("/login", nil, basicauth_joe).cookies["session"]
-		longmsg_base = "'rename_user' must be accompanied by http basic authentication of the user that is being renamed (this confirms that you know your own password). alternatively, if you have admin rights, you can rename any user."
-		longmsg_nobasic = longmsg_base + " error: no authorization information"
-		longmsg_wronguser = longmsg_base + " authenticated with 'jack', but tried to rename user 'joe'"
-		dopost("/rename_user?old=joe&new=jack", nil, session_cookie(session), 403, longmsg_nobasic)
-		dopost("/rename_user?old=joe&new=jack", nil, basicauth_joe, 400, "Identity already exists")
-		dopost("/rename_user?old=joe&new=joe", nil, basicauth_joe, 200, "Renamed 'joe' to 'joe'")
-		dopost("/rename_user?old=joe&new=jack", nil, basicauth_jack, 403, longmsg_wronguser)
-		dopost("/rename_user?old=joe&new=sarah", nil, basicauth_joe, 200, "Renamed 'joe' to 'sarah'")
-	end
+	 def test_rename_as_user()
+		 session = post("/login", nil, basicauth_joe).cookies["session"]
+		 longmsg_base = "'rename_user' must be accompanied by http basic authentication of the user that is being renamed (this confirms that you know your own password). alternatively, if you have admin rights, you can rename any user."
+		 longmsg_nobasic = longmsg_base + " error: no authorization information"
+		 longmsg_wronguser = longmsg_base + " authenticated with 'jack', but tried to rename user 'joe'"
+		 dopost("/rename_user?old=joe&new=jack", nil, session_cookie(session), 403, longmsg_nobasic)
+		 dopost("/rename_user?old=joe&new=jack", nil, basicauth_joe, 400, "Identity already exists")
+		 dopost("/rename_user?old=joe&new=joe", nil, basicauth_joe, 200, "Renamed 'joe' to 'joe'")
+		 dopost("/rename_user?old=joe&new=jack", nil, basicauth_jack, 403, longmsg_wronguser)
+		 dopost("/rename_user?old=joe&new=sarah", nil, basicauth_joe, 200, "Renamed 'joe' to 'sarah'")
+	 end
 
-	def test_rename_as_admin()
-		dopost("/rename_user?old=joe&new=jack", nil, basicauth_admin, 400, "Identity already exists")
-		dopost("/rename_user?old=joe&new=sarah", nil, basicauth_admin, 200, "Renamed 'joe' to 'sarah'")
-		dopost("/rename_user?old=sarah&new=sarah@abc.com", nil, basicauth_admin, 200, "Renamed 'sarah' to 'sarah@abc.com'")
-	end
+	 def test_rename_as_admin()
+		 dopost("/rename_user?old=joe&new=jack", nil, basicauth_admin, 400, "Identity already exists")
+		 dopost("/rename_user?old=joe&new=sarah", nil, basicauth_admin, 200, "Renamed 'joe' to 'sarah'")
+		 dopost("/rename_user?old=sarah&new=sarah@abc.com", nil, basicauth_admin, 200, "Renamed 'sarah' to 'sarah@abc.com'")
+	 end
+	
+	 def test_update_users()
+		 doput("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_joe, 403, "You are not an administrator")
+		 doput("/update_user?userid=#{@unknown_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_admin, 403, "Identity authorization not found")
+		 doput("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_admin, 200, "updated user: '1'")
+		 doput("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_admin, 200, "updated user: '1'")
+	 end
+	
+	 def test_archive_users()
+		 doput("/archive_user?userid=#{@joe_user_id}", nil, basicauth_joe, 403, "You are not an administrator")
+		 doput("/archive_user?userid=#{@unknown_user_id}", nil, basicauth_admin, 403, "Identity authorization not found")
+		 doput("/archive_user?userid=#{@joe_user_id}", nil, basicauth_admin, 200, "Archived user: '1'")
+	 end
 end
 
 class AdminTasks < AuthBase
@@ -284,26 +323,22 @@ class AdminTasks < AuthBase
 		# This is an unfortunate consequence of authaus not caring how you bring together your PermitDB and Authentication system.
 		# You can create permits for users that do not exist in the authentication system. This kind of abuse could only be performed
 		# by an administrator.
-		dopost("/set_user_groups?identity=nobody&groups=enabled", nil, basicauth_admin, 200, "'nobody' groups set to (enabled)")
+		dopost("/set_user_groups?userid=#{@unknown_user_id}&groups=enabled", nil, basicauth_admin, 200, "'#{@unknown_user_id}' groups set to (enabled)")
 
-		dopost("/set_user_groups?groups=enabled", nil, basicauth_admin, 403, "Identity is empty")
+		dopost("/set_user_groups?groups=enabled", nil, basicauth_admin, 403, "Invalid userid")
 
-		dopost("/set_user_groups?identity=sam&groups=NOT_A_GROUP", nil, basicauth_admin, 403, "Invalid groups: Group does not exist")
+		sam_user_id = getUserId("sam")
+		dopost("/set_user_groups?userid=#{sam_user_id}&groups=NOT_A_GROUP", nil, basicauth_admin, 403, "Invalid groups: Group does not exist")
 
 		# Assign 'enabled' group to 'sam'
-		dopost("/set_user_groups?identity=sam&groups=enabled", nil, basicauth_admin, 200, "'sam' groups set to (enabled)")
+		dopost("/set_user_groups?userid=#{sam_user_id}&groups=enabled", nil, basicauth_admin, 200, "'#{sam_user_id}' groups set to (enabled)")
 		
 		verify_role_groups("sam", ["enabled"])
 
 		# Assign no groups to 'sam'
-		dopost("/set_user_groups?identity=sam&groups=", nil, basicauth_admin, 200, "'sam' groups set to ()")
+		dopost("/set_user_groups?userid=#{sam_user_id}&groups=", nil, basicauth_admin, 200, "'#{sam_user_id}' groups set to ()")
 
 		verify_role_groups("sam", [])
-
-		# Check case-insensitivity
-		verify_role_groups("Sam", [])
-		dopost("/set_user_groups?identity=saM&groups=enabled", nil, basicauth_admin, 200, "'sam' groups set to (enabled)")
-		verify_role_groups("sAm", ["enabled"])
 	end
 
 	def test_list_users_noadmin

@@ -52,6 +52,7 @@ type httpRequest struct {
 }
 
 type checkResponseJson struct {
+	UserId   authaus.UserId
 	Identity string
 	Roles    []string
 }
@@ -76,8 +77,14 @@ func (x *groupResponseJson) SetGroup(group *authaus.AuthGroup) {
 	}
 }
 
-type userGroupsResponseJson struct {
-	Groups []string
+type userResponseJson struct {
+	UserId   authaus.UserId
+	Email    string
+	Username string
+	Name     string
+	Surname  string
+	Mobile   string
+	Groups   []string
 }
 
 type ImqsCentral struct {
@@ -144,6 +151,8 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/logout", makehandler(HttpMethodPost, httpHandlerLogout, 0))
 	smux.HandleFunc("/check", makehandler(HttpMethodGet, httpHandlerCheck, 0))
 	smux.HandleFunc("/create_user", makehandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/update_user", makehandler(HttpMethodPut, httpHandlerUpdateUser, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/archive_user", makehandler(HttpMethodPut, httpHandlerArchiveUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/create_group", makehandler(HttpMethodPut, httpHandlerCreateGroup, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/rename_user", makehandler(HttpMethodPost, httpHandlerRenameUser, handlerFlagNeedToken))
 	smux.HandleFunc("/set_group_roles", makehandler(HttpMethodPut, httpHandlerSetGroupRoles, handlerFlagNeedAdminRights))
@@ -204,7 +213,7 @@ func (x *ImqsCentral) makeAbsoluteUrl(relativeUrl string) (string, error) {
 }
 
 // Returns (responseCode, message)
-func (x *ImqsCentral) ResetPasswordStart(identity string, isNewAccount bool) (int, string) {
+func (x *ImqsCentral) ResetPasswordStart(userId authaus.UserId, isNewAccount bool) (int, string) {
 	if x.Config.SendMailPassword == "" {
 		return http.StatusInternalServerError, "No password for sending email"
 	}
@@ -214,13 +223,18 @@ func (x *ImqsCentral) ResetPasswordStart(identity string, isNewAccount bool) (in
 		expireSeconds = x.Config.NewAccountExpirySeconds
 	}
 
-	token, err := x.Central.ResetPasswordStart(identity, time.Now().Add(time.Duration(expireSeconds)*time.Second))
+	token, err := x.Central.ResetPasswordStart(userId, time.Now().Add(time.Duration(expireSeconds)*time.Second))
 	if err != nil {
 		return http.StatusForbidden, "Error resetting password: " + err.Error()
 	}
 
 	// &welcome=true -- use this for welcome email
-	resetUrl, err := x.makeAbsoluteUrl("/#resetpassword=true&identity=" + url.QueryEscape(identity) + "&token=" + url.QueryEscape(token))
+	strUserId := strconv.FormatInt(int64(userId), 10)
+	identity, errGetIdentity := x.Central.GetIdentityFromUserId(userId)
+	if errGetIdentity != nil {
+		return http.StatusBadRequest, "Unrecognized userid: " + err.Error()
+	}
+	resetUrl, err := x.makeAbsoluteUrl("/#resetpassword=true&identity=" + url.QueryEscape(identity) + "&userid=" + url.QueryEscape(strUserId) + "&token=" + url.QueryEscape(token))
 	if err != nil {
 		return http.StatusServiceUnavailable, "Error constructing reset URL: " + err.Error()
 	}
@@ -289,6 +303,7 @@ func httpSendJson(w http.ResponseWriter, jsonObj interface{}) {
 func httpSendCheckJson(w http.ResponseWriter, token *authaus.Token, permList authaus.PermissionList) {
 	jresponse := &checkResponseJson{}
 	jresponse.Identity = token.Identity
+	jresponse.UserId = token.UserId
 	jresponse.SetRoles(permList)
 	httpSendJson(w, jresponse)
 	//fmt.Fprintf(w, "%v", encodePermBitsToString(permList))
@@ -304,27 +319,35 @@ func httpSendGroupsJson(w http.ResponseWriter, groups []*authaus.AuthGroup) {
 	httpSendJson(w, jresponse)
 }
 
-func httpSendPermitsJson(central *ImqsCentral, identities []string, ident2perm map[string]*authaus.Permit, w http.ResponseWriter) {
+func httpSendPermitsJson(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit, w http.ResponseWriter) {
 	//central.Central.Log.Printf("Number of identities %v", len(permits))
 
 	emptyPermit := authaus.Permit{}
 
-	jresponse := make(map[string]*userGroupsResponseJson)
-	for _, identity := range identities {
-		permit := ident2perm[authaus.CanonicalizeIdentity(identity)]
+	jresponse := make(map[string]*userResponseJson)
+	for _, user := range users {
+		permit := ident2perm[user.UserId]
 		if permit == nil {
 			permit = &emptyPermit
 		}
-		jresponse[identity] = &userGroupsResponseJson{}
 		groups, err := authaus.DecodePermit(permit.Roles)
 		if err != nil {
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		jresponse[identity].Groups, err = authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB())
+		groupnames, err := authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB())
 		if err != nil {
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 			return
+		}
+		jresponse[user.Email] = &userResponseJson{
+			Email:    user.Email,
+			UserId:   user.UserId,
+			Username: user.Username,
+			Name:     user.Firstname,
+			Surname:  user.Lastname,
+			Mobile:   user.Mobilenumber,
+			Groups:   groupnames,
 		}
 	}
 
@@ -457,6 +480,10 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 // create a permit for this user.
 func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
+	username := strings.TrimSpace(r.http.URL.Query().Get("username"))
+	firstname := strings.TrimSpace(r.http.URL.Query().Get("firstname"))
+	lastname := strings.TrimSpace(r.http.URL.Query().Get("lastname"))
+	mobilenumber := strings.TrimSpace(r.http.URL.Query().Get("mobilenumber"))
 	password := strings.TrimSpace(r.http.URL.Query().Get("password"))
 
 	sendPasswordResetEmail := false
@@ -468,11 +495,11 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		password = authaus.RandomString(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 	}
 
-	if err := central.Central.CreateAuthenticatorIdentity(identity, password); err != nil {
+	if userId, err := central.Central.CreateUserStoreIdentity(identity, username, firstname, lastname, mobilenumber, password); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		if sendPasswordResetEmail {
-			code, msg := central.ResetPasswordStart(identity, true)
+			code, msg := central.ResetPasswordStart(userId, true)
 			if code != http.StatusOK {
 				authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Created identity '%v'. However, failed to initiate password reset: ", identity, msg))
 				return
@@ -484,6 +511,45 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 			central.Central.Log.Printf("Error creating Yellowfin user '%v': %v", identity, yfErr)
 		}
 		*/
+	}
+}
+
+func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	strUserId := strings.TrimSpace(r.http.URL.Query().Get("userid"))
+	email := strings.TrimSpace(r.http.URL.Query().Get("email"))
+	username := strings.TrimSpace(r.http.URL.Query().Get("username"))
+	firstname := strings.TrimSpace(r.http.URL.Query().Get("firstname"))
+	lastname := strings.TrimSpace(r.http.URL.Query().Get("lastname"))
+	mobilenumber := strings.TrimSpace(r.http.URL.Query().Get("mobilenumber"))
+
+	userId, err := strconv.ParseInt(strUserId, 10, 64)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+	}
+	if err := central.Central.UpdateIdentity(authaus.UserId(int64(userId)), email, username, firstname, lastname, mobilenumber); err != nil {
+		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+	} else {
+		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Updated user: '%v'", strUserId))
+	}
+}
+
+func httpHandlerArchiveUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	strUserId := strings.TrimSpace(r.http.URL.Query().Get("userid"))
+	userId, err := strconv.ParseInt(strUserId, 10, 64)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	// Admin permission allows you to archive a user account
+	if !r.permList.Has(PermAdmin) {
+		authaus.HttpSendTxt(w, http.StatusForbidden, msgNotAdmin)
+		return
+	}
+
+	if err := central.Central.ArchiveIdentity(authaus.UserId(userId)); err != nil {
+		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+	} else {
+		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Archived user: '%v'", strUserId))
 	}
 }
 
@@ -548,6 +614,11 @@ func pcsRenameUser(hostname, oldIdent, newIdent string) error {
 func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	oldIdent := authaus.CanonicalizeIdentity(strings.TrimSpace(r.http.URL.Query().Get("old")))
 	newIdent := authaus.CanonicalizeIdentity(strings.TrimSpace(r.http.URL.Query().Get("new")))
+	userId, getUserIdErr := central.Central.GetUserIdFromIdentity(oldIdent)
+	if getUserIdErr != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, "Identity: "+oldIdent+"not found")
+		return
+	}
 	if oldIdent == "" {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, "No 'old' identity given")
 		return
@@ -565,7 +636,7 @@ func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 			authaus.HttpSendTxt(w, http.StatusForbidden, authMsg+" Error: "+err.Error())
 			return
 		}
-		if token.Identity != oldIdent {
+		if token.UserId != userId {
 			authaus.HttpSendTxt(w, http.StatusForbidden, authMsg+" Authenticated with '"+token.Identity+"', but tried to rename user '"+oldIdent+"'")
 			return
 		}
@@ -632,12 +703,15 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 		}
 	}()
 
-	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
+	// Get userid
+	var userId authaus.UserId
+	if iUserId, getUserIdErr := strconv.ParseInt(strings.TrimSpace(r.http.URL.Query().Get("userid")), 10, 64); getUserIdErr == nil {
+		userId = authaus.UserId(iUserId)
+	} else {
+		panic("Invalid userid")
+	}
 	groupsParam := strings.TrimSpace(r.http.URL.Query().Get("groups"))
 
-	if identity == "" {
-		panic("Identity is empty")
-	}
 	groups := strings.Split(groupsParam, ",")
 	// strings.Split() will always yield at least 1 object, even if that's just an empty string
 	// It is completely legal however, to assign zero groups to a user.
@@ -651,12 +725,12 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 
 	permit := &authaus.Permit{}
 	permit.Roles = authaus.EncodePermit(groupIDs)
-	if eSetPermit := central.Central.SetPermit(identity, permit); eSetPermit != nil {
+	if eSetPermit := central.Central.SetPermit(userId, permit); eSetPermit != nil {
 		panic(eSetPermit)
 	}
 
 	summary := strings.Join(groups, ",")
-	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("'%v' groups set to (%v)", identity, summary))
+	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("'%v' groups set to (%v)", userId, summary))
 
 	// Change yellowfin permissions
 	/* // this has been moved into Login
@@ -671,7 +745,11 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 }
 
 func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
+	userId, getUserIdErr := getUserId(r)
+	if getUserIdErr != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Invalid userid: %v", getUserIdErr.Error()))
+		return
+	}
 	password := strings.TrimSpace(r.http.URL.Query().Get("password"))
 
 	// TODO: get rid of the URL-transmitted password, because it leaks into HTTP logs
@@ -681,19 +759,19 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 	}
 
 	// admin permission allows you to change anybody's password
-	if identity != r.token.Identity && !r.permList.Has(PermAdmin) {
+	if userId != r.token.UserId && !r.permList.Has(PermAdmin) {
 		authaus.HttpSendTxt(w, http.StatusForbidden, msgNotAdmin)
 		return
 	}
 
-	central.Central.Log.Infof("Setting password for %v", identity)
+	central.Central.Log.Infof("Setting password for %v", userId)
 
 	// There is no need to update the Yellowfin user's password, because we use a fixed
 	// secret password for all yellowfin users.
 
-	err := central.Central.SetPassword(identity, password)
+	err := central.Central.SetPassword(userId, password)
 	if err != nil {
-		central.Central.Log.Infof("Error setting password for %v: %v", identity, err)
+		central.Central.Log.Infof("Error setting password for %v: %v", userId, err)
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -702,20 +780,28 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 }
 
 func httpHandlerResetPasswordStart(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
-	code, msg := central.ResetPasswordStart(identity, false)
+	userId, getUserIdErr := getUserId(r)
+	if getUserIdErr != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Invalid userid: %v", getUserIdErr.Error()))
+		return
+	}
+	code, msg := central.ResetPasswordStart(userId, false)
 	authaus.HttpSendTxt(w, code, msg)
 }
 
 func httpHandlerResetPasswordFinish(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
-	token := r.http.Header.Get("X-ResetToken")
-	password := strings.TrimSpace(r.http.Header.Get("X-NewPassword"))
-	if identity == "" || token == "" || password == "" {
-		authaus.HttpSendTxt(w, http.StatusBadRequest, "Need identity in URL, and the two headers X-ResetToken and X-NewPassword")
+	userId, getUserIdErr := getUserId(r)
+	if getUserIdErr != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Invalid userid: %v", getUserIdErr.Error()))
 		return
 	}
-	err := central.Central.ResetPasswordFinish(identity, token, password)
+	token := r.http.Header.Get("X-ResetToken")
+	password := strings.TrimSpace(r.http.Header.Get("X-NewPassword"))
+	if token == "" || password == "" {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, "Need the two headers X-ResetToken and X-NewPassword")
+		return
+	}
+	err := central.Central.ResetPasswordFinish(userId, token, password)
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 		return
@@ -748,7 +834,7 @@ func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 }
 
 func httpHandlerGetUsers(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	identities, err := central.Central.GetAuthenticatorIdentities()
+	users, err := central.Central.GetAuthenticatorIdentities()
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 		return
@@ -760,7 +846,7 @@ func httpHandlerGetUsers(central *ImqsCentral, w http.ResponseWriter, r *httpReq
 		return
 	}
 
-	httpSendPermitsJson(central, identities, ident2perm, w)
+	httpSendPermitsJson(central, users, ident2perm, w)
 }
 
 func httpHandlerGetGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
@@ -768,5 +854,14 @@ func httpHandlerGetGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRe
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 	} else {
 		httpSendGroupsJson(w, groups)
+	}
+}
+
+func getUserId(r *httpRequest) (authaus.UserId, error) {
+	var userId authaus.UserId
+	if iUserId, err := strconv.ParseInt(strings.TrimSpace(r.http.URL.Query().Get("userid")), 10, 64); err == nil {
+		return authaus.UserId(iUserId), nil
+	} else {
+		return userId, err
 	}
 }
