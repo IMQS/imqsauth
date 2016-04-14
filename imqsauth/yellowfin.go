@@ -1,8 +1,8 @@
 package imqsauth
 
 import (
-	"github.com/IMQS/yfws"
 	"github.com/IMQS/log"
+	"github.com/IMQS/yfws"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -233,4 +233,3 @@ func (y *Yellowfin) Logout(identity string, r *http.Request) error {
 	}
 	return nil
 }
-

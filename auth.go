@@ -37,7 +37,8 @@ func main() {
 
 	createUserDesc := "Create a user in the authentication system\nThis affects only the 'authentication' system - the permit database is not altered by this command. " +
 		"This has no effect on Yellowfin. Yellowfin users are created automatically during HTTP login."
-	app.AddCommand("createuser", createUserDesc, "identity", "password")
+	createUser := app.AddCommand("createuser", createUserDesc, "identity", "password", "username", "firstname", "lastname")
+	createUser.AddValueOption("mobile", "number", "Mobile number (cell phone)")
 
 	app.AddCommand("killsessions", "Erase all sessions belonging to a particular user\nWarning! The running server maintains a cache of "+
 		"sessions, so you must stop the server, run this command, and then start the server again to kill sessions correctly.", "identity")
@@ -153,7 +154,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	case "createdb":
 		success = createDB(&ic.Config.Authaus)
 	case "createuser":
-		success = createUser(ic, options, args[0], args[1])
+		success = createUser(ic, options, args[0], args[1], args[2], args[3], args[4])
 	case "killsessions":
 		success = killSessions(ic, args[0])
 	case "permgroupadd":
@@ -200,10 +201,10 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 		ic.Config.Authaus.HTTP.Port = TestPort
 		ic.Central = authaus.NewCentralDummy("")
 		resetAuthGroups(ic)
-		ic.Central.CreateAuthenticatorIdentity("joe", "JOE")
-		ic.Central.CreateAuthenticatorIdentity("jack", "JACK")
-		ic.Central.CreateAuthenticatorIdentity("admin", "ADMIN")
-		ic.Central.CreateAuthenticatorIdentity("admin_disabled", "ADMIN_DISABLED")
+		joeUserId, _ := ic.Central.CreateUserStoreIdentity("joe", "joeUsername", "joeFirstname", "joeLastname", "joe084", "JOE")
+		jackUserId, _ := ic.Central.CreateUserStoreIdentity("jack", "jackUsername", "jackFirstname", "jackLastname", "jack084", "JACK")
+		adminUserId, _ := ic.Central.CreateUserStoreIdentity("admin", "adminUsername", "adminFirstname", "adminLastname", "admin084", "ADMIN")
+		adminDisabledUserId, _ := ic.Central.CreateUserStoreIdentity("admin_disabled", "admin_disabledUsername", "admin_disabledFirstname", "admin_disabledLastname", "admin_disabled084", "ADMIN_DISABLED")
 		groupAdmin, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupAdmin)
 		groupEnabled, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupEnabled)
 		permitEnabled := &authaus.Permit{}
@@ -212,39 +213,26 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 		permitAdminEnabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupAdmin.ID, groupEnabled.ID})
 		permitAdminDisabled := &authaus.Permit{}
 		permitAdminDisabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupAdmin.ID})
-		ic.Central.SetPermit("joe", permitEnabled)
-		ic.Central.SetPermit("jack", permitEnabled)
-		ic.Central.SetPermit("admin", permitAdminEnabled)
-		ic.Central.SetPermit("admin_disabled", permitAdminDisabled)
+		ic.Central.SetPermit(joeUserId, permitEnabled)
+		ic.Central.SetPermit(jackUserId, permitEnabled)
+		ic.Central.SetPermit(adminUserId, permitAdminEnabled)
+		ic.Central.SetPermit(adminDisabledUserId, permitAdminDisabled)
 		return true
 	}
 	return false
 }
 
-func createDB(config *authaus.Config) (success bool) {
-	success = true
-	if err := authaus.SqlCreateSchema_User(&config.PermitDB.DB); err != nil {
-		success = false
-		fmt.Printf("Error creating User database: %v\n", err)
-	} else {
-		fmt.Print("User database schema is up to date\n")
+func createDB(config *authaus.Config) bool {
+	if err := authaus.SqlCreateDatabase(&config.Authenticator.DB); err != nil {
+		fmt.Printf("Error creating database: %v", err)
+		return false
 	}
 
-	if err := authaus.SqlCreateSchema_Session(&config.SessionDB.DB); err != nil {
-		success = false
-		fmt.Printf("Error creating Session database: %v\n", err)
-	} else {
-		fmt.Print("Session database schema is up to date\n")
+	if err := authaus.RunMigrations(&config.Authenticator.DB); err != nil {
+		fmt.Printf("Error running migrations: %v", err)
+		return false
 	}
-
-	if err := authaus.SqlCreateSchema_RoleGroupDB(&config.RoleGroupDB.DB); err != nil {
-		success = false
-		fmt.Printf("Error creating Role Group database: %v\n", err)
-	} else {
-		fmt.Print("Role Group database schema is up to date\n")
-	}
-
-	return success
+	return true
 }
 
 func loadOrCreateGroup(icentral *imqsauth.ImqsCentral, groupName string, createIfNotExist bool) (*authaus.AuthGroup, error) {
@@ -282,7 +270,12 @@ func resetGroup(icentral *imqsauth.ImqsCentral, group *authaus.AuthGroup) bool {
 
 //add or remove an identity (e.g. user) to or from a group
 func permGroupAddOrDel(icentral *imqsauth.ImqsCentral, identity string, groupname string, isAdd bool) (success bool) {
-	perm, eGetPermit := icentral.Central.GetPermit(identity)
+	userId, eUserId := icentral.Central.GetUserIdFromIdentity(identity)
+	if eUserId != nil {
+		fmt.Printf("Error retrieving userid for identity: %v\n", identity)
+		return false
+	}
+	perm, eGetPermit := icentral.Central.GetPermit(userId)
 	if eGetPermit != nil && strings.Index(eGetPermit.Error(), authaus.ErrIdentityPermitNotFound.Error()) == 0 {
 		// Tolerate a non-existing identity. We are going to create the permit for this identity.
 		perm = &authaus.Permit{}
@@ -305,7 +298,7 @@ func permGroupAddOrDel(icentral *imqsauth.ImqsCentral, identity string, groupnam
 				groups = append(groups, group.ID)
 			}
 			perm.Roles = authaus.EncodePermit(groups)
-			if eSet := icentral.Central.SetPermit(identity, perm); eSet == nil {
+			if eSet := icentral.Central.SetPermit(userId, perm); eSet == nil {
 				fmt.Printf("Set permit for %v\n", identity)
 				return true
 			} else {
@@ -324,7 +317,12 @@ func permGroupAddOrDel(icentral *imqsauth.ImqsCentral, identity string, groupnam
 func permShow(icentral *imqsauth.ImqsCentral, identityColumnWidth int, identity string) (success bool) {
 	permStr := ""
 	success = false
-	if perm, e := icentral.Central.GetPermit(identity); e == nil {
+	userId, eUserId := icentral.Central.GetUserIdFromIdentity(identity)
+	if eUserId != nil {
+		fmt.Printf("Error retrieving userid for identity: %v\n", identity)
+		return false
+	}
+	if perm, e := icentral.Central.GetPermit(userId); e == nil {
 		if groups, eDecode := authaus.DecodePermit(perm.Roles); eDecode == nil {
 			if groupNames, eGetNames := authaus.GroupIDsToNames(groups, icentral.Central.GetRoleGroupDB()); eGetNames == nil {
 				sort.Strings(groupNames)
@@ -385,22 +383,21 @@ func showAllRoles() {
 }
 
 func showAllIdentities(icentral *imqsauth.ImqsCentral) bool {
-	identities, err := icentral.Central.GetAuthenticatorIdentities()
+	users, err := icentral.Central.GetAuthenticatorIdentities()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		return false
 	}
-	sort.Strings(identities)
 
 	longestName := 0
-	for _, ident := range identities {
-		if len(ident) > longestName {
-			longestName = len(ident)
+	for _, user := range users {
+		if len(user.Email) > longestName {
+			longestName = len(user.Email)
 		}
 	}
 
-	for _, ident := range identities {
-		permShow(icentral, longestName, ident)
+	for _, user := range users {
+		permShow(icentral, longestName, user.Email)
 	}
 
 	return true
@@ -422,18 +419,23 @@ func setGroup(icentral *imqsauth.ImqsCentral, groupName string, roles []string) 
 	return modifyGroup(icentral, groupModifySet, groupName, perms)
 }
 
-func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, identity string, password string) bool {
-	if e := icentral.Central.CreateAuthenticatorIdentity(identity, password); e == nil {
-		fmt.Printf("Created user %v\n", identity)
+func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, email, password, username, firstname, lastname string) bool {
+	if _, e := icentral.Central.CreateUserStoreIdentity(email, username, firstname, lastname, options["mobile"], password); e == nil {
+		fmt.Printf("Created user %v\n", email)
 		return true
 	} else {
-		fmt.Printf("Error creating identity %v: %v\n", identity, e)
+		fmt.Printf("Error creating identity %v: %v\n", email, e)
 		return false
 	}
 }
 
 func killSessions(icentral *imqsauth.ImqsCentral, identity string) bool {
-	if e := icentral.Central.InvalidateSessionsForIdentity(identity); e == nil {
+	userId, eUserId := icentral.Central.GetUserIdFromIdentity(identity)
+	if eUserId != nil {
+		fmt.Printf("Error retrieving userid for identity: %v\n", identity)
+		return false
+	}
+	if e := icentral.Central.InvalidateSessionsForIdentity(userId); e == nil {
 		fmt.Printf("Destroyed all sessions for %v\n", identity)
 		return true
 	} else {
@@ -443,7 +445,12 @@ func killSessions(icentral *imqsauth.ImqsCentral, identity string) bool {
 }
 
 func setPassword(icentral *imqsauth.ImqsCentral, identity string, password string) bool {
-	if e := icentral.Central.SetPassword(identity, password); e == nil {
+	userId, eUserId := icentral.Central.GetUserIdFromIdentity(identity)
+	if eUserId != nil {
+		fmt.Printf("Error retrieving userid for identity: %v\n", identity)
+		return false
+	}
+	if e := icentral.Central.SetPassword(userId, password); e == nil {
 		fmt.Printf("Reset password of %v\n", identity)
 		return true
 	} else {
@@ -477,7 +484,12 @@ func setPasswordYellowfin(icentral *imqsauth.ImqsCentral, identity string, passw
 }
 
 func resetPassword(icentral *imqsauth.ImqsCentral, identity string) bool {
-	code, msg := icentral.ResetPasswordStart(identity, false)
+	userId, eUserId := icentral.Central.GetUserIdFromIdentity(identity)
+	if eUserId != nil {
+		fmt.Printf("Error retrieving userid for identity: %v\n", identity)
+		return false
+	}
+	code, msg := icentral.ResetPasswordStart(userId, false)
 	if code == 200 {
 		fmt.Printf("Message sent\n")
 		return true
