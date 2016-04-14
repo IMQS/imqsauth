@@ -270,16 +270,16 @@ class Authorization < AuthBase
 	 end
 	
 	 def test_update_users()
-		 doput("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_joe, 403, "You are not an administrator")
-		 doput("/update_user?userid=#{@unknown_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_admin, 403, "Identity authorization not found")
-		 doput("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_admin, 200, "updated user: '1'")
-		 doput("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_admin, 200, "updated user: '1'")
+		 dopost("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_joe, 403, "You are not an administrator")
+		 dopost("/update_user?userid=#{@unknown_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_admin, 403, "Identity authorization not found")
+		 dopost("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_admin, 200, "updated user: '1'")
+		 dopost("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_admin, 200, "updated user: '1'")
 	 end
 	
 	 def test_archive_users()
-		 doput("/archive_user?userid=#{@joe_user_id}", nil, basicauth_joe, 403, "You are not an administrator")
-		 doput("/archive_user?userid=#{@unknown_user_id}", nil, basicauth_admin, 403, "Identity authorization not found")
-		 doput("/archive_user?userid=#{@joe_user_id}", nil, basicauth_admin, 200, "Archived user: '1'")
+		 dopost("/archive_user?userid=#{@joe_user_id}", nil, basicauth_joe, 403, "You are not an administrator")
+		 dopost("/archive_user?userid=#{@unknown_user_id}", nil, basicauth_admin, 403, "Identity authorization not found")
+		 dopost("/archive_user?userid=#{@joe_user_id}", nil, basicauth_admin, 200, "Archived user: '1'")
 	 end
 end
 
@@ -325,7 +325,7 @@ class AdminTasks < AuthBase
 		# by an administrator.
 		dopost("/set_user_groups?userid=#{@unknown_user_id}&groups=enabled", nil, basicauth_admin, 200, "'#{@unknown_user_id}' groups set to (enabled)")
 
-		dopost("/set_user_groups?groups=enabled", nil, basicauth_admin, 403, "Invalid userid")
+		dopost("/set_user_groups?groups=enabled", nil, basicauth_admin, 403, "No userid specified")
 
 		sam_user_id = getUserId("sam")
 		dopost("/set_user_groups?userid=#{sam_user_id}&groups=NOT_A_GROUP", nil, basicauth_admin, 403, "Invalid groups: Group does not exist")

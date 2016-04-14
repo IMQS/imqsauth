@@ -36,8 +36,9 @@ func main() {
 	app.AddCommand("resetauthgroups", "Reset the [admin,enabled] groups")
 
 	createUserDesc := "Create a user in the authentication system\nThis affects only the 'authentication' system - the permit database is not altered by this command. " +
-		"This has no effect on Yellowfin. Yellowfin users are created automatically during HTTP login. Optional command -mobile=mobilenumber"
-	app.AddCommand("createuser", createUserDesc, "identity", "password", "username", "firstname", "lastname")
+		"This has no effect on Yellowfin. Yellowfin users are created automatically during HTTP login."
+	createUser := app.AddCommand("createuser", createUserDesc, "identity", "password", "username", "firstname", "lastname")
+	createUser.AddValueOption("mobile", "number", "Mobile number (cell phone)")
 
 	app.AddCommand("killsessions", "Erase all sessions belonging to a particular user\nWarning! The running server maintains a cache of "+
 		"sessions, so you must stop the server, run this command, and then start the server again to kill sessions correctly.", "identity")
@@ -58,8 +59,6 @@ func main() {
 
 	app.AddValueOption("c", "configfile", "Specify the imqsauth config file. A pseudo file called "+TestConfig1+" is "+
 		"used by the REST test suite to load a test configuration. This option is mandatory.")
-
-	app.AddValueOption("mobile", "mobilenumber", "Specify a mobile number when creating a user.")
 
 	app.AddBoolOption("nosvc", "Do not try to run as a Windows Service. Normally, the 'run' command detects whether this is an "+
 		"'interactive session', and if not interactive, runs as a Windows Service. Specifying -nosvc forces us to launch as a regular process.")
@@ -223,14 +222,17 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 	return false
 }
 
-func createDB(config *authaus.Config) (success bool) {
-	success = true
-
-	if success, err := authaus.RunMigrations(&config.Authenticator.DB); err != nil || success == false {
-		fmt.Printf("Unable to run migrations: %v", err)
+func createDB(config *authaus.Config) bool {
+	if err := authaus.SqlCreateDatabase(&config.Authenticator.DB); err != nil {
+		fmt.Printf("Error creating database: %v", err)
+		return false
 	}
 
-	return success
+	if err := authaus.RunMigrations(&config.Authenticator.DB); err != nil {
+		fmt.Printf("Error running migrations: %v", err)
+		return false
+	}
+	return true
 }
 
 func loadOrCreateGroup(icentral *imqsauth.ImqsCentral, groupName string, createIfNotExist bool) (*authaus.AuthGroup, error) {

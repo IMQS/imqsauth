@@ -28,6 +28,7 @@ const (
 
 var (
 	errYellowfinDisabled = errors.New("Yellowfin is disabled")
+	errNoUserId          = errors.New("No userid specified")
 )
 
 type HttpMethod string
@@ -151,8 +152,8 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/logout", makehandler(HttpMethodPost, httpHandlerLogout, 0))
 	smux.HandleFunc("/check", makehandler(HttpMethodGet, httpHandlerCheck, 0))
 	smux.HandleFunc("/create_user", makehandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/update_user", makehandler(HttpMethodPut, httpHandlerUpdateUser, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/archive_user", makehandler(HttpMethodPut, httpHandlerArchiveUser, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/update_user", makehandler(HttpMethodPost, httpHandlerUpdateUser, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/archive_user", makehandler(HttpMethodPost, httpHandlerArchiveUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/create_group", makehandler(HttpMethodPut, httpHandlerCreateGroup, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/rename_user", makehandler(HttpMethodPost, httpHandlerRenameUser, handlerFlagNeedToken))
 	smux.HandleFunc("/set_group_roles", makehandler(HttpMethodPut, httpHandlerSetGroupRoles, handlerFlagNeedAdminRights))
@@ -515,41 +516,36 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 }
 
 func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	strUserId := strings.TrimSpace(r.http.URL.Query().Get("userid"))
 	email := strings.TrimSpace(r.http.URL.Query().Get("email"))
 	username := strings.TrimSpace(r.http.URL.Query().Get("username"))
 	firstname := strings.TrimSpace(r.http.URL.Query().Get("firstname"))
 	lastname := strings.TrimSpace(r.http.URL.Query().Get("lastname"))
 	mobilenumber := strings.TrimSpace(r.http.URL.Query().Get("mobilenumber"))
 
-	userId, err := strconv.ParseInt(strUserId, 10, 64)
-	if err != nil {
-		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
-	}
-	if err := central.Central.UpdateIdentity(authaus.UserId(int64(userId)), email, username, firstname, lastname, mobilenumber); err != nil {
-		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
-	} else {
-		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Updated user: '%v'", strUserId))
-	}
-}
-
-func httpHandlerArchiveUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	strUserId := strings.TrimSpace(r.http.URL.Query().Get("userid"))
-	userId, err := strconv.ParseInt(strUserId, 10, 64)
+	userId, err := getUserId(r)
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	// Admin permission allows you to archive a user account
-	if !r.permList.Has(PermAdmin) {
-		authaus.HttpSendTxt(w, http.StatusForbidden, msgNotAdmin)
+
+	if err := central.Central.UpdateIdentity(authaus.UserId(userId), email, username, firstname, lastname, mobilenumber); err != nil {
+		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+	} else {
+		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Updated user: '%v'", userId))
+	}
+}
+
+func httpHandlerArchiveUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	userId, err := getUserId(r)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := central.Central.ArchiveIdentity(authaus.UserId(userId)); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
-		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Archived user: '%v'", strUserId))
+		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Archived user: '%v'", userId))
 	}
 }
 
@@ -616,7 +612,7 @@ func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	newIdent := authaus.CanonicalizeIdentity(strings.TrimSpace(r.http.URL.Query().Get("new")))
 	userId, getUserIdErr := central.Central.GetUserIdFromIdentity(oldIdent)
 	if getUserIdErr != nil {
-		authaus.HttpSendTxt(w, http.StatusBadRequest, "Identity: "+oldIdent+"not found")
+		authaus.HttpSendTxt(w, http.StatusBadRequest, "Identity '"+oldIdent+"'' not found")
 		return
 	}
 	if oldIdent == "" {
@@ -704,11 +700,9 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}()
 
 	// Get userid
-	var userId authaus.UserId
-	if iUserId, getUserIdErr := strconv.ParseInt(strings.TrimSpace(r.http.URL.Query().Get("userid")), 10, 64); getUserIdErr == nil {
-		userId = authaus.UserId(iUserId)
-	} else {
-		panic("Invalid userid")
+	userId, errGetUserID := getUserId(r)
+	if errGetUserID != nil {
+		panic(errGetUserID.Error())
 	}
 	groupsParam := strings.TrimSpace(r.http.URL.Query().Get("groups"))
 
@@ -747,7 +741,7 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	userId, getUserIdErr := getUserId(r)
 	if getUserIdErr != nil {
-		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Invalid userid: %v", getUserIdErr.Error()))
+		authaus.HttpSendTxt(w, http.StatusBadRequest, getUserIdErr.Error())
 		return
 	}
 	password := strings.TrimSpace(r.http.URL.Query().Get("password"))
@@ -782,7 +776,7 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 func httpHandlerResetPasswordStart(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	userId, getUserIdErr := getUserId(r)
 	if getUserIdErr != nil {
-		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Invalid userid: %v", getUserIdErr.Error()))
+		authaus.HttpSendTxt(w, http.StatusBadRequest, getUserIdErr.Error())
 		return
 	}
 	code, msg := central.ResetPasswordStart(userId, false)
@@ -792,7 +786,7 @@ func httpHandlerResetPasswordStart(central *ImqsCentral, w http.ResponseWriter, 
 func httpHandlerResetPasswordFinish(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	userId, getUserIdErr := getUserId(r)
 	if getUserIdErr != nil {
-		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Invalid userid: %v", getUserIdErr.Error()))
+		authaus.HttpSendTxt(w, http.StatusBadRequest, getUserIdErr.Error())
 		return
 	}
 	token := r.http.Header.Get("X-ResetToken")
@@ -858,10 +852,13 @@ func httpHandlerGetGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRe
 }
 
 func getUserId(r *httpRequest) (authaus.UserId, error) {
-	var userId authaus.UserId
-	if iUserId, err := strconv.ParseInt(strings.TrimSpace(r.http.URL.Query().Get("userid")), 10, 64); err == nil {
+	uidStr := strings.TrimSpace(r.http.URL.Query().Get("userid"))
+	if uidStr == "" {
+		return authaus.NullUserId, errNoUserId
+	}
+	if iUserId, err := strconv.ParseInt(uidStr, 10, 64); err == nil {
 		return authaus.UserId(iUserId), nil
 	} else {
-		return userId, err
+		return authaus.NullUserId, fmt.Errorf("Invalid userid '%v': %v", uidStr, err)
 	}
 }
