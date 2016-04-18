@@ -223,12 +223,12 @@ func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
 }
 
 func createDB(config *authaus.Config) bool {
-	if err := authaus.SqlCreateDatabase(&config.Authenticator.DB); err != nil {
+	if err := authaus.SqlCreateDatabase(&config.UserStore.DB); err != nil {
 		fmt.Printf("Error creating database: %v", err)
 		return false
 	}
 
-	if err := authaus.RunMigrations(&config.Authenticator.DB); err != nil {
+	if err := authaus.RunMigrations(&config.UserStore.DB); err != nil {
 		fmt.Printf("Error running migrations: %v", err)
 		return false
 	}

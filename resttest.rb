@@ -143,9 +143,15 @@ class RestBase < Test::Unit::TestCase
 	end
 	
 	def getUserId(email)
-		doany("GET", "/users", nil, basicauth("admin", "ADMIN")) { |r|
+		doany("GET", "/userobjects", nil, basicauth("admin", "ADMIN")) { |r|
 			obj = JSON.parse(r.body)
-			return obj[email]["UserId"]
+			obj.each do |user| 
+				if user != nil
+					if user["Email"] == email
+						return user["UserId"]
+					end
+				end
+			end			
 		}
 	end
 end
@@ -157,23 +163,45 @@ class AuthBase < RestBase
 		@pid = spawn("bin/imqsauth -c=!TESTCONFIG1 -nosvc run")
 		
 		# Load user ids
-		doany("GET", "/users", nil, basicauth("admin", "ADMIN")) { |r|
+		doany("GET", "/userobjects", nil, basicauth("admin", "ADMIN")) { |r|
 			obj = JSON.parse(r.body)
-			if obj != nil 
-				if obj["joe"] != nil 
-					@joe_user_id = obj["joe"]["UserId"]
-				end
-				if obj["jack"] != nil 
-					@jack_user_id = obj["jack"]["UserId"]
-				end
-				if obj["admin"] != nil 
-					@admin_user_id = obj["admin"]["UserId"]
-				end
-				if obj["admin_disabled"] != nil 
-					@admin_disabled_user_id = obj["admin_disabled"]["UserId"]
+			obj.each do |user| 
+				if user != nil
+					if user["Email"] == "joe"
+						@joe_user_id = user["UserId"]
+					end
+					if user["Email"] == "jack"
+						@jack_user_id = user["UserId"]
+					end
+					if user["Email"] == "admin"
+						@admin_user_id = user["UserId"]
+					end
+					if user["Email"] == "admin_disabled"
+						@admin_disabled_user_id = user["UserId"]
+					end
 				end
 			end
+			
 			@unknown_user_id = 999
+			print("JOE USER: #{@joe_user_id}")
+			print("JACK USER: #{@jack_user_id}")
+			print("ADMIN USER: #{@admin_user_id}")
+			print("ADMIN_DISABLED USER: #{@admin_disabled_user_id}")
+			#if obj != nil 
+			#	if obj["joe"] != nil 
+			#		@joe_user_id = obj["joe"]["UserId"]
+			#	end
+			#	if obj["jack"] != nil 
+			#		@jack_user_id = obj["jack"]["UserId"]
+			#	end
+			#	if obj["admin"] != nil 
+			#		@admin_user_id = obj["admin"]["UserId"]
+			#	end
+			#	if obj["admin_disabled"] != nil 
+			#		@admin_disabled_user_id = obj["admin_disabled"]["UserId"]
+			#	end
+			#end
+			#@unknown_user_id = 999
 		}
 	end
 
@@ -285,7 +313,23 @@ end
 
 class AdminTasks < AuthBase
 
-	def verify_role_groups(identity, groups)
+	def verify_role_groups_userobject_endpoint(identity, groups)
+		doget("/userobjects", basicauth_admin, 200) { |r|
+			users = JSON.parse(r.body.downcase)
+			users.each do |user| 
+				if user != nil
+					if user["Email"] == identity
+						assert(user["Email"] == identity.downcase)
+						assert(array_eq_any_order(user["UserId"]["groups"], groups))
+						break
+					end
+				end
+			end
+		}
+		#dumpany("GET", "/users", nil, basicauth_admin)
+	end
+	
+	def verify_role_groups_user_endpoint(identity, groups)
 		doget("/users", basicauth_admin, 200) { |r|
 			users = JSON.parse(r.body.downcase)
 			assert(users[identity.downcase])
@@ -318,7 +362,8 @@ class AdminTasks < AuthBase
 		# has no permit defined. Were this not the case, then the admin GUI could get stuck
 		# in a state where it has created an identity, but it cannot set its permit, or
 		# that identity gets "lost" because it is invisible to certain parts of the system
-		verify_role_groups("sam", [])
+		verify_role_groups_userobject_endpoint("sam", [])
+		verify_role_groups_user_endpoint("sam", [])
 		
 		# This is an unfortunate consequence of authaus not caring how you bring together your PermitDB and Authentication system.
 		# You can create permits for users that do not exist in the authentication system. This kind of abuse could only be performed
@@ -333,16 +378,19 @@ class AdminTasks < AuthBase
 		# Assign 'enabled' group to 'sam'
 		dopost("/set_user_groups?userid=#{sam_user_id}&groups=enabled", nil, basicauth_admin, 200, "'#{sam_user_id}' groups set to (enabled)")
 		
-		verify_role_groups("sam", ["enabled"])
+		verify_role_groups_userobject_endpoint("sam", ["enabled"])
+		verify_role_groups_user_endpoint("sam", ["enabled"])
 
 		# Assign no groups to 'sam'
 		dopost("/set_user_groups?userid=#{sam_user_id}&groups=", nil, basicauth_admin, 200, "'#{sam_user_id}' groups set to ()")
 
-		verify_role_groups("sam", [])
+		verify_role_groups_userobject_endpoint("sam", [])
+		verify_role_groups_user_endpoint("sam", [])
 	end
 
 	def test_list_users_noadmin
 		doget("/users", basicauth_joe, 200);
+		doget("/userobjects", basicauth_joe, 200);
 	end
 
 	def test_list_groups_noadmin
