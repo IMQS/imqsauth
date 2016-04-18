@@ -168,6 +168,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetEmails, 0))
 	smux.HandleFunc("/userobjects", makehandler(HttpMethodGet, httpHandlerGetUsers, 0))
 	smux.HandleFunc("/groups", makehandler(HttpMethodGet, httpHandlerGetGroups, 0))
+	smux.HandleFunc("/hasactivedirectory", makehandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
 
 	server := &http.Server{}
 	server.Handler = smux
@@ -295,15 +296,19 @@ func makeYellowfinGroup(permList authaus.PermissionList) YellowfinGroup {
 func httpSendJson(w http.ResponseWriter, jsonObj interface{}) {
 	jsonStr, jsonErr := json.Marshal(jsonObj)
 	if jsonErr == nil {
-		w.Header().Add("Content-Type", "application/json")
-		w.Header().Add("Cache-Control", "no-cache, no-store, must revalidate")
-		w.Header().Add("Pragma", "no-cache")
-		w.Header().Add("Expires", "0")
-		w.WriteHeader(http.StatusOK)
-		w.Write(jsonStr)
+		httpSendResponse(w, jsonStr)
 	} else {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, jsonErr.Error())
 	}
+}
+
+func httpSendResponse(w http.ResponseWriter, jsonStr []byte) {
+	w.Header().Add("Content-Type", "application/json")
+	w.Header().Add("Cache-Control", "no-cache, no-store, must revalidate")
+	w.Header().Add("Pragma", "no-cache")
+	w.Header().Add("Expires", "0")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonStr)
 }
 
 func httpSendCheckJson(w http.ResponseWriter, token *authaus.Token, permList authaus.PermissionList) {
@@ -912,6 +917,14 @@ func httpHandlerGetGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRe
 	}
 }
 
+func httpHandlerHasActiveDirectory(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	if central.Config.Authaus.Authenticator.Type == "ldap" {
+		httpSendResponse(w,  []byte("1"))
+	} else {
+		httpSendResponse(w,  []byte("0"))
+	}
+}
+
 func getUserId(r *httpRequest) (authaus.UserId, error) {
 	uidStr := strings.TrimSpace(r.http.URL.Query().Get("userid"))
 	if uidStr == "" {
@@ -930,7 +943,7 @@ func getUserIdOrEmail(r *httpRequest) (string, authaus.UserId, error) {
 	if email != "" {
 		return email, authaus.NullUserId, nil
 	}
-	if uidStr == ""{
+	if uidStr == "" {
 		return "", authaus.NullUserId, errNoUserId
 	}
 	if iUserId, err := strconv.ParseInt(uidStr, 10, 64); err == nil {
