@@ -813,13 +813,13 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 }
 
 func httpHandlerResetPasswordStart(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	email, userId, getUserIdErr := getUserIdOrEmail(r)
+	identity, userId, getUserIdErr := getUserIdOrIdentity(r)
 	if getUserIdErr != nil {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, getUserIdErr.Error())
 		return
 	}
-	if email != "" {
-		userId, errGetIdentity := central.Central.GetUserIdFromIdentity(email)
+	if identity != "" {
+		userId, errGetIdentity := central.Central.GetUserIdFromIdentity(identity)
 		if errGetIdentity != nil {
 			authaus.HttpSendTxt(w, http.StatusBadRequest, errGetIdentity.Error())
 		}
@@ -918,7 +918,7 @@ func httpHandlerGetGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRe
 }
 
 func httpHandlerHasActiveDirectory(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	if central.Config.Authaus.Authenticator.Type == "ldap" {
+	if len(central.Config.Authaus.LDAP.LdapHost) > 0 {
 		httpSendResponse(w,  []byte("1"))
 	} else {
 		httpSendResponse(w,  []byte("0"))
@@ -937,7 +937,7 @@ func getUserId(r *httpRequest) (authaus.UserId, error) {
 	}
 }
 
-func getUserIdOrEmail(r *httpRequest) (string, authaus.UserId, error) {
+func getUserIdOrIdentity(r *httpRequest) (string, authaus.UserId, error) {
 	uidStr := strings.TrimSpace(r.http.URL.Query().Get("userid"))
 	email := strings.TrimSpace(r.http.URL.Query().Get("email"))
 	if email != "" {
