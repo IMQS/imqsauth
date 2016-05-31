@@ -11,19 +11,10 @@ import (
 	"strings"
 )
 
-const TestConfig1 = "!TESTCONFIG1"
-const TestPort = 3377
-
 // These files are written by create-keys.rb
 const (
 	YellowfinAdminPasswordFile = "c:/imqsvar/secrets/yellowfin_admin"
 	YellowfinUserPasswordFile  = "c:/imqsvar/secrets/yellowfin_user"
-)
-
-const (
-	// Hard-coded group names
-	RoleGroupAdmin   = "admin"
-	RoleGroupEnabled = "enabled"
 )
 
 func main() {
@@ -57,7 +48,7 @@ func main() {
 		"launch as a Windows Service. Otherwise, this runs in the foreground, and returns with an error code of 1. When running in the foreground, "+
 		"log messages are still sent to the logfile (not to the console).")
 
-	app.AddValueOption("c", "configfile", "Specify the imqsauth config file. A pseudo file called "+TestConfig1+" is "+
+	app.AddValueOption("c", "configfile", "Specify the imqsauth config file. A pseudo file called "+imqsauth.TestConfig1+" is "+
 		"used by the REST test suite to load a test configuration. This option is mandatory.")
 
 	app.AddBoolOption("nosvc", "Do not try to run as a Windows Service. Normally, the 'run' command detects whether this is an "+
@@ -100,7 +91,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	}
 
 	// Try test config first; otherwise load real config
-	isTestConfig := loadTestConfig(ic, configFile)
+	isTestConfig := imqsauth.LoadTestConfig(ic, configFile)
 	if !isTestConfig {
 		if err := ic.Config.LoadFile(configFile); err != nil {
 			panic(fmt.Sprintf("Error loading config file '%v': %v", configFile, err))
@@ -164,7 +155,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	case "permshow":
 		success = permShow(ic, 0, args[0])
 	case "resetauthgroups":
-		success = resetAuthGroups(ic)
+		success = imqsauth.ResetAuthGroups(ic)
 	case "run":
 		if options.Has("nosvc") || !authaus.RunAsService(handlerNoRetVal) {
 			success = false
@@ -194,34 +185,6 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	}
 }
 
-func loadTestConfig(ic *imqsauth.ImqsCentral, testConfigName string) bool {
-	if testConfigName == TestConfig1 {
-		ic.Config.ResetForUnitTests()
-		ic.Config.Authaus.HTTP.Bind = "127.0.0.1"
-		ic.Config.Authaus.HTTP.Port = TestPort
-		ic.Central = authaus.NewCentralDummy("")
-		resetAuthGroups(ic)
-		joeUserId, _ := ic.Central.CreateUserStoreIdentity("joe", "joeUsername", "joeFirstname", "joeLastname", "joe084", "JOE")
-		jackUserId, _ := ic.Central.CreateUserStoreIdentity("jack", "jackUsername", "jackFirstname", "jackLastname", "jack084", "JACK")
-		adminUserId, _ := ic.Central.CreateUserStoreIdentity("admin", "adminUsername", "adminFirstname", "adminLastname", "admin084", "ADMIN")
-		adminDisabledUserId, _ := ic.Central.CreateUserStoreIdentity("admin_disabled", "admin_disabledUsername", "admin_disabledFirstname", "admin_disabledLastname", "admin_disabled084", "ADMIN_DISABLED")
-		groupAdmin, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupAdmin)
-		groupEnabled, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupEnabled)
-		permitEnabled := &authaus.Permit{}
-		permitEnabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupEnabled.ID})
-		permitAdminEnabled := &authaus.Permit{}
-		permitAdminEnabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupAdmin.ID, groupEnabled.ID})
-		permitAdminDisabled := &authaus.Permit{}
-		permitAdminDisabled.Roles = authaus.EncodePermit([]authaus.GroupIDU32{groupAdmin.ID})
-		ic.Central.SetPermit(joeUserId, permitEnabled)
-		ic.Central.SetPermit(jackUserId, permitEnabled)
-		ic.Central.SetPermit(adminUserId, permitAdminEnabled)
-		ic.Central.SetPermit(adminDisabledUserId, permitAdminDisabled)
-		return true
-	}
-	return false
-}
-
 func createDB(config *authaus.Config) bool {
 	if err := authaus.SqlCreateDatabase(&config.UserStore.DB); err != nil {
 		fmt.Printf("Error creating database: %v", err)
@@ -233,16 +196,6 @@ func createDB(config *authaus.Config) bool {
 		return false
 	}
 	return true
-}
-
-func loadOrCreateGroup(icentral *imqsauth.ImqsCentral, groupName string, createIfNotExist bool) (*authaus.AuthGroup, error) {
-	if group, error := authaus.LoadOrCreateGroup(icentral.Central.GetRoleGroupDB(), groupName, createIfNotExist); error == nil {
-		fmt.Printf("Group %v created\n", groupName)
-		return group, nil
-	} else {
-		fmt.Printf("Error creating group %v, %v ", groupName, error)
-		return nil, error
-	}
 }
 
 func resetGroup(icentral *imqsauth.ImqsCentral, group *authaus.AuthGroup) bool {
@@ -416,7 +369,7 @@ func setGroup(icentral *imqsauth.ImqsCentral, groupName string, roles []string) 
 		}
 	}
 
-	return modifyGroup(icentral, groupModifySet, groupName, perms)
+	return imqsauth.ModifyGroup(icentral, imqsauth.GroupModifySet, groupName, perms)
 }
 
 func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, email, password, username, firstname, lastname string) bool {
@@ -497,62 +450,4 @@ func resetPassword(icentral *imqsauth.ImqsCentral, identity string) bool {
 		fmt.Printf("Error %v %v\n", code, msg)
 		return false
 	}
-}
-
-type groupModifyMode int
-
-const (
-	groupModifySet groupModifyMode = iota
-	groupModifyAdd
-	groupModifyRemove
-)
-
-func saveGroup(icentral *imqsauth.ImqsCentral, group *authaus.AuthGroup) bool {
-	if err := icentral.Central.GetRoleGroupDB().UpdateGroup(group); err == nil {
-		fmt.Printf("Group %v updated\n", group.Name)
-		return true
-	} else {
-		fmt.Printf("Error updating group of %v: %v\n", group.Name, err)
-		return false
-	}
-}
-
-func modifyGroup(icentral *imqsauth.ImqsCentral, mode groupModifyMode, groupName string, perms authaus.PermissionList) bool {
-	if group, e := loadOrCreateGroup(icentral, groupName, true); e == nil {
-		switch mode {
-		case groupModifyAdd:
-			for _, perm := range perms {
-				group.AddPerm(perm)
-			}
-		case groupModifyRemove:
-			for _, perm := range perms {
-				group.RemovePerm(perm)
-			}
-		case groupModifySet:
-			group.PermList = make(authaus.PermissionList, len(perms))
-			copy(group.PermList, perms)
-		default:
-			panic(fmt.Sprintf("Unrecognized permission set mode %v", mode))
-		}
-		if saveGroup(icentral, group) {
-			return true
-		} else {
-			return false
-		}
-	} else {
-		fmt.Printf("Error retrieving group '%v': %v\n", groupName, e)
-		return false
-	}
-}
-
-// Reset auth groups to a sane state. After running this, you should be able to use
-// the web interface to do everything else. That's the idea at least (the web interface has yet to be built).
-func resetAuthGroups(icentral *imqsauth.ImqsCentral) bool {
-	ok := true
-	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupAdmin, authaus.PermissionList{imqsauth.PermAdmin})
-	ok = ok && modifyGroup(icentral, groupModifySet, RoleGroupEnabled, authaus.PermissionList{imqsauth.PermEnabled})
-	if !ok {
-		return false
-	}
-	return true
 }
