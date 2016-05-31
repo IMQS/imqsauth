@@ -1,8 +1,8 @@
 package imqsauth
 
 import (
-	"github.com/IMQS/yfws"
 	"github.com/IMQS/log"
+	"github.com/IMQS/yfws"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -165,24 +165,25 @@ func (y *Yellowfin) ChangeGroup(identity string, group YellowfinGroup) error {
 	return nil
 }
 
-func (y *Yellowfin) LoginAndUpdateGroup(identity string, group YellowfinGroup) ([]*http.Cookie, error) {
+func (y *Yellowfin) LoginAndUpdateGroup(identity string, group YellowfinGroup, loginParams yellowfinLoginParameters) ([]*http.Cookie, error) {
 	// We must change the group before logging in, otherwise the user's UI will not reflect his new status
 	err := y.ChangeGroup(identity, group)
 	if err != nil {
 		y.Log.Errorf("Failed to update yellowfin group for %v to %v", identity, group)
 	}
 
-	return y.Login(identity)
+	return y.Login(identity, loginParams)
 }
 
-func (y *Yellowfin) Login(identity string) ([]*http.Cookie, error) {
+func (y *Yellowfin) Login(identity string, loginParams yellowfinLoginParameters) ([]*http.Cookie, error) {
 	if !y.Enabled {
 		return nil, nil
 	}
 	var params = map[string]string{
-		"%ADMIN%":    AdminUser,
-		"%PASSWORD%": y.AdminPassword,
-		"%USER%":     identity,
+		"%ADMIN%":           AdminUser,
+		"%PASSWORD%":        y.AdminPassword,
+		"%USER%":            identity,
+		"%CONTENTCATEGORY%": "CONTENT_INCLUDE=" + loginParams.ModuleFilter,
 	}
 
 	multirefs, err := yfws.SendRequest(y.Url+"services/AdministrationService", "login", params)
@@ -234,3 +235,7 @@ func (y *Yellowfin) Logout(identity string, r *http.Request) error {
 	return nil
 }
 
+type yellowfinLoginParameters struct {
+	ModuleFilter   string
+	ScenarioFilter string
+}
