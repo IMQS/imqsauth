@@ -419,13 +419,24 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 	}
 	yfGroup := makeYellowfinGroup(permList)
 	if yfGroup != YellowfinGroupNone {
-		cookies, err := central.Yellowfin.LoginAndUpdateGroup(identity, yfGroup)
+		paramsBytes, err := ioutil.ReadAll(r.http.Body)
+		if err != nil {
+			return err
+		}
+
+		var yfLoginParams yellowfinLoginParameters
+		err = json.Unmarshal(paramsBytes, &yfLoginParams)
+		if err != nil {
+			return err
+		}
+
+		cookies, err := central.Yellowfin.LoginAndUpdateGroup(identity, yfGroup, yfLoginParams)
 		if err == yfws.ErrYFCouldNotAuthenticateUser {
 
 			// Try to create the identity in yellowfin
 			if err = central.Yellowfin.CreateUser(identity); err == nil {
 				// Try again to login
-				cookies, err = central.Yellowfin.LoginAndUpdateGroup(identity, yfGroup)
+				cookies, err = central.Yellowfin.LoginAndUpdateGroup(identity, yfGroup, yfLoginParams)
 			}
 		}
 		if err != nil {
