@@ -183,7 +183,7 @@ func (y *Yellowfin) Login(identity string, loginParams yellowfinLoginParameters)
 		"%ADMIN%":           AdminUser,
 		"%PASSWORD%":        y.AdminPassword,
 		"%USER%":            identity,
-		"%CONTENTCATEGORY%": "CONTENT_INCLUDE=" + loginParams.ModuleFilter,
+		// "%CONTENTCATEGORY%": "CONTENT_INCLUDE=" + loginParams.ModuleFilter,
 	}
 
 	multirefs, err := yfws.SendRequest(y.Url+"services/AdministrationService", "login", params)
