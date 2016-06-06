@@ -538,12 +538,19 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 // In order to finish the job, you will need to call httpHandlerSetUserGroups which will
 // create a permit for this user.
 func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
+	email := strings.TrimSpace(r.http.URL.Query().Get("email"))
 	username := strings.TrimSpace(r.http.URL.Query().Get("username"))
 	firstname := strings.TrimSpace(r.http.URL.Query().Get("firstname"))
 	lastname := strings.TrimSpace(r.http.URL.Query().Get("lastname"))
 	mobilenumber := strings.TrimSpace(r.http.URL.Query().Get("mobilenumber"))
 	password := strings.TrimSpace(r.http.URL.Query().Get("password"))
+
+	var identity string
+	if len(username) > 0 {
+		identity = username
+	} else {
+		identity = email
+	}
 
 	sendPasswordResetEmail := false
 
@@ -554,7 +561,7 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		password = authaus.RandomString(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 	}
 
-	if userId, err := central.Central.CreateUserStoreIdentity(identity, username, firstname, lastname, mobilenumber, password); err != nil {
+	if userId, err := central.Central.CreateUserStoreIdentity(email, username, firstname, lastname, mobilenumber, password); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		if sendPasswordResetEmail {
@@ -894,23 +901,21 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 }
 
 func httpHandlerResetPasswordStart(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	identity, userId, getUserIdErr := getUserIdOrIdentity(r)
-	if getUserIdErr != nil {
-		authaus.HttpSendTxt(w, http.StatusBadRequest, getUserIdErr.Error())
+	identity, userId, err := getUserIdOrIdentity(r)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	if identity != "" {
-		userId, errGetIdentity := central.Central.GetUserIdFromIdentity(identity)
-		if errGetIdentity != nil {
-			authaus.HttpSendTxt(w, http.StatusBadRequest, errGetIdentity.Error())
+		userId, err = central.Central.GetUserIdFromIdentity(identity)
+		if err != nil {
+			authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
 		}
-
-		code, msg := central.ResetPasswordStart(userId, false)
-		authaus.HttpSendTxt(w, code, msg)
-	} else {
-		code, msg := central.ResetPasswordStart(userId, false)
-		authaus.HttpSendTxt(w, code, msg)
 	}
+
+	code, msg := central.ResetPasswordStart(userId, false)
+	authaus.HttpSendTxt(w, code, msg)
+
 	return
 }
 
@@ -1000,9 +1005,9 @@ func httpHandlerGetGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRe
 
 func httpHandlerHasActiveDirectory(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	if len(central.Config.Authaus.LDAP.LdapHost) > 0 {
-		httpSendResponse(w,  []byte("1"))
+		httpSendResponse(w, []byte("1"))
 	} else {
-		httpSendResponse(w,  []byte("0"))
+		httpSendResponse(w, []byte("0"))
 	}
 }
 

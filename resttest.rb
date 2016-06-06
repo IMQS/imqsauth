@@ -353,7 +353,7 @@ class AdminTasks < AuthBase
 	end
 
 	def test_create_user_and_set_groups
-		doput("/create_user?identity=sam&password=SAM", nil, basicauth_admin, 200, "Created identity 'sam'")
+		doput("/create_user?email=sam&password=SAM", nil, basicauth_admin, 200, "Created identity 'sam'")
 		# Although we have created the identity in the Authenticator, we have not yet created a permit
 		# in the PermitDB. That is why a call to /check on "sam" will fail.
 		doget("/check", basicauth("sam", "SAM"), 403, "Identity permit not found")
