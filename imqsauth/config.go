@@ -16,6 +16,9 @@ type ConfigYellowfin struct {
 	// We could probably get rid of this old code path, but it adds minimal
 	// complexity to the code, and might still prove useful.
 	UseLegacyAuth bool
+	// Flags to enable the YF filter pass to user login
+	ContentCategoryFilter bool
+	SourceAccessFilter    bool
 }
 
 // Note: Be sure to keep doc.go up to date with the Config structure here

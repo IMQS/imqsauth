@@ -49,6 +49,10 @@ type Yellowfin struct {
 	Url           string
 	Enabled       bool
 	Transport     *http.Transport
+
+	// Should be temporary - used to test new reports with filters until all reports are ready for migration
+	ContentCategoryFilterEnabled bool
+	SourceAccessFilterEnabled bool
 }
 
 func NewYellowfin(logger *log.Logger) *Yellowfin {
@@ -69,6 +73,10 @@ func NewYellowfin(logger *log.Logger) *Yellowfin {
 
 func (y *Yellowfin) LoadConfig(config ConfigYellowfin, adminPasswordFile, userPasswordFile string) error {
 	y.Enabled = config.Enabled
+
+	// Should be temporary - used to test new reports with filters until all reports are ready for migration
+	y.ContentCategoryFilterEnabled = config.ContentCategoryFilter
+	y.SourceAccessFilterEnabled = config.SourceAccessFilter
 
 	// Read admin password. If this file is not found, then we assume that the password
 	// is "test", because that is the password set by the yellowfin installer.
@@ -183,7 +191,18 @@ func (y *Yellowfin) Login(identity string, loginParams yellowfinLoginParameters)
 		"%ADMIN%":           AdminUser,
 		"%PASSWORD%":        y.AdminPassword,
 		"%USER%":            identity,
-		// "%CONTENTCATEGORY%": "CONTENT_INCLUDE=" + loginParams.ModuleFilter,
+	}
+
+	// Should be temporary - used to test new reports with filters until all reports are ready for migration
+	if y.ContentCategoryFilterEnabled {
+		params["%CONTENTCATEGORY%"] = "CONTENT_INCLUDE=" + loginParams.ModuleFilter
+	} else {
+		params["%CONTENTCATEGORY%"]  = ""
+	}
+	if y.SourceAccessFilterEnabled {
+		params["%SOURCEACCESS%"] = "SOURCEFILTER_SCENARIO=" + loginParams.ScenarioFilter
+	} else {
+		params["%SOURCEACCESS%"] = ""
 	}
 
 	multirefs, err := yfws.SendRequest(y.Url+"services/AdministrationService", "login", params)
