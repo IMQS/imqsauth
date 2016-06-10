@@ -912,6 +912,10 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 }
 
 func httpHandlerResetPasswordStart(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	if len(central.Config.Authaus.LDAP.LdapHost) > 0 {
+		authaus.HttpSendTxt(w, http.StatusServiceUnavailable, "Contact your System Administrator")
+		return
+	}
 	identity, userId, err := getUserIdOrIdentity(r)
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
