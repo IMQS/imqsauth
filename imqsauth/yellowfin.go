@@ -49,6 +49,10 @@ type Yellowfin struct {
 	Url           string
 	Enabled       bool
 	Transport     *http.Transport
+
+	// Should be temporary - used to test new reports with filters until all reports are ready for migration
+	ContentCategoryFilterEnabled bool
+	SourceAccessFilterEnabled bool
 }
 
 func NewYellowfin(logger *log.Logger) *Yellowfin {
@@ -69,6 +73,10 @@ func NewYellowfin(logger *log.Logger) *Yellowfin {
 
 func (y *Yellowfin) LoadConfig(config ConfigYellowfin, adminPasswordFile, userPasswordFile string) error {
 	y.Enabled = config.Enabled
+
+	// Should be temporary - used to test new reports with filters until all reports are ready for migration
+	y.ContentCategoryFilterEnabled = config.ContentCategoryFilter
+	y.SourceAccessFilterEnabled = config.SourceAccessFilter
 
 	// Read admin password. If this file is not found, then we assume that the password
 	// is "test", because that is the password set by the yellowfin installer.
@@ -165,24 +173,36 @@ func (y *Yellowfin) ChangeGroup(identity string, group YellowfinGroup) error {
 	return nil
 }
 
-func (y *Yellowfin) LoginAndUpdateGroup(identity string, group YellowfinGroup) ([]*http.Cookie, error) {
+func (y *Yellowfin) LoginAndUpdateGroup(identity string, group YellowfinGroup, loginParams yellowfinLoginParameters) ([]*http.Cookie, error) {
 	// We must change the group before logging in, otherwise the user's UI will not reflect his new status
 	err := y.ChangeGroup(identity, group)
 	if err != nil {
 		y.Log.Errorf("Failed to update yellowfin group for %v to %v", identity, group)
 	}
 
-	return y.Login(identity)
+	return y.Login(identity, loginParams)
 }
 
-func (y *Yellowfin) Login(identity string) ([]*http.Cookie, error) {
+func (y *Yellowfin) Login(identity string, loginParams yellowfinLoginParameters) ([]*http.Cookie, error) {
 	if !y.Enabled {
 		return nil, nil
 	}
 	var params = map[string]string{
-		"%ADMIN%":    AdminUser,
-		"%PASSWORD%": y.AdminPassword,
-		"%USER%":     identity,
+		"%ADMIN%":           AdminUser,
+		"%PASSWORD%":        y.AdminPassword,
+		"%USER%":            identity,
+	}
+
+	// Should be temporary - used to test new reports with filters until all reports are ready for migration
+	if y.ContentCategoryFilterEnabled {
+		params["%CONTENTCATEGORY%"] = "CONTENT_INCLUDE=" + loginParams.ModuleFilter
+	} else {
+		params["%CONTENTCATEGORY%"]  = ""
+	}
+	if y.SourceAccessFilterEnabled {
+		params["%SOURCEACCESS%"] = "SOURCEFILTER_SCENARIO=" + loginParams.ScenarioFilter
+	} else {
+		params["%SOURCEACCESS%"] = ""
 	}
 
 	multirefs, err := yfws.SendRequest(y.Url+"services/AdministrationService", "login", params)
@@ -232,4 +252,9 @@ func (y *Yellowfin) Logout(identity string, r *http.Request) error {
 		return err
 	}
 	return nil
+}
+
+type yellowfinLoginParameters struct {
+	ModuleFilter   string
+	ScenarioFilter string
 }
