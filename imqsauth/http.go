@@ -87,13 +87,14 @@ type emailGroupsResponseJson struct {
 }
 
 type userResponseJson struct {
-	UserId   authaus.UserId
-	Email    string
-	Username string
-	Name     string
-	Surname  string
-	Mobile   string
-	Groups   []string
+	UserId       authaus.UserId
+	Email        string
+	Username     string
+	Name         string
+	Surname      string
+	Mobile       string
+	Groups       []string
+	AuthUserType authaus.AuthUserType
 }
 
 type ImqsCentral struct {
@@ -249,33 +250,74 @@ func (x *ImqsCentral) ResetPasswordStart(userId authaus.UserId, isNewAccount boo
 		expireSeconds = x.Config.NewAccountExpirySeconds
 	}
 
-	token, err := x.Central.ResetPasswordStart(userId, time.Now().Add(time.Duration(expireSeconds)*time.Second))
+	// We need to see what type of user this is, as we cannot reset the password of an LDAP user
+	user, err := x.Central.GetUserFromUserId(userId)
 	if err != nil {
-		return http.StatusForbidden, "Error resetting password: " + err.Error()
+		return http.StatusBadRequest, "Error retrieving auth user type: " + err.Error()
 	}
 
-	// &welcome=true -- use this for welcome email
-	strUserId := strconv.FormatInt(int64(userId), 10)
-	identity, errGetIdentity := x.Central.GetIdentityFromUserId(userId)
-	if errGetIdentity != nil {
-		return http.StatusBadRequest, "Unrecognized userid: " + err.Error()
+	var mailQuery string
+	var mailBody string
+	if user.Type.CanSetPassword() {
+		token, err := x.Central.ResetPasswordStart(userId, time.Now().Add(time.Duration(expireSeconds)*time.Second))
+		if err != nil {
+			return http.StatusForbidden, "Error resetting password: " + err.Error()
+		}
+
+		mailQuery, err = x.createDefaultMailQuery(user, token, isNewAccount, expireSeconds)
+		if err != nil {
+			return http.StatusServiceUnavailable, "Error constructing reset URL: " + err.Error()
+		}
+	} else if user.Type == authaus.UserTypeLDAP {
+		mailQuery, mailBody = x.createLDAPMailQueryAndBody(user)
 	}
-	resetUrl, err := x.makeAbsoluteUrl("/#resetpassword=true&identity=" + url.QueryEscape(identity) + "&userid=" + url.QueryEscape(strUserId) + "&token=" + url.QueryEscape(token))
+
+	return x.buildMailRequestAndSend(mailQuery, mailBody)
+}
+
+func (x *ImqsCentral) createDefaultMailQuery(user authaus.AuthUser, token string, isNewAccount bool, expireSeconds float64) (string, error) {
+	strUserId := strconv.FormatInt(int64(user.UserId), 10)
+	resetUrl, err := x.makeAbsoluteUrl("/#resetpassword=true&identity=" + url.QueryEscape(user.Email) + "&userid=" + url.QueryEscape(strUserId) + "&token=" + url.QueryEscape(token))
 	if err != nil {
-		return http.StatusServiceUnavailable, "Error constructing reset URL: " + err.Error()
+		return "", err
 	}
 	if isNewAccount {
 		resetUrl += "&welcome=true"
 	}
 
-	mailQuery := fmt.Sprintf("email=%v&resetUrl=%v&expireTime=%.0f", url.QueryEscape(identity), url.QueryEscape(resetUrl), expireSeconds)
+	mailQuery := "passwordReset?"
+	mailQuery += fmt.Sprintf("email=%v&resetUrl=%v&expireTime=%.0f", url.QueryEscape(user.Email), url.QueryEscape(resetUrl), expireSeconds)
 	if isNewAccount {
 		mailQuery += "&newAccount=true"
 	} else {
 		mailQuery += "&newAccount=false"
 	}
 
-	sendMailReq, err := http.NewRequest("POST", "https://imqs-mailer.appspot.com/passwordReset?"+mailQuery, nil)
+	return mailQuery, nil
+}
+
+func (x *ImqsCentral) createLDAPMailQueryAndBody(user authaus.AuthUser) (string, string) {
+	var mailQuery string
+	var mailBody string
+	mailQuery += "sendEmail?"
+	mailQuery += fmt.Sprintf("emailTo=%v&subject=%v&ishtml=True", url.QueryEscape(user.Email), url.QueryEscape("IMQS Reset Password"))
+	if len(x.Config.Authaus.LDAP.SysAdminEmail) > 0 {
+		mailBody += fmt.Sprintf("This is an automated response.<br><br>To reset your password, please contact your System Administrator (%v).", x.Config.Authaus.LDAP.SysAdminEmail)
+	} else {
+		mailBody += "This is an automated response.<br><br>To reset your password, please contact your System Administrator."
+	}
+
+	return mailQuery, mailBody
+}
+
+func (x *ImqsCentral) buildMailRequestAndSend(mailQuery string, mailBody string) (int, string) {
+	var sendMailReq *http.Request
+	var err error
+	if len(mailBody) > 0 {
+		sendMailReq, err = http.NewRequest("POST", "https://imqs-mailer.appspot.com/"+mailQuery, strings.NewReader(mailBody))
+	} else {
+		sendMailReq, err = http.NewRequest("POST", "https://imqs-mailer.appspot.com/"+mailQuery, nil)
+	}
 	if err != nil {
 		return http.StatusServiceUnavailable, "Error sending mail: " + err.Error()
 	}
@@ -400,13 +442,14 @@ func httpSendUserObjectsJson(central *ImqsCentral, users []authaus.AuthUser, ide
 		}
 
 		jresponse = append(jresponse, &userResponseJson{
-			Email:    user.Email,
-			UserId:   user.UserId,
-			Username: user.Username,
-			Name:     user.Firstname,
-			Surname:  user.Lastname,
-			Mobile:   user.Mobilenumber,
-			Groups:   groupnames,
+			Email:        user.Email,
+			UserId:       user.UserId,
+			Username:     user.Username,
+			Name:         user.Firstname,
+			Surname:      user.Lastname,
+			Mobile:       user.Mobilenumber,
+			Groups:       groupnames,
+			AuthUserType: user.Type,
 		})
 	}
 
@@ -597,6 +640,12 @@ func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	firstname := strings.TrimSpace(r.http.URL.Query().Get("firstname"))
 	lastname := strings.TrimSpace(r.http.URL.Query().Get("lastname"))
 	mobilenumber := strings.TrimSpace(r.http.URL.Query().Get("mobilenumber"))
+	strAuthusertype := strings.TrimSpace(r.http.URL.Query().Get("authusertype"))
+	authUserType, err := parseAuthUserTypeString(strAuthusertype)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Invalid AuthUserType: '%v'", strAuthusertype))
+		return
+	}
 
 	userId, err := getUserId(r)
 	if err != nil {
@@ -604,10 +653,21 @@ func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		return
 	}
 
-	if err := central.Central.UpdateIdentity(authaus.UserId(userId), email, username, firstname, lastname, mobilenumber); err != nil {
+	if err := central.Central.UpdateIdentity(authaus.UserId(userId), email, username, firstname, lastname, mobilenumber, authUserType); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Updated user: '%v'", userId))
+	}
+}
+
+func parseAuthUserTypeString(authUserTypeString string) (authaus.AuthUserType, error) {
+	switch authUserTypeString {
+	case "DEFAULT":
+		return authaus.UserTypeDefault, nil
+	case "LDAP":
+		return authaus.UserTypeLDAP, nil
+	default:
+		return authaus.UserTypeDefault, errors.New("Invalid AuthUserType")
 	}
 }
 
@@ -683,10 +743,11 @@ func pcsRenameUser(hostname, oldIdent, newIdent string) error {
 	return nil
 }
 
+// TODO RenameIdentity was deprecated in May 2016, replaced by UpdateIdentity. We need to remove this endpoint and handler once PCS team has made the necessary updates
 func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	oldIdent := authaus.CanonicalizeIdentity(strings.TrimSpace(r.http.URL.Query().Get("old")))
 	newIdent := authaus.CanonicalizeIdentity(strings.TrimSpace(r.http.URL.Query().Get("new")))
-	userId, getUserIdErr := central.Central.GetUserIdFromIdentity(oldIdent)
+	user, getUserIdErr := central.Central.GetUserFromIdentity(oldIdent)
 	if getUserIdErr != nil {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, "Identity '"+oldIdent+"'' not found")
 		return
@@ -708,7 +769,7 @@ func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 			authaus.HttpSendTxt(w, http.StatusForbidden, authMsg+" Error: "+err.Error())
 			return
 		}
-		if token.UserId != userId {
+		if token.UserId != user.UserId {
 			authaus.HttpSendTxt(w, http.StatusForbidden, authMsg+" Authenticated with '"+token.Identity+"', but tried to rename user '"+oldIdent+"'")
 			return
 		}
@@ -912,17 +973,14 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 }
 
 func httpHandlerResetPasswordStart(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	if len(central.Config.Authaus.LDAP.LdapHost) > 0 {
-		authaus.HttpSendTxt(w, http.StatusServiceUnavailable, "Contact your System Administrator")
-		return
-	}
 	identity, userId, err := getUserIdOrIdentity(r)
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	if identity != "" {
-		userId, err = central.Central.GetUserIdFromIdentity(identity)
+		user, err := central.Central.GetUserFromIdentity(identity)
+		userId = user.UserId
 		if err != nil {
 			authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
 		}

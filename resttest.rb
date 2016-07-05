@@ -154,6 +154,19 @@ class RestBase < Test::Unit::TestCase
 			end			
 		}
 	end
+	
+	def getUser(userid)
+		doany("GET", "/userobjects", nil, basicauth("admin", "ADMIN")) { |r|
+			obj = JSON.parse(r.body)
+			obj.each do |user| 
+				if user != nil
+					if user["UserId"] == userid
+						return user
+					end
+				end
+			end			
+		}
+	end
 end
 
 class AuthBase < RestBase
@@ -298,10 +311,26 @@ class Authorization < AuthBase
 	 end
 	
 	 def test_update_users()
-		 dopost("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_joe, 403, "You are not an administrator")
-		 dopost("/update_user?userid=#{@unknown_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_admin, 403, "Identity authorization not found")
-		 dopost("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_admin, 200, "updated user: '1'")
-		 dopost("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber", nil, basicauth_admin, 200, "updated user: '1'")
+		 dopost("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber&authusertype=DEFAULT", nil, basicauth_joe, 403, "You are not an administrator")
+		 dopost("/update_user?userid=#{@unknown_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber&authusertype=DEFAULT", nil, basicauth_admin, 403, "Identity authorization not found")
+		 dopost("/update_user?userid=#{@joe_user_id}&email=joeEmail&username=joeUsername&firstname=joeFirstname&lastname=joeLastname&mobilenumber=084&authusertype=DEFAULT", nil, basicauth_admin, 200, "updated user: '1'")
+		 joeUser = getUser(@joe_user_id)
+		 assert(joeUser["Email"] == "joeEmail")
+		 assert(joeUser["Username"] == "joeUsername")
+		 assert(joeUser["Name"] == "joeFirstname")
+		 assert(joeUser["Surname"] == "joeLastname")
+		 assert(joeUser["Mobile"] == "084")
+		 assert(joeUser["AuthUserType"] == 0)
+		 dopost("/update_user?userid=#{@joe_user_id}&email=joeEmailUpdated&username=joeUsernameUpdated&firstname=joeFirstnameUpdated&lastname=joeLastnameUpdated&mobilenumber=084674&authusertype=LDAP", nil, basicauth_admin, 200, "updated user: '1'")
+		 joeUser = getUser(@joe_user_id)
+		 assert(joeUser["Email"] == "joeEmailUpdated")
+		 assert(joeUser["Username"] == "joeUsernameUpdated")
+		 assert(joeUser["Name"] == "joeFirstnameUpdated")
+		 assert(joeUser["Surname"] == "joeLastnameUpdated")
+		 assert(joeUser["Mobile"] == "084674")
+		 assert(joeUser["AuthUserType"] == 1)
+		 dopost("/update_user?userid=#{@joe_user_id}&email=joeEmailUpdated&username=joeUsernameUpdated&firstname=joeFirstnameUpdated&lastname=joeLastnameUpdated&mobilenumber=084674&authusertype=InvalidAuthUserType", nil, basicauth_admin, 400, "Invalid AuthUserType: 'InvalidAuthUserType'")
+		 
 	 end
 	
 	 def test_archive_users()
