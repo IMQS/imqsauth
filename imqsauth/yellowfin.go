@@ -52,7 +52,7 @@ type Yellowfin struct {
 
 	// Should be temporary - used to test new reports with filters until all reports are ready for migration
 	ContentCategoryFilterEnabled bool
-	SourceAccessFilterEnabled bool
+	SourceAccessFilterEnabled    bool
 }
 
 func NewYellowfin(logger *log.Logger) *Yellowfin {
@@ -188,16 +188,16 @@ func (y *Yellowfin) Login(identity string, loginParams yellowfinLoginParameters)
 		return nil, nil
 	}
 	var params = map[string]string{
-		"%ADMIN%":           AdminUser,
-		"%PASSWORD%":        y.AdminPassword,
-		"%USER%":            identity,
+		"%ADMIN%":    AdminUser,
+		"%PASSWORD%": y.AdminPassword,
+		"%USER%":     identity,
 	}
 
 	// Should be temporary - used to test new reports with filters until all reports are ready for migration
 	if y.ContentCategoryFilterEnabled {
 		params["%CONTENTCATEGORY%"] = "CONTENT_INCLUDE=" + loginParams.ModuleFilter
 	} else {
-		params["%CONTENTCATEGORY%"]  = ""
+		params["%CONTENTCATEGORY%"] = ""
 	}
 	if y.SourceAccessFilterEnabled {
 		params["%SOURCEACCESS%"] = "SOURCEFILTER_SCENARIO=" + loginParams.ScenarioFilter
