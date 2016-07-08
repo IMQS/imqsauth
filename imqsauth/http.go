@@ -481,8 +481,11 @@ func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *httpReque
 		return
 	}
 
-	if err := central.Yellowfin.Logout(identity, r.http); err != nil {
-		central.Central.Log.Errorf("Yellowfin logout error: %v", err)
+	// Only attempt YF logout if its cookie (JSESSIONID) is present in the logout call
+	if _, err := r.http.Cookie("JSESSIONID"); err == nil {
+		if err := central.Yellowfin.Logout(identity, r.http); err != nil {
+			central.Central.Log.Errorf("Yellowfin logout error: %v", err)
+		}
 	}
 	authaus.HttpSendTxt(w, http.StatusOK, "")
 }
