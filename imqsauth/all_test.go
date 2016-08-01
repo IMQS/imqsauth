@@ -1,18 +1,19 @@
 package imqsauth
 
 import (
+	"encoding/json"
 	"fmt"
-	"golang.org/x/net/websocket"
 	"io"
+	"io/ioutil"
 	"net/http"
-	"net/url"
+	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 )
 
 const origin = "http://localhost/"
 const originHttpUrl = "http://localhost:3377"
+const joeUserId = 1
 
 // At present, most of the HTTP API tests are performed in the ruby script "resttest.rb".
 // The Web Socket tests are the only HTTP tests performed here. It might be prudent to move
@@ -27,47 +28,64 @@ const originHttpUrl = "http://localhost:3377"
 // This issue is tracked by https://github.com/golang/go/issues/4674. Take a look and see if
 // that has been resolved in subsequent (post 1.6) versions of Go.
 
-func TestWebSocket(t *testing.T) {
-	// start server
+type TestNotification struct {
+	Channel, Msg string
+}
+
+func TestDistributerPost(t *testing.T) {
+	expectedChannelName := "authNotifications"
+	expectedMessage := fmt.Sprintf("permissions_changed:%v", joeUserId)
+
+	handleNotifyExpectJoeUserIdInMessage := func(w http.ResponseWriter, r *http.Request) {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("Unexpected error while reading body of post message: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		dec := json.NewDecoder(strings.NewReader(string(body[:])))
+		var data TestNotification
+		if err := dec.Decode(&data); err == io.EOF {
+			t.Errorf("Unexpected error in JSON: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if data.Channel != expectedChannelName {
+			t.Errorf("Expected channel name: %v, instead: %v", expectedChannelName, data.Channel)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if data.Msg != expectedMessage {
+			t.Errorf("Expected message: %v, instead: %v", expectedMessage, data.Msg)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+
+	// Start distributor mock service
+	server := httptest.NewServer(http.HandlerFunc(handleNotifyExpectJoeUserIdInMessage))
+	defer server.Close()
+
+	// Start auth service
 	go func() {
 		ic := &ImqsCentral{}
 		ic.Config = &Config{}
 		LoadTestConfig(ic, TestConfig1)
+		ic.Config.NotificationUrl = server.URL
 		ic.RunHttp()
 	}()
-
-	const wsUrl = "ws://localhost:3377/notifications"
 
 	cookie, err := login()
 	if err != nil {
 		t.Fatalf("Login failed: %v", err)
 	}
 
-	// websocket with auth
-	ws, err := createWebSocketAndConnect(wsUrl, origin, cookie)
-	if err != nil {
-		t.Fatalf("createWebSocketAndConnect (authorized) failed: %v", err)
-	}
-
-	// websocket without auth
-	wsUnauthorized, err := createWebSocketAndConnect(wsUrl, origin, "")
-	if err != nil {
-		t.Fatalf("createWebSocketAndConnect (unauthorized) failed: %v", err)
-	}
-
-	// Ensure that our unauthorized websocket connection doesn't work.
-	msg := ""
-	if err := websocket.Message.Receive(wsUnauthorized, &msg); err != io.EOF {
-		t.Fatalf("Expected to receieve ie.EOF error from unauthorized websocket, but instead got '%v'", err)
-	}
-
-	wsExpectNothing(t, ws)
-	joeUserId := 1
+	// Change a group, which sends a POST to the distributor service
 	doRequestExpectOK(t, "PUT", originHttpUrl+"/create_group?groupname=socketusergroup", cookie)
 	doRequestExpectOK(t, "POST", fmt.Sprintf("%v/set_user_groups?userid=%v&groups=enabled,socketusergroup", originHttpUrl, joeUserId), cookie)
-	// expect to receive a message because set_user_groups affects us
-	wsExpect(t, ws, fmt.Sprintf("auth:permissions_changed:%v", joeUserId))
-	wsExpectNothing(t, ws)
 }
 
 func doRequest(verb, url, cookie string) (*http.Response, error) {
@@ -89,25 +107,6 @@ func doRequestExpectOK(t *testing.T, verb, url, cookie string) *http.Response {
 	return response
 }
 
-func wsExpect(t *testing.T, ws *websocket.Conn, expect string) {
-	ws.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
-	msg := ""
-	if err := websocket.Message.Receive(ws, &msg); err != nil {
-		t.Fatalf("Error receiving on websocket: %v", err)
-	}
-	if msg != expect {
-		t.Fatalf("Incorrect value received on websocket:\nExpected: %v\nActual:   %v", expect, msg)
-	}
-}
-
-func wsExpectNothing(t *testing.T, ws *websocket.Conn) {
-	ws.SetReadDeadline(time.Now().Add(time.Millisecond))
-	msg := ""
-	if err := websocket.Message.Receive(ws, &msg); strings.Index(err.Error(), "i/o timeout") == -1 {
-		t.Fatalf("Expected websocket to be silent, but instead got '%v' (msg = '%v')", err, msg)
-	}
-}
-
 // Returns (Set-Cookie header, error)
 func login() (string, error) {
 	request, err := http.NewRequest("POST", originHttpUrl+"/login", nil)
@@ -125,28 +124,4 @@ func login() (string, error) {
 	} else {
 		return "", nil
 	}
-}
-
-func createWebSocketAndConnect(wsUrlLocal string, wsOriginLocal string, cookie string) (*websocket.Conn, error) {
-	wsUrlObject, err := url.Parse(wsUrlLocal)
-	if err != nil {
-		return nil, fmt.Errorf("Could not construct ws url: %v", err)
-	}
-
-	originUrlObject, err := url.Parse(wsOriginLocal)
-	if err != nil {
-		return nil, fmt.Errorf("Could not construct origin url: %v", err)
-	}
-
-	headers := http.Header{}
-	headers.Add("Cookie", cookie)
-
-	config := websocket.Config{
-		Location: wsUrlObject,
-		Origin:   originUrlObject,
-		Version:  websocket.ProtocolVersionHybi13,
-		Header:   headers,
-	}
-	ws, err := websocket.DialConfig(&config)
-	return ws, err
 }
