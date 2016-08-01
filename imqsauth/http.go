@@ -1,13 +1,13 @@
 package imqsauth
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/serviceauth"
 	"github.com/IMQS/yfws"
-	"golang.org/x/net/websocket"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -24,10 +24,8 @@ import (
 // the worst property of exceptions, which is their opaqueness.
 
 const (
-	msgAccountDisabled  = "Account disabled"
-	msgNotAdmin         = "You are not an administrator"
-	notificationChannel = "auth"
-	notificationType    = "permissions_changed"
+	msgAccountDisabled = "Account disabled"
+	msgNotAdmin        = "You are not an administrator"
 )
 
 var (
@@ -60,6 +58,11 @@ type checkResponseJson struct {
 	UserId   authaus.UserId
 	Identity string
 	Roles    []string
+}
+
+type notificationRequestJson struct {
+	Channel string
+	Msg     string
 }
 
 func (x *checkResponseJson) SetRoles(roles authaus.PermissionList) {
@@ -104,20 +107,9 @@ type ImqsCentral struct {
 
 	// Guards access to roleChangeSubscribers and lastSubscriberId
 	subscriberLock sync.RWMutex
-
-	// ChangeSubscribers maintains a list of web socket connections for
-	// pushing role changes of connected users to their browsers.
-	// Currently no communication is expected to be received FROM the browser.
-	// On error or EOF the connection is closed and removed from the map.
-	roleChangeSubscribers map[uint64]*websocket.Conn
-
-	// The last id assigned to a new subscriber
-	lastSubscriberId uint64
 }
 
 func (x *ImqsCentral) RunHttp() error {
-	x.roleChangeSubscribers = make(map[uint64]*websocket.Conn)
-
 	// The built-in go ServeMux does not support differentiating based on HTTP verb, so we have to make
 	// the request path unique for each verb. I think this is OK as far as API design is concerned - at least in this domain.
 	makehandler := func(method HttpMethod, actual func(*ImqsCentral, http.ResponseWriter, *httpRequest), flags handlerFlags) func(http.ResponseWriter, *http.Request) {
@@ -187,8 +179,6 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/userobjects", makehandler(HttpMethodGet, httpHandlerGetUsers, 0))
 	smux.HandleFunc("/groups", makehandler(HttpMethodGet, httpHandlerGetGroups, 0))
 	smux.HandleFunc("/hasactivedirectory", makehandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
-
-	smux.Handle("/notifications", websocket.Handler(x.handleWebSocket))
 
 	server := &http.Server{}
 	server.Handler = smux
@@ -859,7 +849,7 @@ func broadcastGroupChange(central *ImqsCentral, r *httpRequest, groupname string
 	}
 
 	if len(changedUserIds) > 0 {
-		central.broadcastToAllSubscribers(createNotificationMessage(notificationChannel, notificationType, strings.Join(changedUserIds, " ")))
+		central.broadcastToAllSubscribers(createGroupsChangedNotificationMessage(strings.Join(changedUserIds, " ")))
 	}
 }
 
@@ -933,11 +923,11 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 		}
 	}
 	*/
-	central.broadcastToAllSubscribers(createNotificationMessage(notificationChannel, notificationType, strconv.FormatInt(int64(userId), 10)))
+	central.broadcastToAllSubscribers(createGroupsChangedNotificationMessage(strconv.FormatInt(int64(userId), 10)))
 }
 
-func createNotificationMessage(channelName string, typeName string, messageContent string) string {
-	return fmt.Sprintf("%v:%v:%v", channelName, typeName, messageContent)
+func createGroupsChangedNotificationMessage(messageContent string) string {
+	return fmt.Sprintf("%v:%v", "permissions_changed", messageContent)
 }
 
 func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
@@ -1115,72 +1105,30 @@ func getUserIdOrIdentity(r *httpRequest) (string, authaus.UserId, error) {
 	}
 }
 
-func (central *ImqsCentral) handleWebSocket(ws *websocket.Conn) {
-	closeConnection := true
-	var token authaus.Token
-	if token, err := authaus.HttpHandlerPrelude(&central.Config.Authaus.HTTP, central.Central, ws.Request()); err == nil {
-		if permList, errDecodePerms := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); errDecodePerms == nil {
-			closeConnection = !permList.Has(PermEnabled)
-		}
-	}
-
-	if closeConnection {
-		ws.Close()
+func (central *ImqsCentral) broadcastToAllSubscribers(msg string) {
+	jsonString, err := json.Marshal(&notificationRequestJson{Channel: "authNotifications", Msg: msg})
+	if err != nil {
+		central.Central.Log.Warnf("An error occurred creating json message: %v", err)
 		return
 	}
 
-	id := central.addSubscriber(ws)
-
-	central.Central.Log.Infof("Added auth web socket client %v : %v", id, token.Identity)
-	var msg string
-	for {
-		// We want to timeously close and remove the web sockets that send
-		// EOF's or invalid data, not wait until we fail to send and only then close them
-		// We just ignore whatever else we receive
-		if err := websocket.Message.Receive(ws, &msg); err != nil {
-			closeAndDeleteWebSocket(central, id)
-			return
-		}
+	req, err := http.NewRequest("POST", central.Config.NotificationUrl, bytes.NewReader(jsonString))
+	if err != nil {
+		central.Central.Log.Warnf("An error occurred creating request to distributor: %v", err)
+		return
 	}
-}
-
-func closeAndDeleteWebSocket(central *ImqsCentral, id uint64) {
-	central.subscriberLock.Lock()
-	defer central.subscriberLock.Unlock()
-
-	ws, ok := central.roleChangeSubscribers[id]
-	if ok {
-		ws.Close()
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		central.Central.Log.Warnf("An error occurred sending message to distributor: %v", err)
+		return
 	}
-	delete(central.roleChangeSubscribers, id)
-}
-
-func (central *ImqsCentral) broadcastToAllSubscribers(msg string) {
-	var deleteIDs []uint64
-	central.subscriberLock.RLock()
-
-	for id, ws := range central.roleChangeSubscribers {
-		err := websocket.Message.Send(ws, msg)
-		if err != nil {
-			// only record the id, since we already have a read lock active at this point
-			deleteIDs = append(deleteIDs, id)
-		}
+	defer resp.Body.Close()
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		central.Central.Log.Warnf("An error occurred reading response from distributor: %v", err)
+		return
 	}
-
-	central.subscriberLock.RUnlock()
-
-	// now delete the recorded id's
-	for _, id := range deleteIDs {
-		closeAndDeleteWebSocket(central, id)
+	if resp.StatusCode != http.StatusOK {
+		central.Central.Log.Warnf("An error occurred while distributor was processing message: %v\n%v", err, string(respBody))
 	}
-}
-
-func (central *ImqsCentral) addSubscriber(ws *websocket.Conn) uint64 {
-	central.subscriberLock.Lock()
-	defer central.subscriberLock.Unlock()
-
-	central.lastSubscriberId = central.lastSubscriberId + 1
-	central.roleChangeSubscribers[central.lastSubscriberId] = ws
-
-	return central.lastSubscriberId
 }
