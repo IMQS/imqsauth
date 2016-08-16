@@ -177,7 +177,7 @@ func (y *Yellowfin) LoginAndUpdateGroup(identity string, group YellowfinGroup, l
 	// We must change the group before logging in, otherwise the user's UI will not reflect his new status
 	err := y.ChangeGroup(identity, group)
 	if err != nil {
-		y.Log.Errorf("Failed to update yellowfin group for %v to %v", identity, group)
+		y.Log.Warnf("Failed to update yellowfin group for %v to %v", identity, group)
 	}
 
 	return y.Login(identity, loginParams)

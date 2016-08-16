@@ -474,7 +474,7 @@ func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *httpReque
 	// Only attempt YF logout if its cookie (JSESSIONID) is present in the logout call
 	if _, err := r.http.Cookie("JSESSIONID"); err == nil {
 		if err := central.Yellowfin.Logout(identity, r.http); err != nil {
-			central.Central.Log.Errorf("Yellowfin logout error: %v", err)
+			central.Central.Log.Warnf("Yellowfin logout error: %v", err)
 		}
 	}
 	authaus.HttpSendTxt(w, http.StatusOK, "")
@@ -558,7 +558,7 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 			}
 		}
 		if err != nil {
-			central.Central.Log.Errorf("Yellowfin login error: %v", err)
+			central.Central.Log.Warnf("Yellowfin login error: %v", err)
 			return err
 		} else if cookies != nil {
 			for _, cookie := range cookies {
@@ -690,7 +690,7 @@ func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *http
 		authaus.HttpSendTxt(w, http.StatusOK, "")
 		return
 	} else {
-		central.Central.Log.Errorf("Error creating group (%v): %v", groupname, err)
+		central.Central.Log.Warnf("Error creating group (%v): %v", groupname, err)
 		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Error creating group (%v): %v", groupname, err))
 		return
 	}
@@ -775,11 +775,11 @@ func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 
 	if central.Config.enablePcsRename {
 		if err := pcsRenameUser(central.Config.GetHostname(), oldIdent, newIdent); err != nil {
-			central.Central.Log.Errorf("Error: failed to rename PCS: %v", err)
+			central.Central.Log.Warnf("Error: failed to rename PCS: %v", err)
 			rollbackErrorTxt := ""
 			if err_rollback := central.Central.RenameIdentity(newIdent, oldIdent); err_rollback != nil {
 				rollbackErrorTxt = "Rollback failed: " + err_rollback.Error()
-				central.Central.Log.Errorf("Error: failed to roll back username rename: %v", err_rollback)
+				central.Central.Log.Warnf("Error: failed to roll back username rename: %v", err_rollback)
 			}
 
 			authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error()+"\n"+rollbackErrorTxt)
@@ -809,7 +809,7 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 			central.Central.Log.Infof("Set group roles for %v", groupname)
 			authaus.HttpSendTxt(w, http.StatusOK, "")
 		} else {
-			central.Central.Log.Errorf("Could not set group roles for %v: %v", groupname, err)
+			central.Central.Log.Warnf("Could not set group roles for %v: %v", groupname, err)
 			authaus.HttpSendTxt(w, http.StatusNotAcceptable, fmt.Sprintf("Could not set group roles for %v: %v", groupname, err))
 			return
 		}
@@ -825,7 +825,7 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 func broadcastGroupChange(central *ImqsCentral, r *httpRequest, groupname string) {
 	users, err := central.Central.GetAuthenticatorIdentities()
 	if err != nil {
-		central.Central.Log.Errorf("Unable to broadcast change, unable to read identities: %v", err)
+		central.Central.Log.Warnf("Unable to broadcast change, unable to read identities: %v", err)
 		return
 	}
 
