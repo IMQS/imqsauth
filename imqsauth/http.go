@@ -976,13 +976,12 @@ func httpHandlerResetPasswordStart(central *ImqsCentral, w http.ResponseWriter, 
 		userId = user.UserId
 		if err != nil {
 			authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+			return
 		}
 	}
 
 	code, msg := central.ResetPasswordStart(userId, false)
 	authaus.HttpSendTxt(w, code, msg)
-
-	return
 }
 
 func httpHandlerResetPasswordFinish(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
