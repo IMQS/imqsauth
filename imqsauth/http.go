@@ -474,7 +474,7 @@ func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *httpReque
 	// Only attempt YF logout if its cookie (JSESSIONID) is present in the logout call
 	if _, err := r.http.Cookie("JSESSIONID"); err == nil {
 		if err := central.Yellowfin.Logout(identity, r.http); err != nil {
-			central.Central.Log.Warnf("Yellowfin logout error: %v", err)
+			central.Central.Log.Errorf("Yellowfin logout error: %v", err)
 		}
 	}
 	authaus.HttpSendTxt(w, http.StatusOK, "")
@@ -549,7 +549,7 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 		}
 
 		cookies, err := central.Yellowfin.LoginAndUpdateGroup(identity, yfGroup, yfLoginParams)
-		if err == yfws.ErrYFCouldNotAuthenticateUser {
+		if err == yfws.ErrYFCouldNotAuthenticateUser || err == yfws.ErrYFCouldNotFindPerson {
 
 			// Try to create the identity in yellowfin
 			if err = central.Yellowfin.CreateUser(identity); err == nil {
@@ -558,7 +558,7 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 			}
 		}
 		if err != nil {
-			central.Central.Log.Warnf("Yellowfin login error: %v", err)
+			central.Central.Log.Errorf("Yellowfin login error: %v", err)
 			return err
 		} else if cookies != nil {
 			for _, cookie := range cookies {

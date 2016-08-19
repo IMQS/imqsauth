@@ -177,7 +177,11 @@ func (y *Yellowfin) LoginAndUpdateGroup(identity string, group YellowfinGroup, l
 	// We must change the group before logging in, otherwise the user's UI will not reflect his new status
 	err := y.ChangeGroup(identity, group)
 	if err != nil {
-		y.Log.Warnf("Failed to update yellowfin group for %v to %v", identity, group)
+		// The user has most likely been deleted in YF itself
+		if err == yfws.ErrYFCouldNotFindPerson {
+			return nil, err
+		}
+		y.Log.Errorf("Failed to update yellowfin group for %v to %v: %v", identity, group, err)
 	}
 
 	return y.Login(identity, loginParams)
