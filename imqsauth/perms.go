@@ -31,6 +31,7 @@ const (
 	PermReportCreator             authaus.PermissionU16 = 200 // Can create reports
 	PermReportViewer              authaus.PermissionU16 = 201 // Can view reports
 	PermImporter                  authaus.PermissionU16 = 300 // User is allowed to handle data imports
+	PermFileDrop                  authaus.PermissionU16 = 301 // User is allowed to drop files onto IMQS Web
 )
 
 // Mapping from 16-bit permission integer to string-based name
@@ -65,4 +66,5 @@ func init() {
 	PermissionsTable[PermReportCreator] = "reportcreator"
 	PermissionsTable[PermReportViewer] = "reportviewer"
 	PermissionsTable[PermImporter] = "importer"
+	PermissionsTable[PermFileDrop] = "filedrop"
 }
