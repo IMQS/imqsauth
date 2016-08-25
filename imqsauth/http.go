@@ -176,7 +176,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/reset_password_start", makehandler(HttpMethodPost, httpHandlerResetPasswordStart, 0))
 	smux.HandleFunc("/reset_password_finish", makehandler(HttpMethodPost, httpHandlerResetPasswordFinish, 0))
 	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetEmails, 0))
-	smux.HandleFunc("/userobjects", makehandler(HttpMethodGet, httpHandlerGetUsers, 0))
+	smux.HandleFunc("/userobjects", makehandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/groups", makehandler(HttpMethodGet, httpHandlerGetGroups, 0))
 	smux.HandleFunc("/hasactivedirectory", makehandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
 
