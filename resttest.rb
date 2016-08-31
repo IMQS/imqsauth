@@ -419,7 +419,7 @@ class AdminTasks < AuthBase
 
 	def test_list_users_noadmin
 		doget("/users", basicauth_joe, 200);
-		doget("/userobjects", basicauth_joe, 200);
+		doget("/userobjects", basicauth_admin, 200);
 	end
 
 	def test_list_groups_noadmin
