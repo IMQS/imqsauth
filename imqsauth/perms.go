@@ -32,6 +32,11 @@ const (
 	PermReportViewer              authaus.PermissionU16 = 201 // Can view reports
 	PermImporter                  authaus.PermissionU16 = 300 // User is allowed to handle data imports
 	PermFileDrop                  authaus.PermissionU16 = 301 // User is allowed to drop files onto IMQS Web
+	PermWIPProjectView            authaus.PermissionU16 = 500 // User is allowed to access the WIP module
+	PermWIPProjectAdd             authaus.PermissionU16 = 501 // User is allowed to add a WIP project
+	PermWIPProjectEdit            authaus.PermissionU16 = 502 // User is allowed to edit a WIP project
+	PermWIPProjectSuspend         authaus.PermissionU16 = 503 // User is allowed to suspend a workflow
+	PermWIPProjectDiscard         authaus.PermissionU16 = 504 // User is allowed to discard a workflow
 )
 
 // Mapping from 16-bit permission integer to string-based name
@@ -67,4 +72,9 @@ func init() {
 	PermissionsTable[PermReportViewer] = "reportviewer"
 	PermissionsTable[PermImporter] = "importer"
 	PermissionsTable[PermFileDrop] = "filedrop"
+	PermissionsTable[PermWIPProjectView] = "wipprojectview"
+	PermissionsTable[PermWIPProjectAdd] = "wipprojectadd"
+	PermissionsTable[PermWIPProjectEdit] = "wipprojectedit"
+	PermissionsTable[PermWIPProjectSuspend] = "wipprojectsuspend"
+	PermissionsTable[PermWIPProjectDiscard] = "wipprojectdiscard"
 }
