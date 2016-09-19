@@ -7,36 +7,39 @@ import (
 // IMQS permission bits (each number in the range 0..65535 means something)
 const (
 	//General permissions
-	PermReservedZero              authaus.PermissionU16 = 0   // Avoid the danger of having a zero mean something
-	PermAdmin                     authaus.PermissionU16 = 1   // Super-user who can control all aspects of the auth system
-	PermEnabled                   authaus.PermissionU16 = 2   // User is allowed to use the system. Without this no request is authorized
-	PermPCS                       authaus.PermissionU16 = 3   // User is allowed to access the PCS module.
-	PermPCSSuperUser              authaus.PermissionU16 = 100 // User can perform all actions in PCS
-	PermPCSBudgetAddAndDelete     authaus.PermissionU16 = 101 // User is allowed to add and delete a budget to PCS
-	PermPCSBudgetUpdate           authaus.PermissionU16 = 102 // User is allowed to update a budget in PCS
-	PermPCSBudgetView             authaus.PermissionU16 = 103 // User is allowed to view budgets in PCS.
-	PermPCSProjectAddAndDelete    authaus.PermissionU16 = 104 // User is allowed to add and delete a project to PCS
-	PermPCSProjectUpdate          authaus.PermissionU16 = 105 // User is allowed to update a project in PCS
-	PermPCSProjectView            authaus.PermissionU16 = 106 // User is allowed to view projects in PCS
-	PermPCSProgrammeAddAndDelete  authaus.PermissionU16 = 107 // User is allowed to add and delete a programme to PCS
-	PermPCSProgrammeUpdate        authaus.PermissionU16 = 108 // User is allowed to update a programme in PCS
-	PermPCSProgrammeView          authaus.PermissionU16 = 109 // User is allowed to view programmes in PCS
-	PermPCSLookupAddAndDelete     authaus.PermissionU16 = 110 // User is allowed to add a lookup/employee/legal entity to PCS
-	PermPCSLookupUpdate           authaus.PermissionU16 = 111 // User is allowed to update a lookup/employee/legal entity in PCS
-	PermPCSLookupView             authaus.PermissionU16 = 112 // User is allowed to view lookup/employee/legal entity in PCS
-	PermPCSBudgetItemList         authaus.PermissionU16 = 113 // User is allowed to view budget items in PCS
-	PermPCSDynamicContent         authaus.PermissionU16 = 114 // User is allowed to get dynamic configuration
-	PermPCSProjectsUnassignedView authaus.PermissionU16 = 115 // User is allowed to view all the projects that are not assigned to programmes
-	PermPCSBudgetItemsAvailable   authaus.PermissionU16 = 116 // User is allowed to view the allocatable budget items
-	PermReportCreator             authaus.PermissionU16 = 200 // Can create reports
-	PermReportViewer              authaus.PermissionU16 = 201 // Can view reports
-	PermImporter                  authaus.PermissionU16 = 300 // User is allowed to handle data imports
-	PermFileDrop                  authaus.PermissionU16 = 301 // User is allowed to drop files onto IMQS Web
-	PermWIPProjectView            authaus.PermissionU16 = 500 // User is allowed to access the WIP module
-	PermWIPProjectAdd             authaus.PermissionU16 = 501 // User is allowed to add a WIP project
-	PermWIPProjectEdit            authaus.PermissionU16 = 502 // User is allowed to edit a WIP project
-	PermWIPProjectSuspend         authaus.PermissionU16 = 503 // User is allowed to suspend a workflow
-	PermWIPProjectDiscard         authaus.PermissionU16 = 504 // User is allowed to discard a workflow
+	PermReservedZero                 authaus.PermissionU16 = 0   // Avoid the danger of having a zero mean something
+	PermAdmin                        authaus.PermissionU16 = 1   // Super-user who can control all aspects of the auth system
+	PermEnabled                      authaus.PermissionU16 = 2   // User is allowed to use the system. Without this no request is authorized
+	PermPCS                          authaus.PermissionU16 = 3   // User is allowed to access the PCS module.
+	PermPCSSuperUser                 authaus.PermissionU16 = 100 // User can perform all actions in PCS
+	PermPCSBudgetAddAndDelete        authaus.PermissionU16 = 101 // User is allowed to add and delete a budget to PCS
+	PermPCSBudgetUpdate              authaus.PermissionU16 = 102 // User is allowed to update a budget in PCS
+	PermPCSBudgetView                authaus.PermissionU16 = 103 // User is allowed to view budgets in PCS.
+	PermPCSProjectAddAndDelete       authaus.PermissionU16 = 104 // User is allowed to add and delete a project to PCS
+	PermPCSProjectUpdate             authaus.PermissionU16 = 105 // User is allowed to update a project in PCS
+	PermPCSProjectView               authaus.PermissionU16 = 106 // User is allowed to view projects in PCS
+	PermPCSProgrammeAddAndDelete     authaus.PermissionU16 = 107 // User is allowed to add and delete a programme to PCS
+	PermPCSProgrammeUpdate           authaus.PermissionU16 = 108 // User is allowed to update a programme in PCS
+	PermPCSProgrammeView             authaus.PermissionU16 = 109 // User is allowed to view programmes in PCS
+	PermPCSLookupAddAndDelete        authaus.PermissionU16 = 110 // User is allowed to add a lookup/employee/legal entity to PCS
+	PermPCSLookupUpdate              authaus.PermissionU16 = 111 // User is allowed to update a lookup/employee/legal entity in PCS
+	PermPCSLookupView                authaus.PermissionU16 = 112 // User is allowed to view lookup/employee/legal entity in PCS
+	PermPCSBudgetItemList            authaus.PermissionU16 = 113 // User is allowed to view budget items in PCS
+	PermPCSDynamicContent            authaus.PermissionU16 = 114 // User is allowed to get dynamic configuration
+	PermPCSProjectsUnassignedView    authaus.PermissionU16 = 115 // User is allowed to view all the projects that are not assigned to programmes
+	PermPCSBudgetItemsAvailable      authaus.PermissionU16 = 116 // User is allowed to view the allocatable budget items
+	PermReportCreator                authaus.PermissionU16 = 200 // Can create reports
+	PermReportViewer                 authaus.PermissionU16 = 201 // Can view reports
+	PermImporter                     authaus.PermissionU16 = 300 // User is allowed to handle data imports
+	PermFileDrop                     authaus.PermissionU16 = 301 // User is allowed to drop files onto IMQS Web
+	PermWIPProjectView               authaus.PermissionU16 = 500 // User is allowed to access the WIP module
+	PermWIPProjectAdd                authaus.PermissionU16 = 501 // User is allowed to add a WIP project
+	PermWIPProjectEdit               authaus.PermissionU16 = 502 // User is allowed to edit a WIP project
+	PermWIPProjectSuspend            authaus.PermissionU16 = 503 // User is allowed to suspend a workflow
+	PermWIPProjectDiscard            authaus.PermissionU16 = 504 // User is allowed to discard a workflow
+	PermEnergySiteConfigAddAndDelete authaus.PermissionU16 = 600 // User is allowed to add and delete an energy site configuration
+	PermEnergySiteConfigUpdate       authaus.PermissionU16 = 601 // User is allowed to update an energy site configuration
+	PermEnergySiteConfigView         authaus.PermissionU16 = 602 // User is allowed to view an energy site configuration
 )
 
 // Mapping from 16-bit permission integer to string-based name
@@ -77,4 +80,7 @@ func init() {
 	PermissionsTable[PermWIPProjectEdit] = "wipprojectedit"
 	PermissionsTable[PermWIPProjectSuspend] = "wipprojectsuspend"
 	PermissionsTable[PermWIPProjectDiscard] = "wipprojectdiscard"
+	PermissionsTable[PermEnergySiteConfigAddAndDelete] = "energysiteconfigaddanddelete"
+	PermissionsTable[PermEnergySiteConfigUpdate] = "energysiteconfigupdate"
+	PermissionsTable[PermEnergySiteConfigView] = "energysiteconfigview"
 }
