@@ -11,6 +11,7 @@ const (
 	PermAdmin                        authaus.PermissionU16 = 1   // Super-user who can control all aspects of the auth system
 	PermEnabled                      authaus.PermissionU16 = 2   // User is allowed to use the system. Without this no request is authorized
 	PermPCS                          authaus.PermissionU16 = 3   // User is allowed to access the PCS module.
+	PermBulkSMS                      authaus.PermissionU16 = 4   // User is allowed to send SMS messages.
 	PermPCSSuperUser                 authaus.PermissionU16 = 100 // User can perform all actions in PCS
 	PermPCSBudgetAddAndDelete        authaus.PermissionU16 = 101 // User is allowed to add and delete a budget to PCS
 	PermPCSBudgetUpdate              authaus.PermissionU16 = 102 // User is allowed to update a budget in PCS
@@ -54,6 +55,7 @@ func init() {
 	PermissionsTable[PermAdmin] = "admin"
 	PermissionsTable[PermEnabled] = "enabled"
 	PermissionsTable[PermPCS] = "pcs"
+	PermissionsTable[PermBulkSMS] = "bulksms"
 	PermissionsTable[PermPCSSuperUser] = "pcssuperuser"
 	PermissionsTable[PermPCSBudgetAddAndDelete] = "pcsbudgetaddanddelete"
 	PermissionsTable[PermPCSBudgetUpdate] = "pcsbudgetupdate"
