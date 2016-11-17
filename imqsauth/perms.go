@@ -78,15 +78,16 @@ const (
 	PermEnergyConfigAddAndDelete authaus.PermissionU16 = 600 //User is allowed to add and delete an energy site configuration
 	PermEnergyConfigUpdate authaus.PermissionU16 = 601 //User is allowed to update an energy site configuration
 	PermEnergyConfigView authaus.PermissionU16 = 602 //User is allowed to view an energy site configuration
-	PermEnergyConfigLockUnlock authaus.PermissionU16 = 603 //User is allowed to start/stop generators
+	PermEnergyConfigLockUnlock authaus.PermissionU16 = 603 //User is allowed to lock/unlock site configuration
 	PermEnergyGeneratorsStartStop authaus.PermissionU16 = 604 //User is allowed to start/stop generators
-	PermEnergyGateLockOpen authaus.PermissionU16 = 605 //User is allowed to open gate lock
+	PermEnergyGateUnlock authaus.PermissionU16 = 605 //User is allowed to unlock gate
 	PermEnergySimSwitch authaus.PermissionU16 = 606 //User is allowed to switch site controller SIM
 	PermEnergyAlarmsMute authaus.PermissionU16 = 607 //User is allowed to mute site alarms
-	PermEnergyAnalogDataRefresh authaus.PermissionU16 = 608 //User is allowed to request latest analog data
-	PermEnergyControllerFirmwareVersionRefresh authaus.PermissionU16 = 609 //User is allowed to request controller firmware version
+	PermEnergyAnalogDataRefresh authaus.PermissionU16 = 608 //User is allowed to refresh analog data
+	PermEnergyControllerFirmwareVersionRefresh authaus.PermissionU16 = 609 //User is allowed to refresh controller firmware version
 	PermEnergyTimeSync authaus.PermissionU16 = 610 //User is allowed to synchronise controller clock with server
 	PermEnergyAlarmsAcknowledge authaus.PermissionU16 = 611 //User is allowed to acknowledge alarms
+	PermEnergyGateAccessFirmwareVersionRefresh authaus.PermissionU16 = 612 //User is allowed to refresh gate access firmware version
 	PermImqsDeveloper authaus.PermissionU16 = 999 //IMQS Developer
 
 )
@@ -160,15 +161,16 @@ func init() {
 	PermissionsTable[PermEnergyConfigAddAndDelete] = "energyconfigaddanddelete" //User is allowed to add and delete an energy site configuration
 	PermissionsTable[PermEnergyConfigUpdate] = "energyconfigupdate" //User is allowed to update an energy site configuration
 	PermissionsTable[PermEnergyConfigView] = "energyconfigview" //User is allowed to view an energy site configuration
-	PermissionsTable[PermEnergyConfigLockUnlock] = "energyconfiglockunlock" //User is allowed to start/stop generators
+	PermissionsTable[PermEnergyConfigLockUnlock] = "energyconfiglockunlock" //User is allowed to lock/unlock site configuration
 	PermissionsTable[PermEnergyGeneratorsStartStop] = "energygeneratorsstartstop" //User is allowed to start/stop generators
-	PermissionsTable[PermEnergyGateLockOpen] = "energygatelockopen" //User is allowed to open gate lock
+	PermissionsTable[PermEnergyGateUnlock] = "energygateunlock" //User is allowed to unlock gate
 	PermissionsTable[PermEnergySimSwitch] = "energysimswitch" //User is allowed to switch site controller SIM
 	PermissionsTable[PermEnergyAlarmsMute] = "energyalarmsmute" //User is allowed to mute site alarms
-	PermissionsTable[PermEnergyAnalogDataRefresh] = "energyanalogdatarefresh" //User is allowed to request latest analog data
-	PermissionsTable[PermEnergyControllerFirmwareVersionRefresh] = "energycontrollerfirmwareversionrefresh" //User is allowed to request controller firmware version
+	PermissionsTable[PermEnergyAnalogDataRefresh] = "energyanalogdatarefresh" //User is allowed to refresh analog data
+	PermissionsTable[PermEnergyControllerFirmwareVersionRefresh] = "energycontrollerfirmwareversionrefresh" //User is allowed to refresh controller firmware version
 	PermissionsTable[PermEnergyTimeSync] = "energytimesync" //User is allowed to synchronise controller clock with server
 	PermissionsTable[PermEnergyAlarmsAcknowledge] = "energyalarmsacknowledge" //User is allowed to acknowledge alarms
+	PermissionsTable[PermEnergyGateAccessFirmwareVersionRefresh] = "energygateaccessfirmwareversionrefresh" //User is allowed to refresh gate access firmware version
 	PermissionsTable[PermImqsDeveloper] = "imqsdeveloper" //IMQS Developer
 
 }
