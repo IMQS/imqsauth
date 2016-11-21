@@ -86,9 +86,6 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	ic.Config = &imqsauth.Config{}
 
 	configFile := options["c"]
-	if configFile == "" {
-		panic("config file not specified")
-	}
 
 	// Try test config first; otherwise load real config
 	isTestConfig := imqsauth.LoadTestConfig(ic, configFile)
