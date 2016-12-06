@@ -6,6 +6,7 @@ import (
 	"github.com/IMQS/cli"
 	"github.com/IMQS/imqsauth/imqsauth"
 	"os"
+	"regexp"
 	"runtime"
 	"sort"
 	"strings"
@@ -28,8 +29,11 @@ func main() {
 
 	createUserDesc := "Create a user in the authentication system\nThis affects only the 'authentication' system - the permit database is not altered by this command. " +
 		"This has no effect on Yellowfin. Yellowfin users are created automatically during HTTP login."
-	createUser := app.AddCommand("createuser", createUserDesc, "identity", "password", "firstname", "lastname")
+	createUser := app.AddCommand("createuser", createUserDesc, "identity", "password")
 	createUser.AddValueOption("mobile", "number", "Mobile number (cell phone)")
+	createUser.AddValueOption("firstname", "text", "First name")
+	createUser.AddValueOption("lastname", "text", "Last name")
+	createUser.AddValueOption("username", "text", "Username")
 
 	app.AddCommand("killsessions", "Erase all sessions belonging to a particular user\nWarning! The running server maintains a cache of "+
 		"sessions, so you must stop the server, run this command, and then start the server again to kill sessions correctly.", "identity")
@@ -145,7 +149,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	case "createdb":
 		success = createDB(&ic.Config.Authaus)
 	case "createuser":
-		success = createUser(ic, options, args[0], args[1], args[2], args[3])
+		success = createUser(ic, options, args[0], args[1])
 	case "killsessions":
 		success = killSessions(ic, args[0])
 	case "permgroupadd":
@@ -372,12 +376,20 @@ func setGroup(icentral *imqsauth.ImqsCentral, groupName string, roles []string) 
 	return imqsauth.ModifyGroup(icentral, imqsauth.GroupModifySet, groupName, perms)
 }
 
-func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, email, password, firstname, lastname string) bool {
-	if _, e := icentral.Central.CreateUserStoreIdentity(email, "", firstname, lastname, options["mobile"], password); e == nil {
-		fmt.Printf("Created user %v\n", email)
-		return true
+func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, email string, password string) bool {
+
+	// We validate the email address from the command line here. Email addresses are mandatory identifiers for IMQS users.
+	matched, _ := regexp.MatchString("^([\\w-]+(?:\\.[\\w-]+)*)@((?:[\\w-]+\\.)*\\w[\\w-]{0,66})\\.([a-z]{2,6}(?:\\.[a-z]{2})?)$", email)
+	if matched {
+		if _, e := icentral.Central.CreateUserStoreIdentity(email, options["username"], options["firstname"], options["lastname"], options["mobile"], password); e == nil {
+			fmt.Printf("Created user with email address %v\n", email)
+			return true
+		} else {
+			fmt.Printf("Error creating identity %v: %v\n", email, e)
+			return false
+		}
 	} else {
-		fmt.Printf("Error creating identity %v: %v\n", email, e)
+		fmt.Printf("The specified identity value \"%v\" is not a valid email address", email)
 		return false
 	}
 }
