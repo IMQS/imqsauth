@@ -50,9 +50,11 @@ type Yellowfin struct {
 	Enabled       bool
 	Transport     *http.Transport
 
-	// Should be temporary - used to test new reports with filters until all reports are ready for migration
+	// Should be temporary - remove when we have all reports on scenario filtering.
 	ContentCategoryFilterEnabled bool
 	SourceAccessFilterEnabled    bool
+	// Map IMQS modules to Yellowfin report categories for cases where it does not match, e.g. Water Demand->Swift.
+	ModuleToCategoryMapping map[string]string
 }
 
 func NewYellowfin(logger *log.Logger) *Yellowfin {
@@ -76,6 +78,7 @@ func (y *Yellowfin) LoadConfig(config ConfigYellowfin, adminPasswordFile, userPa
 
 	// Should be temporary - used to test new reports with filters until all reports are ready for migration
 	y.ContentCategoryFilterEnabled = config.ContentCategoryFilter
+	y.ModuleToCategoryMapping = config.ModuleToCategoryMapping
 	y.SourceAccessFilterEnabled = config.SourceAccessFilter
 
 	// Read admin password. If this file is not found, then we assume that the password
@@ -199,7 +202,14 @@ func (y *Yellowfin) Login(identity string, loginParams yellowfinLoginParameters)
 
 	// Should be temporary - used to test new reports with filters until all reports are ready for migration
 	if y.ContentCategoryFilterEnabled {
-		params["%CONTENTCATEGORY%"] = "CONTENT_INCLUDE=" + loginParams.ModuleFilter
+		// Use the mapping specified in the config if it present.
+		// E.g. The "Water Demand" module should map to the "Swift" Yellowfin category.
+		var moduleFilter string = loginParams.ModuleFilter
+		mappedName, ok := y.ModuleToCategoryMapping[moduleFilter]
+		if ok {
+			moduleFilter = mappedName
+		}
+		params["%CONTENTCATEGORY%"] = "CONTENT_INCLUDE=" + moduleFilter
 	} else {
 		params["%CONTENTCATEGORY%"] = ""
 	}

@@ -19,9 +19,12 @@ type ConfigYellowfin struct {
 	// We could probably get rid of this old code path, but it adds minimal
 	// complexity to the code, and might still prove useful.
 	UseLegacyAuth bool
-	// Flags to enable the YF filter pass to user login
+	// Filter YF categories according to current IMQS module, which is passed in from the front-end.
 	ContentCategoryFilter bool
-	SourceAccessFilter    bool
+	// Map IMQS modules to Yellowfin report categories for cases where it does not match, e.g. Water Demand->Swift.
+	ModuleToCategoryMapping map[string]string
+	// Pass in the IMQS scenario as a field used to filter reports.
+	SourceAccessFilter bool
 }
 
 // Note: Be sure to keep doc.go up to date with the Config structure here
