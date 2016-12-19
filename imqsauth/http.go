@@ -502,7 +502,7 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 			if !permList.Has(PermEnabled) {
 				httpSendAccountDisabled(w)
 			} else {
-				cookie := &http.Cookie{
+				cookie := &http.Cookie {
 					Name:    central.Config.Authaus.HTTP.CookieName,
 					Value:   sessionkey,
 					Path:    "/",
