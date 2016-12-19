@@ -797,9 +797,11 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 
 	perms := authaus.PermissionList{}
 
-	for _, pname := range strings.Split(rolesstring, ",") {
-		perm, _ := strconv.ParseInt(pname, 10, 16)
-		perms = append(perms, authaus.PermissionU16(perm))
+	if len(rolesstring) > 0 {
+		for _, pname := range strings.Split(rolesstring, ",") {
+			perm, _ := strconv.ParseInt(pname, 10, 16)
+			perms = append(perms, authaus.PermissionU16(perm))
+		}
 	}
 
 	if group, e := authaus.LoadOrCreateGroup(central.Central.GetRoleGroupDB(), groupname, false); e == nil {
