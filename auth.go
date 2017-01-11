@@ -373,20 +373,23 @@ func setGroup(icentral *imqsauth.ImqsCentral, groupName string, roles []string) 
 	return imqsauth.ModifyGroup(icentral, imqsauth.GroupModifySet, groupName, perms)
 }
 
-func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, email string, password string) bool {
+func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, identity string, password string) bool {
 
-	// We validate the email address from the command line here. Email addresses are mandatory identifiers for IMQS users.
-	matched, _ := regexp.MatchString("^([\\w-]+(?:\\.[\\w-]+)*)@((?:[\\w-]+\\.)*\\w[\\w-]{0,66})\\.([a-z]{2,6}(?:\\.[a-z]{2})?)$", email)
-	if matched {
-		if _, e := icentral.Central.CreateUserStoreIdentity(email, options["username"], options["firstname"], options["lastname"], options["mobile"], password); e == nil {
-			fmt.Printf("Created user with email address %v\n", email)
-			return true
-		} else {
-			fmt.Printf("Error creating identity %v: %v\n", email, e)
-			return false
-		}
+	isEmail, _ := regexp.MatchString("^([\\w-]+(?:\\.[\\w-]+)*)@((?:[\\w-]+\\.)*\\w[\\w-]{0,66})\\.([a-z]{2,6}(?:\\.[a-z]{2})?)$", identity)
+	var e error
+	if (isEmail) {
+		_, e = icentral.Central.CreateUserStoreIdentity(identity, options["username"], options["firstname"], options["lastname"], options["mobile"], password)
 	} else {
-		fmt.Printf("The specified identity value \"%v\" is not a valid email address", email)
+		_, e = icentral.Central.CreateUserStoreIdentity(options["email"], identity, options["firstname"], options["lastname"], options["mobile"], password)
+	}
+
+	if e == nil {
+		var label string
+		if (isEmail) {label = "email address"} else {label = "username"}
+		fmt.Printf("Created user with %s %v\n", label, identity)
+		return true
+	} else {
+		fmt.Printf("Error creating identity %v: %v\n", identity, e)
 		return false
 	}
 }
