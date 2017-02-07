@@ -57,6 +57,8 @@ type httpRequest struct {
 type checkResponseJson struct {
 	UserId   authaus.UserId
 	Identity string
+	Email    string
+	Username string
 	Roles    []string
 }
 
@@ -366,6 +368,8 @@ func httpSendCheckJson(w http.ResponseWriter, token *authaus.Token, permList aut
 	jresponse := &checkResponseJson{}
 	jresponse.Identity = token.Identity
 	jresponse.UserId = token.UserId
+	jresponse.Username = token.Username
+	jresponse.Email = token.Email
 	jresponse.SetRoles(permList)
 	httpSendJson(w, jresponse)
 	//fmt.Fprintf(w, "%v", encodePermBitsToString(permList))
