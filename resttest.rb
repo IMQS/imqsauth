@@ -263,14 +263,14 @@ class Authorization < AuthBase
 
 	def test_login
 		doget("/login", basicauth_joe, 400, "API must be accessed using an HTTP POST method")
-		dopost("/login", nil, basicauth_joe, 200, {:UserId => @joe_user_id, :Identity => "joe", :Roles => ["2"]})
+		dopost("/login", nil, basicauth_joe, 200, {:UserId => @joe_user_id, :Identity => "joe", :Email => "", :Username => "", :Roles => ["2"]})
 		dopost("/login", nil, {}, 400, "http basic authorization must be base64(identity:password)")
 		login_and_check("POST", "/login")
 	end
 
 	def test_check
 		dopost("/check", nil, basicauth_joe, 400, "API must be accessed using an HTTP GET method")
-		doget("/check", basicauth_joe, 200, {:UserId => @joe_user_id, :Identity => "joe", :Roles => ["2"]})
+		doget("/check", basicauth_joe, 200, {:UserId => @joe_user_id, :Identity => "joe", :Email => "", :Username => "", :Roles => ["2"]})
 		doget("/check", {}, 401, "No authorization information")
 		login_and_check("GET", "/check")
 	end
@@ -283,13 +283,13 @@ class Authorization < AuthBase
 		dopost("/set_password?userid=#{@joe_user_id}&password=123", nil, basicauth_joe, 200, "Password changed")
 		doget("/check", basicauth_joe, 403, "Invalid password")
 		dopost("/set_password?userid=#{@joe_user_id}&password=JOE", nil, basicauth("joe", "123"), 200, "Password changed")
-		doget("/check", basicauth_joe, 200, {:UserId => @joe_user_id, :Identity => "joe", :Roles => ["2"]})
+		doget("/check", basicauth_joe, 200, {:UserId => @joe_user_id, :Identity => "joe", :Email => "", :Username => "", :Roles => ["2"]})
 
 		# Change joe's password, while acting as administrator
 		dopost("/set_password?userid=#{@joe_user_id}&password=123", nil, basicauth_admin, 200, "Password changed")
 		doget("/check", basicauth_joe, 403, "Invalid password")
 		dopost("/set_password?userid=#{@joe_user_id}&password=JOE", nil, basicauth_admin, 200, "Password changed")
-		doget("/check", basicauth_joe, 200, {:UserId => @joe_user_id, :Identity => "joe", :Roles => ["2"]})
+		doget("/check", basicauth_joe, 200, {:UserId => @joe_user_id, :Identity => "joe", :Email => "", :Username => "", :Roles => ["2"]})
 	end
 
 	 def test_rename_as_user()
