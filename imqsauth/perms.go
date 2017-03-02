@@ -86,6 +86,10 @@ const (
 	PermWipActualAdd authaus.PermissionU16 = 519 //User is allowed to add a WIP actual
 	PermWipActualEdit authaus.PermissionU16 = 520 //User is allowed to edit a WIP actual
 	PermWipActualDelete authaus.PermissionU16 = 521 //User is allowed to delete a WIP actual
+	PermWipBudgetView authaus.PermissionU16 = 522 //User is allowed to view a WIP budget
+	PermWipBudgetAdd authaus.PermissionU16 = 523 //User is allowed to add a WIP budget
+	PermWipBudgetEdit authaus.PermissionU16 = 524 //User is allowed to edit a WIP budget
+	PermWipBudgetDelete authaus.PermissionU16 = 525 //User is allowed to delete a WIP budget
 	PermEnergyConfigAddAndDelete authaus.PermissionU16 = 600 //User is allowed to add and delete an energy site configuration
 	PermEnergyConfigUpdate authaus.PermissionU16 = 601 //User is allowed to update an energy site configuration
 	PermEnergyConfigView authaus.PermissionU16 = 602 //User is allowed to view an energy site configuration
@@ -180,6 +184,10 @@ func init() {
 	PermissionsTable[PermWipActualAdd] = "wipactualadd" //User is allowed to add a WIP actual
 	PermissionsTable[PermWipActualEdit] = "wipactualedit" //User is allowed to edit a WIP actual
 	PermissionsTable[PermWipActualDelete] = "wipactualdelete" //User is allowed to delete a WIP actual
+	PermissionsTable[PermWipBudgetView] = "wipbudgetview" //User is allowed to view a WIP budget
+	PermissionsTable[PermWipBudgetAdd] = "wipbudgetadd" //User is allowed to add a WIP budget
+	PermissionsTable[PermWipBudgetEdit] = "wipbudgetedit" //User is allowed to edit a WIP budget
+	PermissionsTable[PermWipBudgetDelete] = "wipbudgetdelete" //User is allowed to delete a WIP budget
 	PermissionsTable[PermEnergyConfigAddAndDelete] = "energyconfigaddanddelete" //User is allowed to add and delete an energy site configuration
 	PermissionsTable[PermEnergyConfigUpdate] = "energyconfigupdate" //User is allowed to update an energy site configuration
 	PermissionsTable[PermEnergyConfigView] = "energyconfigview" //User is allowed to view an energy site configuration
