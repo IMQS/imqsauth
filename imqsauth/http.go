@@ -171,6 +171,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/update_user", makehandler(HttpMethodPost, httpHandlerUpdateUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/archive_user", makehandler(HttpMethodPost, httpHandlerArchiveUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/create_group", makehandler(HttpMethodPut, httpHandlerCreateGroup, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/delete_group", makehandler(HttpMethodPut, httpHandlerDeleteGroup, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/rename_user", makehandler(HttpMethodPost, httpHandlerRenameUser, handlerFlagNeedToken))
 	smux.HandleFunc("/set_group_roles", makehandler(HttpMethodPut, httpHandlerSetGroupRoles, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_user_groups", makehandler(HttpMethodPost, httpHandlerSetUserGroups, handlerFlagNeedAdminRights))
@@ -506,7 +507,7 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 			if !permList.Has(PermEnabled) {
 				httpSendAccountDisabled(w)
 			} else {
-				cookie := &http.Cookie {
+				cookie := &http.Cookie{
 					Name:    central.Config.Authaus.HTTP.CookieName,
 					Value:   sessionkey,
 					Path:    "/",
@@ -679,6 +680,66 @@ func httpHandlerArchiveUser(central *ImqsCentral, w http.ResponseWriter, r *http
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Archived user: '%v'", userId))
+	}
+}
+
+func httpHandlerDeleteGroup(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	groupname := strings.TrimSpace(r.http.URL.Query().Get("groupname"))
+	if groupname == "" {
+		authaus.HttpSendTxt(w, http.StatusNotAcceptable, "Group name may not be blank.")
+		return
+	}
+	// Guard against accidentally deleting the admin or enabled groups
+	if groupname == RoleGroupAdmin || groupname == RoleGroupEnabled {
+		authaus.HttpSendTxt(w, http.StatusMethodNotAllowed, fmt.Sprintf("Deleting group %v is not permitted", groupname))
+		return
+	}
+
+	// Remove group from all users before deleting
+	users, err := central.Central.GetAuthenticatorIdentities()
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	for _, user := range users {
+		perm, eGetPermit := central.Central.GetPermit(user.UserId)
+		if eGetPermit != nil && strings.Index(eGetPermit.Error(), authaus.ErrIdentityPermitNotFound.Error()) == 0 {
+			continue // Leave user untouched and continue to next user
+		} else if eGetPermit != nil {
+			authaus.HttpSendTxt(w, http.StatusInternalServerError, eGetPermit.Error())
+			return
+		}
+
+		if group, eGetGroup := central.Central.GetRoleGroupDB().GetByName(groupname); eGetGroup == nil {
+			groupsChanged := false
+			if groups, eDecode := authaus.DecodePermit(perm.Roles); eDecode == nil {
+				for i, gid := range groups {
+					if gid == group.ID {
+						groupsChanged = true
+						groups = append(groups[0:i], groups[i+1:]...)
+						continue
+					}
+				}
+				if groupsChanged {
+					perm.Roles = authaus.EncodePermit(groups)
+					if eSet := central.Central.SetPermit(user.UserId, perm); eSet != nil {
+						authaus.HttpSendTxt(w, http.StatusInternalServerError, eSet.Error())
+						return
+					}
+				}
+			}
+		}
+	}
+
+	if err := authaus.DeleteGroup(central.Central.GetRoleGroupDB(), groupname); err == nil {
+		central.Central.Log.Infof("Group deleted: %v", groupname)
+		authaus.HttpSendTxt(w, http.StatusOK, "")
+		return
+	} else {
+		central.Central.Log.Warnf("Error deleting group (%v): %v", groupname, err)
+		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Error deleting group (%v): %v", groupname, err))
+		return
 	}
 }
 
