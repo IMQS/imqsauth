@@ -1,11 +1,13 @@
 package imqsauth
 
 import (
+	"bytes"
 	"github.com/IMQS/log"
 	"github.com/IMQS/yfws"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -214,10 +216,23 @@ func (y *Yellowfin) Login(identity string, loginParams yellowfinLoginParameters)
 		params["%CONTENTCATEGORY%"] = ""
 	}
 	if y.SourceAccessFilterEnabled {
-		params["%SOURCEACCESS%"] = "SOURCEFILTER_SCENARIO=" + loginParams.ScenarioFilter
+		params["%SCENARIOFILTER%"] = "SOURCEFILTER_SCENARIO=" + loginParams.ScenarioFilter
 	} else {
-		params["%SOURCEACCESS%"] = ""
+		params["%SCENARIOFILTER%"] = ""
 	}
+
+	// Global filters
+	var gf bytes.Buffer
+	for field, values := range loginParams.GlobalFilters {
+		for _, value := range values {
+			gf.WriteString(`<item xsd:type="xsd:string">SOURCEFILTER_`)
+			gf.WriteString(strings.ToUpper(field))
+			gf.WriteString(`=`)
+			gf.WriteString(value)
+			gf.WriteString(`</item>`)
+		}
+	}
+	params["%GLOBALFILTERS%"] = gf.String()
 
 	multirefs, err := yfws.SendRequest(y.Url+"services/AdministrationService", "login", params)
 	if err != nil {
@@ -269,6 +284,7 @@ func (y *Yellowfin) Logout(identity string, r *http.Request) error {
 }
 
 type yellowfinLoginParameters struct {
-	ModuleFilter   string
-	ScenarioFilter string
+	ModuleFilter   string              `json:"module_filter"`
+	ScenarioFilter string              `json:"scenario_filter"`
+	GlobalFilters  map[string][]string `json:"global_filters"`
 }
