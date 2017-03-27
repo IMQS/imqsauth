@@ -70,6 +70,8 @@ const (
 	PermMmSetupWorkFlow authaus.PermissionU16 = 424 //MM Setup Workflow
 	PermMmSetupPM authaus.PermissionU16 = 425 //MM Setup Preventative Maintenance
 	PermMmSetupPMSchedule authaus.PermissionU16 = 426 //MM Setup Preventative Maintenance Schedule
+	PermMmIncidentLogger authaus.PermissionU16 = 427 //MM Incident Logger
+	PermMmMeterMaintenance authaus.PermissionU16 = 428 //MM Meter Maintenance Map
 	PermWipEnabled authaus.PermissionU16 = 500 //User is allowed to use the WIP module
 	PermWipWorkflowStart authaus.PermissionU16 = 501 //User is allowed to start a workflow
 	PermWipWorkflowSuspend authaus.PermissionU16 = 502 //User is allowed to suspend a workflow
@@ -168,6 +170,8 @@ func init() {
 	PermissionsTable[PermMmSetupWorkFlow] = "mmsetupworkflow" //MM Setup Workflow
 	PermissionsTable[PermMmSetupPM] = "mmsetuppm" //MM Setup Preventative Maintenance
 	PermissionsTable[PermMmSetupPMSchedule] = "mmsetuppmschedule" //MM Setup Preventative Maintenance Schedule
+	PermissionsTable[PermMmIncidentLogger] = "mmincidentlogger" //MM Incident Logger
+	PermissionsTable[PermMmMeterMaintenance] = "mmmetermaintenance" //MM Meter Maintenance Map
 	PermissionsTable[PermWipEnabled] = "wipenabled" //User is allowed to use the WIP module
 	PermissionsTable[PermWipWorkflowStart] = "wipworkflowstart" //User is allowed to start a workflow
 	PermissionsTable[PermWipWorkflowSuspend] = "wipworkflowsuspend" //User is allowed to suspend a workflow
