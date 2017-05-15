@@ -79,7 +79,7 @@ const (
 	PermMmTimeAndCostUpdate authaus.PermissionU16 = 433 // MM Time and Cost Update
 	PermMmDocuments authaus.PermissionU16 = 434 // MM Documents
 	PermMmMeterMaintenance authaus.PermissionU16 = 435 // MM Meter Maintenance Map
-	PermReAssign authaus.PermissionU16 = 436 // Disabled dynamic controls become active with this permission
+	PermMmReAssignEditOfDisabledControl authaus.PermissionU16 = 436 // Disabled controls become active for a user with this permission
 	PermWipEnabled authaus.PermissionU16 = 500 // User is allowed to use the WIP module
 	PermWipWorkflowStart authaus.PermissionU16 = 501 // User is allowed to start a workflow
 	PermWipWorkflowSuspend authaus.PermissionU16 = 502 // User is allowed to suspend a workflow
@@ -188,7 +188,7 @@ func init() {
 	PermissionsTable[PermMmTimeAndCostUpdate] = "mmtimeandcostupdate" // MM Time and Cost Update
 	PermissionsTable[PermMmDocuments] = "mmdocuments" // MM Documents
 	PermissionsTable[PermMmMeterMaintenance] = "mmmetermaintenance" // MM Meter Maintenance Map
-	PermissionsTable[PermReAssign] = "reassign" // Disabled dynamic controls become active with this permission
+	PermissionsTable[PermMmReAssignEditOfDisabledControl] = "mmreassigneditofdisabledcontrol" // Disabled controls become active for a user with this permission
 	PermissionsTable[PermWipEnabled] = "wipenabled" // User is allowed to use the WIP module
 	PermissionsTable[PermWipWorkflowStart] = "wipworkflowstart" // User is allowed to start a workflow
 	PermissionsTable[PermWipWorkflowSuspend] = "wipworkflowsuspend" // User is allowed to suspend a workflow
