@@ -101,12 +101,9 @@ const (
 	PermMmTariffsView authaus.PermissionU16 = 455 // MM Tariffs View
 	PermMmTariffsAddAndDelete authaus.PermissionU16 = 456 // MM Tariffs Add/Delete
 	PermMmTariffsUpdate authaus.PermissionU16 = 457 // MM Tariffs Update
-	PermMmTimeAndCostView authaus.PermissionU16 = 458 // MM Time And Cost View
-	PermMmTimeAndCostAddAndDelete authaus.PermissionU16 = 459 // MM Time And Cost Add/Delete
-	PermMmTimeAndCostUpdate authaus.PermissionU16 = 460 // MM Time And Cost Update
-	PermMmIncidentLoggerView authaus.PermissionU16 = 461 // MM Incident Logger View
-	PermMmIncidentLoggerAddAndDelete authaus.PermissionU16 = 462 // MM Incident Logger Add/Delete
-	PermMmIncidentLoggerUpdate authaus.PermissionU16 = 463 // MM Incident Logger Update
+	PermMmIncidentLoggerView authaus.PermissionU16 = 458 // MM Incident Logger View
+	PermMmIncidentLoggerAddAndDelete authaus.PermissionU16 = 459 // MM Incident Logger Add/Delete
+	PermMmIncidentLoggerUpdate authaus.PermissionU16 = 460 // MM Incident Logger Update
 	PermWipEnabled authaus.PermissionU16 = 500 // User is allowed to use the WIP module
 	PermWipWorkflowStart authaus.PermissionU16 = 501 // User is allowed to start a workflow
 	PermWipWorkflowSuspend authaus.PermissionU16 = 502 // User is allowed to suspend a workflow
@@ -237,9 +234,6 @@ func init() {
 	PermissionsTable[PermMmTariffsView] = "mmtariffsview" // MM Tariffs View
 	PermissionsTable[PermMmTariffsAddAndDelete] = "mmtariffsaddanddelete" // MM Tariffs Add/Delete
 	PermissionsTable[PermMmTariffsUpdate] = "mmtariffsupdate" // MM Tariffs Update
-	PermissionsTable[PermMmTimeAndCostView] = "mmtimeandcostview" // MM Time And Cost View
-	PermissionsTable[PermMmTimeAndCostAddAndDelete] = "mmtimeandcostaddanddelete" // MM Time And Cost Add/Delete
-	PermissionsTable[PermMmTimeAndCostUpdate] = "mmtimeandcostupdate" // MM Time And Cost Update
 	PermissionsTable[PermMmIncidentLoggerView] = "mmincidentloggerview" // MM Incident Logger View
 	PermissionsTable[PermMmIncidentLoggerAddAndDelete] = "mmincidentloggeraddanddelete" // MM Incident Logger Add/Delete
 	PermissionsTable[PermMmIncidentLoggerUpdate] = "mmincidentloggerupdate" // MM Incident Logger Update
