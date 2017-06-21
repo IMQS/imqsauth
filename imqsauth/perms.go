@@ -137,6 +137,8 @@ const (
 	PermEnergyTimeSync authaus.PermissionU16 = 610 // User is allowed to synchronise controller clock with server
 	PermEnergyAlarmsAcknowledge authaus.PermissionU16 = 611 // User is allowed to acknowledge alarms
 	PermEnergyGateAccessFirmwareVersionRefresh authaus.PermissionU16 = 612 // User is allowed to refresh gate access firmware version
+	PermEnergySiteInfoEdit authaus.PermissionU16 = 613 // User is allowed to edit site info
+	PermEnergySitePACEdit authaus.PermissionU16 = 614 // User is allowed to edit site PAC
 	PermImqsDeveloper authaus.PermissionU16 = 999 // IMQS Developer
 
 )
@@ -270,6 +272,8 @@ func init() {
 	PermissionsTable[PermEnergyTimeSync] = "energytimesync" // User is allowed to synchronise controller clock with server
 	PermissionsTable[PermEnergyAlarmsAcknowledge] = "energyalarmsacknowledge" // User is allowed to acknowledge alarms
 	PermissionsTable[PermEnergyGateAccessFirmwareVersionRefresh] = "energygateaccessfirmwareversionrefresh" // User is allowed to refresh gate access firmware version
+	PermissionsTable[PermEnergySiteInfoEdit] = "energysiteinfoedit" // User is allowed to edit site info
+	PermissionsTable[PermEnergySitePACEdit] = "energysitepacedit" // User is allowed to edit site PAC
 	PermissionsTable[PermImqsDeveloper] = "imqsdeveloper" // IMQS Developer
 
 }
