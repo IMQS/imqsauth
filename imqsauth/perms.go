@@ -104,6 +104,9 @@ const (
 	PermMmIncidentLoggerView authaus.PermissionU16 = 458 // MM Incident Logger View
 	PermMmIncidentLoggerAddAndDelete authaus.PermissionU16 = 459 // MM Incident Logger Add/Delete
 	PermMmIncidentLoggerUpdate authaus.PermissionU16 = 460 // MM Incident Logger Update
+	PermMmLeaveManagementView authaus.PermissionU16 = 461 // MM Leave Management View
+	PermMmLeaveManagementAddAndDelete authaus.PermissionU16 = 462 // MM Leave Management Add/Delete
+	PermMmLeaveManagementUpdate authaus.PermissionU16 = 463 // MM Leave Management Update
 	PermWipEnabled authaus.PermissionU16 = 500 // User is allowed to use the WIP module
 	PermWipWorkflowStart authaus.PermissionU16 = 501 // User is allowed to start a workflow
 	PermWipWorkflowSuspend authaus.PermissionU16 = 502 // User is allowed to suspend a workflow
@@ -239,6 +242,9 @@ func init() {
 	PermissionsTable[PermMmIncidentLoggerView] = "mmincidentloggerview" // MM Incident Logger View
 	PermissionsTable[PermMmIncidentLoggerAddAndDelete] = "mmincidentloggeraddanddelete" // MM Incident Logger Add/Delete
 	PermissionsTable[PermMmIncidentLoggerUpdate] = "mmincidentloggerupdate" // MM Incident Logger Update
+	PermissionsTable[PermMmLeaveManagementView] = "mmleavemanagementview" // MM Leave Management View
+	PermissionsTable[PermMmLeaveManagementAddAndDelete] = "mmleavemanagementaddanddelete" // MM Leave Management Add/Delete
+	PermissionsTable[PermMmLeaveManagementUpdate] = "mmleavemanagementupdate" // MM Leave Management Update
 	PermissionsTable[PermWipEnabled] = "wipenabled" // User is allowed to use the WIP module
 	PermissionsTable[PermWipWorkflowStart] = "wipworkflowstart" // User is allowed to start a workflow
 	PermissionsTable[PermWipWorkflowSuspend] = "wipworkflowsuspend" // User is allowed to suspend a workflow
