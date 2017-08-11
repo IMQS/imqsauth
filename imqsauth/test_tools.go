@@ -2,6 +2,7 @@ package imqsauth
 
 import (
 	"github.com/IMQS/authaus"
+	"time"
 )
 
 const TestConfig1 = "!TESTCONFIG1"
@@ -14,10 +15,10 @@ func LoadTestConfig(ic *ImqsCentral, testConfigName string) bool {
 		ic.Config.Authaus.HTTP.Port = TestPort
 		ic.Central = authaus.NewCentralDummy("")
 		ResetAuthGroups(ic)
-		joeUserId, _ := ic.Central.CreateUserStoreIdentity("joe", "joeUsername", "joeFirstname", "joeLastname", "joe084", "JOE")
-		jackUserId, _ := ic.Central.CreateUserStoreIdentity("jack", "jackUsername", "jackFirstname", "jackLastname", "jack084", "JACK")
-		adminUserId, _ := ic.Central.CreateUserStoreIdentity("admin", "adminUsername", "adminFirstname", "adminLastname", "admin084", "ADMIN")
-		adminDisabledUserId, _ := ic.Central.CreateUserStoreIdentity("admin_disabled", "admin_disabledUsername", "admin_disabledFirstname", "admin_disabledLastname", "admin_disabled084", "ADMIN_DISABLED")
+		joeUserId, _ := ic.Central.CreateUserStoreIdentity("joe", "joeUsername", "joeFirstname", "joeLastname", "joe084", "joe021", "joe test", time.Now().Unix(), "joeCreatedBy", time.Now().Unix(), "joeModifiedBy", "JOE")
+		jackUserId, _ := ic.Central.CreateUserStoreIdentity("jack", "jackUsername", "jackFirstname", "jackLastname", "jack084", "jack021", "jack test", time.Now().Unix(), "jackCreatedBy", time.Now().Unix(), "jackModifiedBy", "JACK")
+		adminUserId, _ := ic.Central.CreateUserStoreIdentity("admin", "adminUsername", "adminFirstname", "adminLastname", "admin084", "admin021", "admin test", time.Now().Unix(), "adminCreatedBy", time.Now().Unix(), "adminModifiedBy", "ADMIN")
+		adminDisabledUserId, _ := ic.Central.CreateUserStoreIdentity("admin_disabled", "admin_disabledUsername", "admin_disabledFirstname", "admin_disabledLastname", "admin_disabled084", "admin_disabled021", "admin_disabled test", time.Now().Unix(), "adminDisabledCreatedBy", time.Now().Unix(), "adminDisabledModifiedBy", "ADMIN_DISABLED")
 		groupAdmin, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupAdmin)
 		groupEnabled, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupEnabled)
 		permitEnabled := &authaus.Permit{}
