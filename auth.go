@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/cli"
+	"github.com/IMQS/imqsauth/cros"
 	"github.com/IMQS/imqsauth/imqsauth"
 	"os"
 	"regexp"
@@ -13,10 +14,13 @@ import (
 )
 
 // These files are written by create-keys.rb
-const (
-	YellowfinAdminPasswordFile = "c:/imqsvar/secrets/yellowfin_admin"
-	YellowfinUserPasswordFile  = "c:/imqsvar/secrets/yellowfin_user"
-)
+// They are now in the cros package to allow for cross-platform compilation.
+// Windows
+//  c:/imqsvar/secrets/yellowfin_admin
+//  c:/imqsvar/secrets/yellowfin_user
+// Linux
+//  /var/imqs/secrets/yellowfin_admin
+//  /var/imqs/secrets/yellowfin_user
 
 func main() {
 	app := cli.App{}
@@ -135,7 +139,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	if ic.Central != nil {
 		ic.Yellowfin = imqsauth.NewYellowfin(ic.Central.Log)
 		if ic.Config.Yellowfin.Enabled {
-			if err := ic.Yellowfin.LoadConfig(ic.Config.Yellowfin, YellowfinAdminPasswordFile, YellowfinUserPasswordFile); err != nil {
+			if err := ic.Yellowfin.LoadConfig(ic.Config.Yellowfin, cros.YellowfinAdminPasswordFile, cros.YellowfinUserPasswordFile); err != nil {
 				panic(fmt.Sprintf("Error loading yellowfin config: %v", err))
 			}
 		}
@@ -377,7 +381,7 @@ func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, ident
 
 	isEmail, _ := regexp.MatchString("^([\\w-]+(?:\\.[\\w-]+)*)@((?:[\\w-]+\\.)*\\w[\\w-]{0,66})\\.([a-z]{2,6}(?:\\.[a-z]{2})?)$", identity)
 	var e error
-	if (isEmail) {
+	if isEmail {
 		_, e = icentral.Central.CreateUserStoreIdentity(identity, options["username"], options["firstname"], options["lastname"], options["mobile"], password)
 	} else {
 		_, e = icentral.Central.CreateUserStoreIdentity(options["email"], identity, options["firstname"], options["lastname"], options["mobile"], password)
@@ -385,7 +389,11 @@ func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, ident
 
 	if e == nil {
 		var label string
-		if (isEmail) {label = "email address"} else {label = "username"}
+		if isEmail {
+			label = "email address"
+		} else {
+			label = "username"
+		}
 		fmt.Printf("Created user with %s %v\n", label, identity)
 		return true
 	} else {
