@@ -100,9 +100,9 @@ type userResponseJson struct {
 	Mobile       string
 	Telephone    string
 	Remarks      string
-	Created      int64
+	Created      time.Time
 	CreatedBy    string
-	Modified     int64
+	Modified     time.Time
 	ModifiedBy   string
 	Groups       []string
 	AuthUserType authaus.AuthUserType
@@ -452,9 +452,9 @@ func httpSendUserObjectsJson(central *ImqsCentral, users []authaus.AuthUser, ide
 			Telephone:    user.Telephonenumber,
 			Remarks:      user.Remarks,
 			Created:      user.Created,
-			CreatedBy:    user.CreatedBy,
+			CreatedBy:    central.Central.GetUserNameFromUserId(user.CreatedBy),
 			Modified:     user.Modified,
-			ModifiedBy:   user.ModifiedBy,
+			ModifiedBy:   central.Central.GetUserNameFromUserId(user.ModifiedBy),
 			Groups:       groupnames,
 			AuthUserType: user.Type,
 		})
@@ -627,12 +627,24 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		password = authaus.RandomString(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 	}
 
-	// Get the details of the logged-in user
-	user, _ := central.Central.GetUserFromIdentity(r.token.Identity)
-	createdby := user.Firstname + " " + user.Lastname
-	created := time.Now().Unix()
+	// Get the userId of the logged-in user
+	createdby := r.token.UserId
+	created := time.Now().UTC()
+	user := authaus.AuthUser{
+		Email:           email,
+		Username:        username,
+		Firstname:       firstname,
+		Lastname:        lastname,
+		Mobilenumber:    mobilenumber,
+		Telephonenumber: telephonenumber,
+		Remarks:         remarks,
+		Created:         created,
+		CreatedBy:       createdby,
+		Modified:        created,
+		ModifiedBy:      createdby,
+	}
 
-	if userId, err := central.Central.CreateUserStoreIdentity(email, username, firstname, lastname, mobilenumber, telephonenumber, remarks, created, createdby, created, createdby, password); err != nil {
+	if userId, err := central.Central.CreateUserStoreIdentity(user, password); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		if sendPasswordResetEmail {
@@ -672,11 +684,24 @@ func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		return
 	}
 
-	user, _ := central.Central.GetUserFromIdentity(r.token.Identity)
-	modifiedby := user.Firstname + " " + user.Lastname
-	modified := time.Now().Unix()
+	// Get the userId of the logged-in user
+	modifiedby := r.token.UserId
+	modified := time.Now().UTC()
+	user := authaus.AuthUser{
+		UserId:          authaus.UserId(userId),
+		Email:           email,
+		Username:        username,
+		Firstname:       firstname,
+		Lastname:        lastname,
+		Mobilenumber:    mobilenumber,
+		Telephonenumber: telephonenumber,
+		Remarks:         remarks,
+		Modified:        modified,
+		ModifiedBy:      modifiedby,
+		Type:            authUserType,
+	}
 
-	if err := central.Central.UpdateIdentity(authaus.UserId(userId), email, username, firstname, lastname, mobilenumber, telephonenumber, remarks, modified, modifiedby, authUserType); err != nil {
+	if err := central.Central.UpdateIdentity(user); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Updated user: '%v'", userId))
