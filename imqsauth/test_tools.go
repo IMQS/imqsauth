@@ -1,8 +1,9 @@
 package imqsauth
 
 import (
-	"github.com/IMQS/authaus"
 	"time"
+
+	"github.com/IMQS/authaus"
 )
 
 const TestConfig1 = "!TESTCONFIG1"
@@ -29,7 +30,7 @@ func LoadTestConfig(ic *ImqsCentral, testConfigName string) bool {
 			Modified:        now,
 			ModifiedBy:      0,
 		}
-		joeUserId, _ := ic.Central.CreateUserStoreIdentity(joeUser, "JOE")
+		joeUserId, _ := ic.Central.CreateUserStoreIdentity(&joeUser, "JOE")
 
 		jackUser := authaus.AuthUser{
 			Email:           "jack",
@@ -44,7 +45,7 @@ func LoadTestConfig(ic *ImqsCentral, testConfigName string) bool {
 			Modified:        now,
 			ModifiedBy:      0,
 		}
-		jackUserId, _ := ic.Central.CreateUserStoreIdentity(jackUser, "JACK")
+		jackUserId, _ := ic.Central.CreateUserStoreIdentity(&jackUser, "JACK")
 
 		adminUser := authaus.AuthUser{
 			Email:           "admin",
@@ -59,7 +60,7 @@ func LoadTestConfig(ic *ImqsCentral, testConfigName string) bool {
 			Modified:        now,
 			ModifiedBy:      0,
 		}
-		adminUserId, _ := ic.Central.CreateUserStoreIdentity(adminUser, "ADMIN")
+		adminUserId, _ := ic.Central.CreateUserStoreIdentity(&adminUser, "ADMIN")
 
 		adminDisabledUser := authaus.AuthUser{
 			Email:           "adminDisabled",
@@ -74,7 +75,7 @@ func LoadTestConfig(ic *ImqsCentral, testConfigName string) bool {
 			Modified:        now,
 			ModifiedBy:      0,
 		}
-		adminDisabledUserId, _ := ic.Central.CreateUserStoreIdentity(adminDisabledUser, "ADMIN_DISABLED")
+		adminDisabledUserId, _ := ic.Central.CreateUserStoreIdentity(&adminDisabledUser, "ADMIN_DISABLED")
 		groupAdmin, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupAdmin)
 		groupEnabled, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupEnabled)
 		permitEnabled := &authaus.Permit{}

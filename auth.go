@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/IMQS/authaus"
-	"github.com/IMQS/cli"
-	"github.com/IMQS/imqsauth/cros"
-	"github.com/IMQS/imqsauth/imqsauth"
 	"os"
 	"regexp"
 	"runtime"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/IMQS/authaus"
+	"github.com/IMQS/cli"
+	"github.com/IMQS/imqsauth/cros"
+	"github.com/IMQS/imqsauth/imqsauth"
 )
 
 // These files are written by create-keys.rb
@@ -406,7 +407,7 @@ func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, ident
 		user.Email = options["email"]
 		user.Username = identity
 	}
-	_, e = icentral.Central.CreateUserStoreIdentity(user, password)
+	_, e = icentral.Central.CreateUserStoreIdentity(&user, password)
 
 	if e == nil {
 		var label string

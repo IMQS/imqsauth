@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/IMQS/authaus"
-	"github.com/IMQS/serviceauth"
-	"github.com/IMQS/yfws"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -15,6 +12,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/IMQS/authaus"
+	"github.com/IMQS/serviceauth"
+	"github.com/IMQS/yfws"
 )
 
 // On the usage of defer() and panic() inside this file, as an exception handling mechanism:
@@ -644,7 +645,7 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		ModifiedBy:      createdby,
 	}
 
-	if userId, err := central.Central.CreateUserStoreIdentity(user, password); err != nil {
+	if userId, err := central.Central.CreateUserStoreIdentity(&user, password); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		if sendPasswordResetEmail {
@@ -701,7 +702,7 @@ func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		Type:            authUserType,
 	}
 
-	if err := central.Central.UpdateIdentity(user); err != nil {
+	if err := central.Central.UpdateIdentity(&user); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Updated user: '%v'", userId))
