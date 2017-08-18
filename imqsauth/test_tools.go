@@ -63,7 +63,7 @@ func LoadTestConfig(ic *ImqsCentral, testConfigName string) bool {
 		adminUserId, _ := ic.Central.CreateUserStoreIdentity(&adminUser, "ADMIN")
 
 		adminDisabledUser := authaus.AuthUser{
-			Email:           "adminDisabled",
+			Email:           "admin_disabled",
 			Username:        "adminDisabledUsername",
 			Firstname:       "adminDisabledFirstname",
 			Lastname:        "adminDisabledLastname",
