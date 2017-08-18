@@ -1,6 +1,8 @@
 package imqsauth
 
 import (
+	"time"
+
 	"github.com/IMQS/authaus"
 )
 
@@ -14,10 +16,66 @@ func LoadTestConfig(ic *ImqsCentral, testConfigName string) bool {
 		ic.Config.Authaus.HTTP.Port = TestPort
 		ic.Central = authaus.NewCentralDummy("")
 		ResetAuthGroups(ic)
-		joeUserId, _ := ic.Central.CreateUserStoreIdentity("joe", "joeUsername", "joeFirstname", "joeLastname", "joe084", "JOE")
-		jackUserId, _ := ic.Central.CreateUserStoreIdentity("jack", "jackUsername", "jackFirstname", "jackLastname", "jack084", "JACK")
-		adminUserId, _ := ic.Central.CreateUserStoreIdentity("admin", "adminUsername", "adminFirstname", "adminLastname", "admin084", "ADMIN")
-		adminDisabledUserId, _ := ic.Central.CreateUserStoreIdentity("admin_disabled", "admin_disabledUsername", "admin_disabledFirstname", "admin_disabledLastname", "admin_disabled084", "ADMIN_DISABLED")
+		now := time.Now().UTC()
+		joeUser := authaus.AuthUser{
+			Email:           "joe",
+			Username:        "joeUsername",
+			Firstname:       "joeFirstname",
+			Lastname:        "joeLastname",
+			Mobilenumber:    "joe084",
+			Telephonenumber: "joe021",
+			Remarks:         "joe test",
+			Created:         now,
+			CreatedBy:       0,
+			Modified:        now,
+			ModifiedBy:      0,
+		}
+		joeUserId, _ := ic.Central.CreateUserStoreIdentity(&joeUser, "JOE")
+
+		jackUser := authaus.AuthUser{
+			Email:           "jack",
+			Username:        "jackUsername",
+			Firstname:       "jackFirstname",
+			Lastname:        "jackLastname",
+			Mobilenumber:    "jack084",
+			Telephonenumber: "jack021",
+			Remarks:         "jack test",
+			Created:         now,
+			CreatedBy:       0,
+			Modified:        now,
+			ModifiedBy:      0,
+		}
+		jackUserId, _ := ic.Central.CreateUserStoreIdentity(&jackUser, "JACK")
+
+		adminUser := authaus.AuthUser{
+			Email:           "admin",
+			Username:        "adminUsername",
+			Firstname:       "adminFirstname",
+			Lastname:        "adminLastname",
+			Mobilenumber:    "admin084",
+			Telephonenumber: "admin021",
+			Remarks:         "admin test",
+			Created:         now,
+			CreatedBy:       0,
+			Modified:        now,
+			ModifiedBy:      0,
+		}
+		adminUserId, _ := ic.Central.CreateUserStoreIdentity(&adminUser, "ADMIN")
+
+		adminDisabledUser := authaus.AuthUser{
+			Email:           "adminDisabled",
+			Username:        "adminDisabledUsername",
+			Firstname:       "adminDisabledFirstname",
+			Lastname:        "adminDisabledLastname",
+			Mobilenumber:    "adminDisabled084",
+			Telephonenumber: "adminDisabled021",
+			Remarks:         "adminDisabled test",
+			Created:         now,
+			CreatedBy:       0,
+			Modified:        now,
+			ModifiedBy:      0,
+		}
+		adminDisabledUserId, _ := ic.Central.CreateUserStoreIdentity(&adminDisabledUser, "ADMIN_DISABLED")
 		groupAdmin, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupAdmin)
 		groupEnabled, _ := ic.Central.GetRoleGroupDB().GetByName(RoleGroupEnabled)
 		permitEnabled := &authaus.Permit{}

@@ -2,15 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/IMQS/authaus"
-	"github.com/IMQS/cli"
-	"github.com/IMQS/imqsauth/cros"
-	"github.com/IMQS/imqsauth/imqsauth"
 	"os"
 	"regexp"
 	"runtime"
 	"sort"
 	"strings"
+	"time"
+
+	"github.com/IMQS/authaus"
+	"github.com/IMQS/cli"
+	"github.com/IMQS/imqsauth/cros"
+	"github.com/IMQS/imqsauth/imqsauth"
 )
 
 // These files are written by create-keys.rb
@@ -38,6 +40,8 @@ func main() {
 	createUser.AddValueOption("firstname", "text", "First name")
 	createUser.AddValueOption("lastname", "text", "Last name")
 	createUser.AddValueOption("username", "text", "Username")
+	createUser.AddValueOption("telephone", "text", "Telephone number")
+	createUser.AddValueOption("remarks", "text", "Remarks")
 
 	app.AddCommand("killsessions", "Erase all sessions belonging to a particular user\nWarning! The running server maintains a cache of "+
 		"sessions, so you must stop the server, run this command, and then start the server again to kill sessions correctly.", "identity")
@@ -134,6 +138,9 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 		}
 		defer ic.Central.Close()
 	}
+
+	// Run migrations
+	createDB(&ic.Config.Authaus)
 
 	// Setup yellowfin
 	if ic.Central != nil {
@@ -381,11 +388,26 @@ func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, ident
 
 	isEmail, _ := regexp.MatchString("^([\\w-]+(?:\\.[\\w-]+)*)@((?:[\\w-]+\\.)*\\w[\\w-]{0,66})\\.([a-z]{2,6}(?:\\.[a-z]{2})?)$", identity)
 	var e error
-	if isEmail {
-		_, e = icentral.Central.CreateUserStoreIdentity(identity, options["username"], options["firstname"], options["lastname"], options["mobile"], password)
-	} else {
-		_, e = icentral.Central.CreateUserStoreIdentity(options["email"], identity, options["firstname"], options["lastname"], options["mobile"], password)
+	nowTime := time.Now().UTC()
+	user := authaus.AuthUser{
+		Firstname:       options["firstname"],
+		Lastname:        options["lastname"],
+		Mobilenumber:    options["mobile"],
+		Telephonenumber: options["telephone"],
+		Remarks:         options["remarks"],
+		Created:         nowTime,
+		CreatedBy:       0,
+		Modified:        nowTime,
+		ModifiedBy:      0,
 	}
+	if isEmail {
+		user.Email = identity
+		user.Username = options["username"]
+	} else {
+		user.Email = options["email"]
+		user.Username = identity
+	}
+	_, e = icentral.Central.CreateUserStoreIdentity(&user, password)
 
 	if e == nil {
 		var label string
