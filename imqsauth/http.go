@@ -509,8 +509,12 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 		httpSendNoIdentity(w)
 		return
 	}
+	var clientIp string
+	if clientIp = r.http.Header.Get("X-Forwarded-For"); clientIp == "" {
+		clientIp = r.http.RemoteAddr
+	}
 
-	if sessionkey, token, err := central.Central.Login(identity, password); err != nil {
+	if sessionkey, token, err := central.Central.Login(identity, password, clientIp); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		if permList, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup != nil {
@@ -651,7 +655,7 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		if sendPasswordResetEmail {
 			code, msg := central.ResetPasswordStart(userId, true)
 			if code != http.StatusOK {
-				authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Created identity '%v'. However, failed to initiate password reset: ", identity, msg))
+				authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Created identity '%v'. However, failed to initiate password reset: %v\n", identity, msg))
 				return
 			}
 		}
