@@ -88,8 +88,10 @@ func (x *groupResponseJson) SetGroup(group *authaus.AuthGroup) {
 	}
 }
 
-type emailGroupsResponseJson struct {
-	Groups []string
+type groupsResponseJson struct {
+	Email    string
+	UserName string
+	Groups   []string
 }
 
 type userResponseJson struct {
@@ -166,7 +168,6 @@ func (x *ImqsCentral) RunHttp() error {
 			actual(x, w, httpReq)
 		}
 	}
-
 	smux := http.NewServeMux()
 	smux.HandleFunc("/hello", makehandler(HttpMethodGet, httpHandlerHello, 0))
 	smux.HandleFunc("/ping", makehandler(HttpMethodGet, httpHandlerPing, 0))
@@ -185,7 +186,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/set_password", makehandler(HttpMethodPost, httpHandlerSetPassword, handlerFlagNeedToken))
 	smux.HandleFunc("/reset_password_start", makehandler(HttpMethodPost, httpHandlerResetPasswordStart, 0))
 	smux.HandleFunc("/reset_password_finish", makehandler(HttpMethodPost, httpHandlerResetPasswordFinish, 0))
-	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetEmails, 0))
+	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetEmails, handlerFlagNeedToken))
 	smux.HandleFunc("/userobjects", makehandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/groups", makehandler(HttpMethodGet, httpHandlerGetGroups, 0))
 	smux.HandleFunc("/hasactivedirectory", makehandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
@@ -394,35 +395,33 @@ func httpSendGroupsJson(w http.ResponseWriter, groups []*authaus.AuthGroup) {
 }
 
 func httpSendPermitsJson(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit, w http.ResponseWriter) {
-	//central.Central.Log.Printf("Number of identities %v", len(permits))
-
 	emptyPermit := authaus.Permit{}
 
-	jresponse := make(map[string]*emailGroupsResponseJson)
+	jresponse := make([]*groupsResponseJson, 0)
 	for _, user := range users {
+		var validUser groupsResponseJson
 		permit := ident2perm[user.UserId]
 		if permit == nil {
 			permit = &emptyPermit
 		}
-		jresponse[user.Email] = &emailGroupsResponseJson{}
 		groups, err := authaus.DecodePermit(permit.Roles)
 		if err != nil {
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		jresponse[user.Email].Groups, err = authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB())
+		validUser.UserName = user.Username
+		validUser.Email = user.Email
+		validUser.Groups, err = authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB())
 		if err != nil {
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+		jresponse = append(jresponse, &validUser)
 	}
-
 	httpSendJson(w, jresponse)
 }
 
 func httpSendUserObjectsJson(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit, w http.ResponseWriter) {
-	//central.Central.Log.Printf("Number of identities %v", len(permits))
-
 	emptyPermit := authaus.Permit{}
 
 	//jresponse := make(map[string]*userResponseJson)
