@@ -107,6 +107,12 @@ const (
 	PermMmLeaveManagementView authaus.PermissionU16 = 461 // MM Leave Management View
 	PermMmLeaveManagementAddAndDelete authaus.PermissionU16 = 462 // MM Leave Management Add/Delete
 	PermMmLeaveManagementUpdate authaus.PermissionU16 = 463 // MM Leave Management Update
+	PermMmProjectCodeManagementView authaus.PermissionU16 = 464 // MM Project Code Management View
+	PermMmProjectCodeManagementAddAndDelete authaus.PermissionU16 = 465 // MM Project Code Management Add/Delete
+	PermMmProjectCodeManagementUpdate authaus.PermissionU16 = 466 // MM Project Code Management Update
+	PermMmProjectSapManagementView authaus.PermissionU16 = 467 // MM Project Sap Management View
+	PermMmProjectSapManagementAddAndDelete authaus.PermissionU16 = 468 // MM Project Sap Management Add/Delete
+	PermMmProjectSapManagementUpdate authaus.PermissionU16 = 469 // MM Project Sap Management Update
 	PermWipEnabled authaus.PermissionU16 = 500 // User is allowed to use the WIP module
 	PermWipWorkflowStart authaus.PermissionU16 = 501 // User is allowed to start a workflow
 	PermWipWorkflowSuspend authaus.PermissionU16 = 502 // User is allowed to suspend a workflow
@@ -245,6 +251,12 @@ func init() {
 	PermissionsTable[PermMmLeaveManagementView] = "mmleavemanagementview" // MM Leave Management View
 	PermissionsTable[PermMmLeaveManagementAddAndDelete] = "mmleavemanagementaddanddelete" // MM Leave Management Add/Delete
 	PermissionsTable[PermMmLeaveManagementUpdate] = "mmleavemanagementupdate" // MM Leave Management Update
+	PermissionsTable[PermMmProjectCodeManagementView] = "mmprojectcodemanagementview" // MM Project Code Management View
+	PermissionsTable[PermMmProjectCodeManagementAddAndDelete] = "mmprojectcodemanagementaddanddelete" // MM Project Code Management Add/Delete
+	PermissionsTable[PermMmProjectCodeManagementUpdate] = "mmprojectcodemanagementupdate" // MM Project Code Management Update
+	PermissionsTable[PermMmProjectSapManagementView] = "mmprojectsapmanagementview" // MM Project Sap Management View
+	PermissionsTable[PermMmProjectSapManagementAddAndDelete] = "mmprojectsapmanagementaddanddelete" // MM Project Sap Management Add/Delete
+	PermissionsTable[PermMmProjectSapManagementUpdate] = "mmprojectsapmanagementupdate" // MM Project Sap Management Update
 	PermissionsTable[PermWipEnabled] = "wipenabled" // User is allowed to use the WIP module
 	PermissionsTable[PermWipWorkflowStart] = "wipworkflowstart" // User is allowed to start a workflow
 	PermissionsTable[PermWipWorkflowSuspend] = "wipworkflowsuspend" // User is allowed to suspend a workflow
