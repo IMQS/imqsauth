@@ -152,6 +152,11 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 		}
 	}
 
+	// Setup audit service
+	if ic.Central != nil {
+		ic.Central.Auditor = imqsauth.NewIMQSAuditor(ic.Config.AuditServiceUrl, ic.Central.Log)
+	}
+
 	success := false
 	switch cmdName {
 	case "createdb":
