@@ -33,26 +33,26 @@ type ActionContext struct {
 
 func (a *IMQSAuditor) AuditUserAction(identity, clientIp, description string) {
 	action := &Action{Who: identity, DidWhat: description, AtTime: time.Now().Unix()}
+	action.Context.Location = clientIp
 
-	var actionContext ActionContext
-	actionContext.Location = clientIp
-	action.Context = actionContext
-
-	actionStr, err := json.Marshal(action)
+	jsonBuf := new(bytes.Buffer)
+	encoder := json.NewEncoder(jsonBuf)
+	err := encoder.Encode(action)
 	if err != nil {
 		a.Log.Errorf("Failed to marshal action into json: (%v)", err)
 		return
 	}
 
-	req, err := http.NewRequest("POST", a.Url, bytes.NewBuffer(actionStr))
+	req, err := http.NewRequest("POST", a.Url, jsonBuf)
 	if err != nil {
 		a.Log.Errorf("Error creating audit request: (%v)", err)
 		return
 	}
-	req.Header.Add("Date", time.Now().Format("Mon, 02 Jan 2006 15:04:05 GMT"))
+	// Override RFC1123 format to print out GMT instead of UTC as required by serviceauth package.
+	req.Header.Add("Date", time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05 GMT"))
 	req.Header.Set("Content-Type", "application/json")
 
-	err = serviceauth.CreateInterServiceRequest(req, actionStr)
+	err = serviceauth.CreateInterServiceRequest(req, jsonBuf.Bytes())
 	if err != nil {
 		a.Log.Errorf("Error creating audit interservice request: (%v)", err)
 		return
