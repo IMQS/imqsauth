@@ -1027,20 +1027,18 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 		panic(eSetPermit)
 	}
 
-	// Also update the modified user parameters when changing user permissions
-	user, getIDerr := central.Central.GetUserFromUserId(userId)
-	if getIDerr != nil {
-		authaus.HttpSendTxt(w, http.StatusForbidden, getIDerr.Error())
-	}
-
-	user.Modified = time.Now().UTC()
-	user.ModifiedBy = r.token.UserId
-	if err := central.Central.UpdateIdentity(&user); err != nil {
-		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
-	}
-
 	summary := strings.Join(groups, ",")
 	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("'%v' groups set to (%v)", userId, summary))
+
+	// Also update the modified user parameters when changing user permissions
+	// Ignore permission denied errors for updating the modified parameters as
+	// you can create permits for users that do not exist in the authentication system
+	user, getIDerr := central.Central.GetUserFromUserId(userId)
+	if getIDerr == nil {
+		user.Modified = time.Now().UTC()
+		user.ModifiedBy = r.token.UserId
+		central.Central.UpdateIdentity(&user)
+	}
 
 	// Change yellowfin permissions
 	/* // this has been moved into Login
