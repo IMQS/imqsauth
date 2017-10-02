@@ -2,15 +2,17 @@ package imqsauth
 
 import (
 	"github.com/IMQS/authaus"
-	"github.com/IMQS/serviceconfigsgo"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+	"github.com/IMQS/serviceconfigsgo"
 )
 
-const serviceConfigFileName = "imqsauth.json"
-const serviceConfigVersion = 1
-const serviceName = "ImqsAuth"
+const (
+	serviceConfigFileName                        = "imqsauth.json"
+	serviceConfigVersion                         = 1
+	serviceName                                  = "ImqsAuth"
+)
 
 type ConfigYellowfin struct {
 	Enabled bool
@@ -57,10 +59,9 @@ func (x *Config) ResetForUnitTests() {
 	x.enablePcsRename = false
 }
 
-func (x *Config) LoadFile(filename string) error {
+func (x *Config) LoadFile(filename string, cMode bool) error {
 	x.Reset()
-
-	err := serviceconfig.GetConfig(filename, serviceName, serviceConfigVersion, serviceConfigFileName, x)
+	err := serviceconfig.GetConfig(filename, serviceName, serviceConfigVersion, serviceConfigFileName, x, cMode)
 	if err != nil {
 		return err
 	}

@@ -193,7 +193,7 @@ func (x *ImqsCentral) RunHttp() error {
 
 	server := &http.Server{}
 	server.Handler = smux
-	server.Addr = x.Config.Authaus.HTTP.Bind + ":" + strconv.Itoa(x.Config.Authaus.HTTP.Port)
+	server.Addr = x.Config.Authaus.HTTP.Bind + ":" + x.Config.Authaus.HTTP.Port
 
 	x.Central.Log.Infof("ImqsAuth is trying to listen on %v:%v", x.Config.Authaus.HTTP.Bind, x.Config.Authaus.HTTP.Port)
 
