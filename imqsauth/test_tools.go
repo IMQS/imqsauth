@@ -7,7 +7,7 @@ import (
 )
 
 const TestConfig1 = "!TESTCONFIG1"
-const TestPort = 3377
+const TestPort = "3377"
 
 func LoadTestConfig(ic *ImqsCentral, testConfigName string) bool {
 	if testConfigName == TestConfig1 {

@@ -66,6 +66,8 @@ func main() {
 	app.AddBoolOption("nosvc", "Do not try to run as a Windows Service. Normally, the 'run' command detects whether this is an "+
 		"'interactive session', and if not interactive, runs as a Windows Service. Specifying -nosvc forces us to launch as a regular process.")
 
+	app.AddBoolOption("d", "Indicate that the service will run in container mode.")
+
 	app.Run()
 }
 
@@ -94,6 +96,8 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 		}
 	}()
 
+	cMode := options["d"] == ""
+
 	ic := &imqsauth.ImqsCentral{}
 	ic.Config = &imqsauth.Config{}
 
@@ -102,7 +106,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	// Try test config first; otherwise load real config
 	isTestConfig := imqsauth.LoadTestConfig(ic, configFile)
 	if !isTestConfig {
-		if err := ic.Config.LoadFile(configFile); err != nil {
+		if err := ic.Config.LoadFile(configFile, cMode); err != nil {
 			panic(fmt.Sprintf("Error loading config file '%v': %v", configFile, err))
 		}
 	}
