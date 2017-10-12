@@ -96,7 +96,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 		}
 	}()
 
-	cMode := options["d"] == ""
+	_, cMode :=  options["d"]
 
 	ic := &imqsauth.ImqsCentral{}
 	ic.Config = &imqsauth.Config{}
