@@ -11,6 +11,7 @@ import (
 
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/cli"
+	"github.com/IMQS/gowinsvc/service"
 	"github.com/IMQS/imqsauth/cros"
 	"github.com/IMQS/imqsauth/imqsauth"
 )
@@ -66,8 +67,6 @@ func main() {
 	app.AddBoolOption("nosvc", "Do not try to run as a Windows Service. Normally, the 'run' command detects whether this is an "+
 		"'interactive session', and if not interactive, runs as a Windows Service. Specifying -nosvc forces us to launch as a regular process.")
 
-	app.AddBoolOption("d", "Indicate that the service will run in container mode.")
-
 	app.Run()
 }
 
@@ -96,8 +95,6 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 		}
 	}()
 
-	_, cMode :=  options["d"]
-
 	ic := &imqsauth.ImqsCentral{}
 	ic.Config = &imqsauth.Config{}
 
@@ -106,7 +103,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	// Try test config first; otherwise load real config
 	isTestConfig := imqsauth.LoadTestConfig(ic, configFile)
 	if !isTestConfig {
-		if err := ic.Config.LoadFile(configFile, cMode); err != nil {
+		if err := ic.Config.LoadFile(configFile); err != nil {
 			panic(fmt.Sprintf("Error loading config file '%v': %v", configFile, err))
 		}
 	}
@@ -158,7 +155,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 
 	// Setup audit service
 	if ic.Central != nil {
-		ic.Central.Auditor = imqsauth.NewIMQSAuditor(ic.Config.AuditServiceUrl, ic.Central.Log)
+		ic.Central.Auditor = imqsauth.NewIMQSAuditor(ic.Central.Log)
 	}
 
 	success := false
@@ -178,7 +175,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	case "resetauthgroups":
 		success = imqsauth.ResetAuthGroups(ic)
 	case "run":
-		if options.Has("nosvc") || !authaus.RunAsService(handlerNoRetVal) {
+		if options.Has("nosvc") || !service.RunAsService(handlerNoRetVal) {
 			success = false
 			fmt.Print(handler())
 		}
