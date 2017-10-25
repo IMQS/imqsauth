@@ -1,17 +1,18 @@
 package imqsauth
 
 import (
-	"github.com/IMQS/authaus"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+
+	"github.com/IMQS/authaus"
 	"github.com/IMQS/serviceconfigsgo"
 )
 
 const (
-	serviceConfigFileName                        = "imqsauth.json"
-	serviceConfigVersion                         = 1
-	serviceName                                  = "ImqsAuth"
+	serviceConfigFileName = "imqsauth.json"
+	serviceConfigVersion  = 1
+	serviceName           = "ImqsAuth"
 )
 
 type ConfigYellowfin struct {
@@ -42,7 +43,6 @@ type Config struct {
 	lastFileLoaded             string // Used for relative paths (such as HostnameFile)
 	enablePcsRename            bool   // Disabled by unit tests
 	NotificationUrl            string
-	AuditServiceUrl            string
 }
 
 func (x *Config) Reset() {
@@ -59,9 +59,9 @@ func (x *Config) ResetForUnitTests() {
 	x.enablePcsRename = false
 }
 
-func (x *Config) LoadFile(filename string, cMode bool) error {
+func (x *Config) LoadFile(filename string) error {
 	x.Reset()
-	err := serviceconfig.GetConfig(filename, serviceName, serviceConfigVersion, serviceConfigFileName, x, cMode)
+	err := serviceconfig.GetConfig(filename, serviceName, serviceConfigVersion, serviceConfigFileName, x)
 	if err != nil {
 		return err
 	}
