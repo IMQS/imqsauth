@@ -354,7 +354,7 @@ func showAllRoles() {
 }
 
 func showAllIdentities(icentral *imqsauth.ImqsCentral) bool {
-	users, err := icentral.Central.GetAuthenticatorIdentities()
+	users, err := icentral.Central.GetAuthenticatorIdentities(authaus.GetIdentitiesFlagNone)
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		return false
