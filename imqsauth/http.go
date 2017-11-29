@@ -109,6 +109,7 @@ type userResponseJson struct {
 	ModifiedBy   string
 	Groups       []string
 	AuthUserType authaus.AuthUserType
+	Archived     bool
 }
 
 type ImqsCentral struct {
@@ -457,6 +458,7 @@ func httpSendUserObjectsJson(central *ImqsCentral, users []authaus.AuthUser, ide
 			ModifiedBy:   central.Central.GetUserNameFromUserId(user.ModifiedBy),
 			Groups:       groupnames,
 			AuthUserType: user.Type,
+			Archived:     user.Archived,
 		})
 	}
 
@@ -750,7 +752,7 @@ func httpHandlerDeleteGroup(central *ImqsCentral, w http.ResponseWriter, r *http
 	}
 
 	// Remove group from all users before deleting
-	users, err := central.Central.GetAuthenticatorIdentities()
+	users, err := central.Central.GetAuthenticatorIdentities(authaus.GetIdentitiesFlagNone)
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 		return
@@ -944,7 +946,7 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 }
 
 func broadcastGroupChange(central *ImqsCentral, r *httpRequest, groupname string) {
-	users, err := central.Central.GetAuthenticatorIdentities()
+	users, err := central.Central.GetAuthenticatorIdentities(authaus.GetIdentitiesFlagNone)
 	if err != nil {
 		central.Central.Log.Warnf("Unable to broadcast change, unable to read identities: %v", err)
 		return
@@ -1160,7 +1162,7 @@ func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 }
 
 func httpHandlerGetEmails(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	users, err := central.Central.GetAuthenticatorIdentities()
+	users, err := central.Central.GetAuthenticatorIdentities(authaus.GetIdentitiesFlagNone)
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 		return
@@ -1176,7 +1178,17 @@ func httpHandlerGetEmails(central *ImqsCentral, w http.ResponseWriter, r *httpRe
 }
 
 func httpHandlerGetUsers(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	users, err := central.Central.GetAuthenticatorIdentities()
+	includeArchived := strings.TrimSpace(r.http.URL.Query().Get("archived"))
+	var getIdentitiesFlag authaus.GetIdentitiesFlag
+	includeArchivedFlag, _ := strconv.ParseBool(includeArchived)
+
+	if includeArchivedFlag {
+		getIdentitiesFlag = authaus.GetIdentitiesFlagDeleted
+	} else {
+		getIdentitiesFlag = authaus.GetIdentitiesFlagNone
+	}
+
+	users, err := central.Central.GetAuthenticatorIdentities(getIdentitiesFlag)
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 		return
