@@ -159,22 +159,21 @@ const (
 	PermElectricityDemoModuleAccess authaus.PermissionU16 = 1106 // User is allowed to access the Electricity Demo module
 	PermEnergyModuleAccess authaus.PermissionU16 = 1107 // User is allowed to access the Energy module
 	PermIndigentModuleAccess authaus.PermissionU16 = 1108 // User is allowed to access the Indigent module
-	PermImporterModuleAccess authaus.PermissionU16 = 1109 // User is allowed to access the Importer module
-	PermLandUseModuleAccess authaus.PermissionU16 = 1110 // User is allowed to access the Land Use module
-	PermMaintenanceManagementModuleAccess authaus.PermissionU16 = 1111 // User is allowed to access the Maintenance Management module
-	PermMeterMaintenanceModuleAccess authaus.PermissionU16 = 1112 // User is allowed to access the Meter Maintenance module
-	PermPcsModuleAccess authaus.PermissionU16 = 1113 // User is allowed to access the PCS module
-	PermPropertiesandBuildingsModuleAccess authaus.PermissionU16 = 1114 // User is allowed to access the Properties and Buildings module
-	PermRevenueEnhancementModuleAccess authaus.PermissionU16 = 1115 // User is allowed to access the Revenue Enhancement module
-	PermRoadsModuleAccess authaus.PermissionU16 = 1116 // User is allowed to access the Roads module
-	PermSewerModuleAccess authaus.PermissionU16 = 1117 // User is allowed to access the Sewer module
-	PermSewerPRPModuleAccess authaus.PermissionU16 = 1118 // User is allowed to access the Sewer PRP module
-	PermStormwaterModuleAccess authaus.PermissionU16 = 1119 // User is allowed to access the Stormwater module
-	PermTelcosModuleAccess authaus.PermissionU16 = 1120 // User is allowed to access the Telcos module
-	PermWaterModuleAccess authaus.PermissionU16 = 1121 // User is allowed to access the Water module
-	PermWaterDemandModuleAccess authaus.PermissionU16 = 1122 // User is allowed to access the Water Demand module
-	PermWaterPRPModuleAccess authaus.PermissionU16 = 1123 // User is allowed to access the Water PRP module
-	PermWipModuleAccess authaus.PermissionU16 = 1124 // User is allowed to access the WIP module
+	PermLandUseModuleAccess authaus.PermissionU16 = 1109 // User is allowed to access the Land Use module
+	PermMaintenanceManagementModuleAccess authaus.PermissionU16 = 1110 // User is allowed to access the Maintenance Management module
+	PermMeterMaintenanceModuleAccess authaus.PermissionU16 = 1111 // User is allowed to access the Meter Maintenance module
+	PermPcsModuleAccess authaus.PermissionU16 = 1112 // User is allowed to access the PCS module
+	PermPropertiesandBuildingsModuleAccess authaus.PermissionU16 = 1113 // User is allowed to access the Properties and Buildings module
+	PermRevenueEnhancementModuleAccess authaus.PermissionU16 = 1114 // User is allowed to access the Revenue Enhancement module
+	PermRoadsModuleAccess authaus.PermissionU16 = 1115 // User is allowed to access the Roads module
+	PermSewerModuleAccess authaus.PermissionU16 = 1116 // User is allowed to access the Sewer module
+	PermSewerPRPModuleAccess authaus.PermissionU16 = 1117 // User is allowed to access the Sewer PRP module
+	PermStormwaterModuleAccess authaus.PermissionU16 = 1118 // User is allowed to access the Stormwater module
+	PermTelcosModuleAccess authaus.PermissionU16 = 1119 // User is allowed to access the Telcos module
+	PermWaterModuleAccess authaus.PermissionU16 = 1120 // User is allowed to access the Water module
+	PermWaterDemandModuleAccess authaus.PermissionU16 = 1121 // User is allowed to access the Water Demand module
+	PermWaterPRPModuleAccess authaus.PermissionU16 = 1122 // User is allowed to access the Water PRP module
+	PermWipModuleAccess authaus.PermissionU16 = 1123 // User is allowed to access the WIP module
 
 )
 
@@ -329,7 +328,6 @@ func init() {
 	PermissionsTable[PermElectricityDemoModuleAccess] = "electricitydemomoduleaccess" // User is allowed to access the Electricity Demo module
 	PermissionsTable[PermEnergyModuleAccess] = "energymoduleaccess" // User is allowed to access the Energy module
 	PermissionsTable[PermIndigentModuleAccess] = "indigentmoduleaccess" // User is allowed to access the Indigent module
-	PermissionsTable[PermImporterModuleAccess] = "importermoduleaccess" // User is allowed to access the Importer module
 	PermissionsTable[PermLandUseModuleAccess] = "landusemoduleaccess" // User is allowed to access the Land Use module
 	PermissionsTable[PermMaintenanceManagementModuleAccess] = "maintenancemanagementmoduleaccess" // User is allowed to access the Maintenance Management module
 	PermissionsTable[PermMeterMaintenanceModuleAccess] = "metermaintenancemoduleaccess" // User is allowed to access the Meter Maintenance module
