@@ -133,6 +133,7 @@ const (
 	PermWipBudgetAdd authaus.PermissionU16 = 523 // User is allowed to add a WIP budget
 	PermWipBudgetEdit authaus.PermissionU16 = 524 // User is allowed to edit a WIP budget
 	PermWipBudgetDelete authaus.PermissionU16 = 525 // User is allowed to delete a WIP budget
+	PermWipCapitalize authaus.PermissionU16 = 526 // User is allowed to perform capitalization tasks
 	PermEnergyConfigAddAndDelete authaus.PermissionU16 = 600 // User is allowed to add and delete an energy site configuration
 	PermEnergyConfigUpdate authaus.PermissionU16 = 601 // User is allowed to update an energy site configuration
 	PermEnergyConfigView authaus.PermissionU16 = 602 // User is allowed to view an energy site configuration
@@ -277,6 +278,7 @@ func init() {
 	PermissionsTable[PermWipBudgetAdd] = "wipbudgetadd" // User is allowed to add a WIP budget
 	PermissionsTable[PermWipBudgetEdit] = "wipbudgetedit" // User is allowed to edit a WIP budget
 	PermissionsTable[PermWipBudgetDelete] = "wipbudgetdelete" // User is allowed to delete a WIP budget
+	PermissionsTable[PermWipCapitalize] = "wipcapitalize" // User is allowed to perform capitalization tasks
 	PermissionsTable[PermEnergyConfigAddAndDelete] = "energyconfigaddanddelete" // User is allowed to add and delete an energy site configuration
 	PermissionsTable[PermEnergyConfigUpdate] = "energyconfigupdate" // User is allowed to update an energy site configuration
 	PermissionsTable[PermEnergyConfigView] = "energyconfigview" // User is allowed to view an energy site configuration
