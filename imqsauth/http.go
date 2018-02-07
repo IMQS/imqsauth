@@ -429,7 +429,7 @@ func httpSendUserObjectsJson(central *ImqsCentral, users []authaus.AuthUser, ide
 	jresponse := make([]*userResponseJson, 0)
 	for _, user := range users {
 		permit := ident2perm[user.UserId]
-		if permit == nil {
+		if permit == nil || user.Archived { // Do not include permits of archived users
 			permit = &emptyPermit
 		}
 		groups, err := authaus.DecodePermit(permit.Roles)
