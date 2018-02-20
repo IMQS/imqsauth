@@ -510,8 +510,9 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 		httpSendNoIdentity(w)
 		return
 	}
+
 	var clientIp string
-	if clientIp = r.http.Header.Get("X-Forwarded-For"); clientIp == "" {
+	if clientIp = getIPAdress(r.http); clientIp == "" {
 		clientIp = r.http.RemoteAddr
 	}
 
