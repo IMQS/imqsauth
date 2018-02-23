@@ -146,7 +146,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	// Setup yellowfin
 	if ic.Central != nil {
 		ic.Yellowfin = imqsauth.NewYellowfin(ic.Central.Log)
-		if ic.Config.Yellowfin.Enabled {
+		if ic.Config.Yellowfin.Enabled && !ic.Config.IsContainer() {
 			if err := ic.Yellowfin.LoadConfig(ic.Config.Yellowfin, cros.YellowfinAdminPasswordFile, cros.YellowfinUserPasswordFile); err != nil {
 				panic(fmt.Sprintf("Error loading yellowfin config: %v", err))
 			}

@@ -69,6 +69,10 @@ func (x *Config) LoadFile(filename string) error {
 	return nil
 }
 
+func (x *Config) IsContainer() bool {
+	return serviceconfig.IsContainer()
+}
+
 func (x *Config) GetHostname() string {
 	if x.hostname == "" {
 		if x.HostnameFile != "" {
