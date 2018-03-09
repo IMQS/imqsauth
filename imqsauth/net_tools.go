@@ -5,6 +5,8 @@ import (
 	"net"
 	"net/http"
 	"strings"
+
+	"github.com/IMQS/authaus"
 )
 
 //ipAddressRange - a structure that holds the start and end of a range of ip addresses
@@ -62,7 +64,7 @@ func isPrivateSubnet(ipAddress net.IP) bool {
 }
 
 // Source - https://husobee.github.io/golang/ip-address/2015/12/17/remote-ip-go.html
-func getIPAdress(r *http.Request) string {
+func getIPAddress(r *http.Request) string {
 	for _, h := range []string{"X-Forwarded-For", "X-Real-Ip"} {
 		addresses := strings.Split(r.Header.Get(h), ",")
 		// march from right to left until we get a public address
@@ -78,5 +80,14 @@ func getIPAdress(r *http.Request) string {
 			return ip
 		}
 	}
-	return ""
+	return r.RemoteAddr
+}
+
+func auditUserLogAction(central *ImqsCentral, req *httpRequest, user, actionDescription string, actionType authaus.AuditActionType) {
+	loggedInUserId := req.token.UserId
+	clientIP := getIPAddress(req.http)
+
+	if loggedInUser, err := central.Central.GetUserFromUserId(authaus.UserId(loggedInUserId)); err == nil && central.Central.Auditor != nil {
+		central.Central.Auditor.AuditUserAction(loggedInUser.Username, clientIP, user, actionDescription, actionType)
+	}
 }

@@ -511,14 +511,11 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 		return
 	}
 
-	var clientIp string
-	if clientIp = getIPAdress(r.http); clientIp == "" {
-		clientIp = r.http.RemoteAddr
-	}
-
-	if sessionkey, token, err := central.Central.Login(identity, password, clientIp); err != nil {
+	if sessionkey, token, err := central.Central.Login(identity, password); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+		auditUserLogAction(central, r, identity, "Login failed: Invalid credentials", authaus.AuditActionUserAuthentication)
 	} else {
+		auditUserLogAction(central, r, identity, "Login successful", authaus.AuditActionUserAuthentication)
 		if permList, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup != nil {
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, egroup.Error())
 		} else {
@@ -654,6 +651,7 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	if userId, err := central.Central.CreateUserStoreIdentity(&user, password); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
+		auditUserLogAction(central, r, user.Username, "User created", authaus.AuditActionUserCreated)
 		if sendPasswordResetEmail {
 			code, msg := central.ResetPasswordStart(userId, true)
 			if code != http.StatusOK {
@@ -711,6 +709,7 @@ func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	if err := central.Central.UpdateIdentity(&user); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
+		auditUserLogAction(central, r, user.Username, "User updated", authaus.AuditActionUserUpdated)
 		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Updated user: '%v'", userId))
 	}
 }
@@ -736,6 +735,9 @@ func httpHandlerArchiveUser(central *ImqsCentral, w http.ResponseWriter, r *http
 	if err := central.Central.ArchiveIdentity(authaus.UserId(userId)); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
+		if user, err := central.Central.GetUserFromUserId(authaus.UserId(userId)); err == nil {
+			auditUserLogAction(central, r, user.Username, "User deleted", authaus.AuditActionUserDeleted)
+		}
 		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Archived user: '%v'", userId))
 	}
 }
@@ -895,6 +897,8 @@ func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		return
 	}
 
+	auditUserLogAction(central, r, user.Username, "User "+oldIdent+" renamed to "+newIdent, authaus.AuditActionUserUpdated)
+
 	if central.Config.enablePcsRename {
 		if err := pcsRenameUser(central.Config.GetHostname(), oldIdent, newIdent); err != nil {
 			central.Central.Log.Warnf("Error: failed to rename PCS: %v", err)
@@ -1034,6 +1038,10 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 		panic(eSetPermit)
 	}
 
+	if user, err := central.Central.GetUserFromUserId(authaus.UserId(userId)); err == nil {
+		auditUserLogAction(central, r, user.Username, "User permissions changed", authaus.AuditActionUserUpdated)
+	}
+
 	summary := strings.Join(groups, ",")
 	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("'%v' groups set to (%v)", userId, summary))
 
@@ -1094,6 +1102,10 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 		central.Central.Log.Infof("Error setting password for %v: %v", userId, err)
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	if user, err := central.Central.GetUserFromUserId(authaus.UserId(userId)); err == nil {
+		auditUserLogAction(central, r, user.Username, "Password changed", authaus.AuditActionUserUpdated)
 	}
 
 	authaus.HttpSendTxt(w, http.StatusOK, "Password changed")
