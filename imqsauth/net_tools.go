@@ -84,10 +84,16 @@ func getIPAddress(r *http.Request) string {
 }
 
 func auditUserLogAction(central *ImqsCentral, req *httpRequest, user, actionDescription string, actionType authaus.AuditActionType) {
-	loggedInUserId := req.token.UserId
+	var loggedInUserId authaus.UserId
+	if req.token != nil {
+		loggedInUserId = req.token.UserId
+	}
 	clientIP := getIPAddress(req.http)
-
-	if loggedInUser, err := central.Central.GetUserFromUserId(authaus.UserId(loggedInUserId)); err == nil && central.Central.Auditor != nil {
-		central.Central.Auditor.AuditUserAction(loggedInUser.Username, clientIP, user, actionDescription, actionType)
+	if central.Central.Auditor != nil {
+		if loggedInUser, err := central.Central.GetUserFromUserId(authaus.UserId(loggedInUserId)); err == nil {
+			central.Central.Auditor.AuditUserAction(loggedInUser.Username, clientIP, user, actionDescription, actionType)
+		} else {
+			central.Central.Auditor.AuditUserAction(user, clientIP, user, actionDescription, actionType)
+		}
 	}
 }
