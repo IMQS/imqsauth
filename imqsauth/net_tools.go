@@ -2,6 +2,7 @@ package imqsauth
 
 import (
 	"bytes"
+	"encoding/json"
 	"net"
 	"net/http"
 	"strings"
@@ -83,17 +84,35 @@ func getIPAddress(r *http.Request) string {
 	return r.RemoteAddr
 }
 
-func auditUserLogAction(central *ImqsCentral, req *httpRequest, user, actionDescription string, actionType authaus.AuditActionType) {
+func auditUserLogAction(central *ImqsCentral, req *httpRequest, item string, actionType authaus.AuditActionType) {
+	type ContextDetails struct {
+		Service  string `json:"service"`
+		Origin   string `json:"origin"`
+		Username string `json:"username"`
+		UserId   int64  `json:"userid"`
+	}
+
 	var loggedInUserId authaus.UserId
+
+	contextDetails := ContextDetails{
+		Service: "Auth",
+		Origin:  getIPAddress(req.http),
+	}
+
 	if req.token != nil {
 		loggedInUserId = req.token.UserId
+		contextDetails.Username = req.token.Username
+		contextDetails.UserId = int64(req.token.UserId)
 	}
-	clientIP := getIPAddress(req.http)
+
+	contextData, err := json.Marshal(contextDetails)
+	if err != nil {
+		return
+	}
+
 	if central.Central.Auditor != nil {
 		if loggedInUser, err := central.Central.GetUserFromUserId(authaus.UserId(loggedInUserId)); err == nil {
-			central.Central.Auditor.AuditUserAction(loggedInUser.Username, clientIP, user, actionDescription, actionType)
-		} else {
-			central.Central.Auditor.AuditUserAction(user, clientIP, user, actionDescription, actionType)
+			central.Central.Auditor.AuditUserAction(loggedInUser.Username, item, string(contextData), actionType)
 		}
 	}
 }
