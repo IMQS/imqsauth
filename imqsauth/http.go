@@ -515,7 +515,8 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 	if sessionkey, token, err := central.Central.Login(identity, password); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
-		auditUserLogAction(central, r, "User Profile: "+token.Username, authaus.AuditActionUserAuthentication)
+		r.token = token
+		auditUserLogAction(central, r, "User Profile: "+token.Identity, authaus.AuditActionUserAuthentication)
 		if permList, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup != nil {
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, egroup.Error())
 		} else {
@@ -726,20 +727,27 @@ func parseAuthUserTypeString(authUserTypeString string) (authaus.AuthUserType, e
 }
 
 func httpHandlerArchiveUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	userId, err := getUserId(r)
+	var err error
+	var userId authaus.UserId
+	var user authaus.AuthUser
+
+	userId, err = getUserId(r)
 	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if user, err = central.Central.GetUserFromUserId(authaus.UserId(userId)); err != nil {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := central.Central.ArchiveIdentity(authaus.UserId(userId)); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
-	} else {
-		if user, err := central.Central.GetUserFromUserId(authaus.UserId(userId)); err == nil {
-			auditUserLogAction(central, r, "User Profile: "+user.Username, authaus.AuditActionUserDeleted)
-		}
-		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Archived user: '%v'", userId))
+		return
 	}
+	auditUserLogAction(central, r, "User Profile: "+user.Username, authaus.AuditActionUserDeleted)
+	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Archived user: '%v'", userId))
 }
 
 func httpHandlerDeleteGroup(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
