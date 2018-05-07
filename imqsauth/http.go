@@ -180,6 +180,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/update_user", makehandler(HttpMethodPost, httpHandlerUpdateUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/archive_user", makehandler(HttpMethodPost, httpHandlerArchiveUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/create_group", makehandler(HttpMethodPut, httpHandlerCreateGroup, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/update_group", makehandler(HttpMethodPost, httpHandlerUpdateGroup, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/delete_group", makehandler(HttpMethodPut, httpHandlerDeleteGroup, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/rename_user", makehandler(HttpMethodPost, httpHandlerRenameUser, handlerFlagNeedToken))
 	smux.HandleFunc("/set_group_roles", makehandler(HttpMethodPut, httpHandlerSetGroupRoles, handlerFlagNeedAdminRights))
@@ -816,6 +817,33 @@ func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *http
 		central.Central.Log.Warnf("Error creating group (%v): %v", groupname, err)
 		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Error creating group (%v): %v", groupname, err))
 		return
+	}
+}
+
+func httpHandlerUpdateGroup(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	groupName := strings.TrimSpace(r.http.URL.Query().Get("name"))
+	newName := strings.TrimSpace(r.http.URL.Query().Get("newname"))
+
+	if newName == "" {
+		authaus.HttpSendTxt(w, http.StatusNotAcceptable, "Group name may not be blank.")
+		return
+	}
+
+	roleDb := central.Central.GetRoleGroupDB()
+
+	existingGroup, err := roleDb.GetByName(groupName)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	newGroup := existingGroup.Clone()
+	newGroup.Name = newName
+	if err = roleDb.UpdateGroup(newGroup); err == nil {
+		central.Central.Log.Infof("Group %v updated", newName)
+		authaus.HttpSendTxt(w, http.StatusOK, "")
+	} else {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
 	}
 }
 
