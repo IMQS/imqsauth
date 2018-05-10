@@ -733,12 +733,12 @@ func httpHandlerArchiveUser(central *ImqsCentral, w http.ResponseWriter, r *http
 
 	userId, err = getUserId(r)
 	if err != nil {
-		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 		return
 	}
 
 	if user, err = central.Central.GetUserFromUserId(authaus.UserId(userId)); err != nil {
-		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 		return
 	}
 
