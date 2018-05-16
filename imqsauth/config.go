@@ -1,8 +1,7 @@
 package imqsauth
 
 import (
-	"io/ioutil"
-	"path/filepath"
+	"os"
 	"strings"
 
 	"github.com/IMQS/authaus"
@@ -38,8 +37,7 @@ type Config struct {
 	PasswordResetExpirySeconds float64
 	NewAccountExpirySeconds    float64
 	SendMailPassword           string // NB: When moving SendMailPassword to a standalone secrets file, change for PCS also. PCS reads imqsauth config file.
-	HostnameFile               string
-	hostname                   string // This is read from HostnameFile the first time GetHostname is called
+	hostname                   string // This is read from environment variable the first time GetHostname is called
 	lastFileLoaded             string // Used for relative paths (such as HostnameFile)
 	enablePcsRename            bool   // Disabled by unit tests
 	NotificationUrl            string
@@ -75,13 +73,11 @@ func (x *Config) IsContainer() bool {
 
 func (x *Config) GetHostname() string {
 	if x.hostname == "" {
-		if x.HostnameFile != "" {
-			hostname_b, err := ioutil.ReadFile(x.HostnameFile)
-			if err != nil {
-				hostname_b, _ = ioutil.ReadFile(filepath.Join(filepath.Dir(x.lastFileLoaded), x.HostnameFile))
-			}
+		hostname_b, ok := os.LookupEnv("IMQS_HOSTNAME_URL")
+		if ok {
 			x.hostname = strings.TrimSpace(string(hostname_b))
 		}
 	}
 	return x.hostname
+
 }

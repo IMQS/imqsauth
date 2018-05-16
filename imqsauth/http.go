@@ -224,7 +224,7 @@ func (x *ImqsCentral) IsAdmin(r *http.Request) (bool, error) {
 func (x *ImqsCentral) makeAbsoluteUrl(relativeUrl string) (string, error) {
 	hostname := x.Config.GetHostname()
 	if hostname == "" {
-		return "", fmt.Errorf("'hostname' is not configured on this server")
+		return "", fmt.Errorf("Environment variable 'IMQS_HOSTNAME_URL' is not set on this server")
 	}
 
 	absolute := ""
