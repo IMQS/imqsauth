@@ -533,7 +533,9 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 				}
 				http.SetCookie(w, cookie)
 				if central.Config.Yellowfin.UseLegacyAuth {
-					httpLoginYellowfin(central, w, r, identity, permList)
+					if err = httpLoginYellowfin(central, w, r, identity, permList); err != nil {
+						central.Central.Log.Errorf("Yellowfin login error: %v", err)
+					}
 				}
 				httpSendCheckJson(w, token, permList)
 			}
@@ -546,9 +548,10 @@ func httpHandlerLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *h
 	if err := httpLoginYellowfin(central, w, r, r.token.Identity, r.permList); err == nil {
 		authaus.HttpSendTxt(w, http.StatusOK, "OK")
 	} else {
-		// We could certainly do better here to preserve the yellowfin HTTP response codes.
-		// It would require changing the return paths from the yellowfin function LoginAndUpdateGroup.
-		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+		// Possible YF request HTTP error code will be included in the error message.
+		errMsg := fmt.Sprintf("Yellowfin login error: %v", err)
+		central.Central.Log.Error(errMsg)
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, errMsg)
 	}
 }
 
@@ -580,7 +583,6 @@ func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 			}
 		}
 		if err != nil {
-			central.Central.Log.Errorf("Yellowfin login error: %v", err)
 			return err
 		} else if cookies != nil {
 			for _, cookie := range cookies {
