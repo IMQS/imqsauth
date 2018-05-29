@@ -2,13 +2,15 @@ package imqsauth
 
 import (
 	"bytes"
-	"github.com/IMQS/log"
-	"github.com/IMQS/yfws"
+	"encoding/xml"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/IMQS/log"
+	"github.com/IMQS/yfws"
 )
 
 type YellowfinGroup int
@@ -226,9 +228,9 @@ func (y *Yellowfin) Login(identity string, loginParams yellowfinLoginParameters)
 	for field, values := range loginParams.GlobalFilters {
 		for _, value := range values {
 			gf.WriteString(`<item xsd:type="xsd:string">SOURCEFILTER_`)
-			gf.WriteString(strings.ToUpper(field))
+			xml.EscapeText(&gf, []byte(strings.ToUpper(field)))
 			gf.WriteString(`=`)
-			gf.WriteString(value)
+			xml.EscapeText(&gf, []byte(value))
 			gf.WriteString(`</item>`)
 		}
 	}
