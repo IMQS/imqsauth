@@ -186,6 +186,8 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/set_group_roles", makehandler(HttpMethodPut, httpHandlerSetGroupRoles, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_user_groups", makehandler(HttpMethodPost, httpHandlerSetUserGroups, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/set_password", makehandler(HttpMethodPost, httpHandlerSetPassword, handlerFlagNeedToken))
+	smux.HandleFunc("/update_password", makehandler(HttpMethodPost, httpHandlerUpdatePassword, 0))
+	smux.HandleFunc("/check_password", makehandler(HttpMethodPost, httpHandlerCheckPassword, 0))
 	smux.HandleFunc("/reset_password_start", makehandler(HttpMethodPost, httpHandlerResetPasswordStart, 0))
 	smux.HandleFunc("/reset_password_finish", makehandler(HttpMethodPost, httpHandlerResetPasswordFinish, 0))
 	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetEmails, handlerFlagNeedToken))
@@ -1145,6 +1147,72 @@ func httpHandlerSetPassword(central *ImqsCentral, w http.ResponseWriter, r *http
 	}
 
 	authaus.HttpSendTxt(w, http.StatusOK, "Password changed")
+}
+
+func httpHandlerUpdatePassword(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	username := strings.TrimSpace(r.http.URL.Query().Get("email"))
+	if username == "" {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, "Empty identity")
+		return
+	}
+
+	oldPassword := strings.TrimSpace(r.http.Header.Get("X-OldPassword"))
+	if oldPassword == "" {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, "Empty old password")
+		return
+	}
+
+	newPassword := strings.TrimSpace(r.http.Header.Get("X-NewPassword"))
+	if newPassword == "" {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, "Empty new password")
+		return
+	}
+
+	err := central.Central.AuthenticateUser(username, oldPassword, authaus.AuthCheckDefault)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+		return
+	}
+
+	user, err := central.Central.GetUserFromIdentity(username)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	central.Central.Log.Infof("Setting password for %v", user.UserId)
+	if err := central.Central.SetPassword(user.UserId, newPassword); err != nil {
+		central.Central.Log.Infof("Error setting password for %v: %v", user.UserId, err)
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionResetPassword)
+	authaus.HttpSendTxt(w, http.StatusOK, "Password changed")
+}
+
+func httpHandlerCheckPassword(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	identity, password, basicOK := r.http.BasicAuth()
+	if !basicOK {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, authaus.ErrHttpBasicAuth.Error())
+		return
+	}
+	if identity == "" {
+		httpSendNoIdentity(w)
+		return
+	}
+
+	authUser, err := central.Central.GetUserFromIdentity(identity)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := central.Central.AuthenticateUser(identity, password, authaus.AuthCheckDefault); err != nil {
+		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+		return
+	}
+
+	central.Central.Log.Infof("Verified password for %v", authUser.UserId)
+	authaus.HttpSendTxt(w, http.StatusOK, "Password verified")
 }
 
 func httpHandlerResetPasswordStart(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
