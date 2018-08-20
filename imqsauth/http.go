@@ -518,7 +518,7 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		r.token = token
-		auditUserLogAction(central, r, token.UserId, token.Username, "User Profile: "+token.Identity, authaus.AuditActionUserAuthentication)
+		auditUserLogAction(central, r, token.UserId, token.Username, "User Profile: "+token.Identity, authaus.AuditActionAuthentication)
 		if permList, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup != nil {
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, egroup.Error())
 		} else {
@@ -656,7 +656,7 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	if userId, err := central.Central.CreateUserStoreIdentity(&user, password); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
-		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionUserCreated)
+		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionCreated)
 		if sendPasswordResetEmail {
 			code, msg := central.ResetPasswordStart(userId, true)
 			if code != http.StatusOK {
@@ -714,7 +714,7 @@ func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	if err := central.Central.UpdateIdentity(&user); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
-		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionUserUpdated)
+		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionUpdated)
 		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Updated user: '%v'", userId))
 	}
 }
@@ -750,7 +750,7 @@ func httpHandlerArchiveUser(central *ImqsCentral, w http.ResponseWriter, r *http
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 		return
 	}
-	auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionUserDeleted)
+	auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionDeleted)
 	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Archived user: '%v'", userId))
 }
 
@@ -803,15 +803,20 @@ func httpHandlerDeleteGroup(central *ImqsCentral, w http.ResponseWriter, r *http
 		}
 	}
 
-	if err := authaus.DeleteGroup(central.Central.GetRoleGroupDB(), groupname); err == nil {
-		central.Central.Log.Infof("Group deleted: %v", groupname)
-		authaus.HttpSendTxt(w, http.StatusOK, "")
-		return
-	} else {
+	if err := authaus.DeleteGroup(central.Central.GetRoleGroupDB(), groupname); err != nil {
 		central.Central.Log.Warnf("Error deleting group (%v): %v", groupname, err)
 		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Error deleting group (%v): %v", groupname, err))
 		return
 	}
+
+	if r.token != nil {
+		if user, err := central.Central.GetUserFromUserId(authaus.UserId(r.token.UserId)); err == nil {
+			auditUserLogAction(central, r, user.UserId, user.Username, "Group: "+groupname+" deleted", authaus.AuditActionDeleted)
+		}
+	}
+
+	central.Central.Log.Infof("Group deleted: %v", groupname)
+	authaus.HttpSendTxt(w, http.StatusOK, "")
 }
 
 func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
@@ -821,15 +826,20 @@ func httpHandlerCreateGroup(central *ImqsCentral, w http.ResponseWriter, r *http
 		return
 	}
 
-	if _, err := authaus.LoadOrCreateGroup(central.Central.GetRoleGroupDB(), groupname, true); err == nil {
-		central.Central.Log.Infof("New group added: %v", groupname)
-		authaus.HttpSendTxt(w, http.StatusOK, "")
-		return
-	} else {
+	if _, err := authaus.LoadOrCreateGroup(central.Central.GetRoleGroupDB(), groupname, true); err != nil {
 		central.Central.Log.Warnf("Error creating group (%v): %v", groupname, err)
 		authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Error creating group (%v): %v", groupname, err))
 		return
 	}
+
+	if r.token != nil {
+		if user, err := central.Central.GetUserFromUserId(authaus.UserId(r.token.UserId)); err == nil {
+			auditUserLogAction(central, r, user.UserId, user.Username, "Group: "+groupname+" created", authaus.AuditActionCreated)
+		}
+	}
+
+	central.Central.Log.Infof("New group added: %v", groupname)
+	authaus.HttpSendTxt(w, http.StatusOK, "")
 }
 
 func httpHandlerUpdateGroup(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
@@ -851,12 +861,19 @@ func httpHandlerUpdateGroup(central *ImqsCentral, w http.ResponseWriter, r *http
 
 	newGroup := existingGroup.Clone()
 	newGroup.Name = newName
-	if err = roleDb.UpdateGroup(newGroup); err == nil {
-		central.Central.Log.Infof("Group %v updated", newName)
-		authaus.HttpSendTxt(w, http.StatusOK, "")
-	} else {
+	if err = roleDb.UpdateGroup(newGroup); err != nil {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		return
 	}
+
+	if r.token != nil {
+		if user, err := central.Central.GetUserFromUserId(authaus.UserId(r.token.UserId)); err == nil {
+			auditUserLogAction(central, r, user.UserId, user.Username, "Group: "+newName+" updated", authaus.AuditActionUpdated)
+		}
+	}
+
+	central.Central.Log.Infof("Group %v updated", newName)
+	authaus.HttpSendTxt(w, http.StatusOK, "")
 }
 
 func pcsRenameUser(hostname, oldIdent, newIdent string) error {
@@ -936,7 +953,7 @@ func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		return
 	}
 
-	auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+oldIdent+" renamed to "+newIdent, authaus.AuditActionUserUpdated)
+	auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+oldIdent+" renamed to "+newIdent, authaus.AuditActionUpdated)
 	if central.Config.enablePcsRename {
 		if err := pcsRenameUser(central.Config.GetHostname(), oldIdent, newIdent); err != nil {
 			central.Central.Log.Warnf("Error: failed to rename PCS: %v", err)
@@ -973,6 +990,11 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 		group.PermList = perms
 		if err := central.Central.GetRoleGroupDB().UpdateGroup(group); err == nil {
 			central.Central.Log.Infof("Set group roles for %v", groupname)
+			if r.token != nil {
+				if user, err := central.Central.GetUserFromUserId(authaus.UserId(r.token.UserId)); err == nil {
+					auditUserLogAction(central, r, user.UserId, user.Username, "Group: "+groupname+" roles updated", authaus.AuditActionUpdated)
+				}
+			}
 			authaus.HttpSendTxt(w, http.StatusOK, "")
 		} else {
 			central.Central.Log.Warnf("Could not set group roles for %v: %v", groupname, err)
@@ -1077,7 +1099,7 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	if user, err := central.Central.GetUserFromUserId(authaus.UserId(userId)); err == nil {
-		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: User "+user.Username+" permissions changed", authaus.AuditActionUserUpdated)
+		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: User "+user.Username+" permissions changed", authaus.AuditActionUpdated)
 	}
 
 	summary := strings.Join(groups, ",")
