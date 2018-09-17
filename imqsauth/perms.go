@@ -149,6 +149,19 @@ const (
 	PermEnergyGateAccessFirmwareVersionRefresh authaus.PermissionU16 = 612 // User is allowed to refresh gate access firmware version
 	PermEnergySiteInfoEdit authaus.PermissionU16 = 613 // User is allowed to edit site info
 	PermEnergySitePACEdit authaus.PermissionU16 = 614 // User is allowed to edit site PAC
+	PermDevconProjectEdit authaus.PermissionU16 = 700 // User is allowed to edit projects
+	PermDevconProjectCreate authaus.PermissionU16 = 701 // User is allowed to create new projects
+	PermDevconProjectDelete authaus.PermissionU16 = 702 // User is allowed to delete projects
+	PermDevconProjectMerge authaus.PermissionU16 = 703 // User is allowed to merge projects
+	PermDevconApplicationEdit authaus.PermissionU16 = 704 // User is allowed to edit applications
+	PermDevconApplicationCreate authaus.PermissionU16 = 705 // User is allowed to create new applications
+	PermDevconApplicationDelete authaus.PermissionU16 = 706 // User is allowed to delete applications
+	PermDevconLookupEdit authaus.PermissionU16 = 707 // User is allowed to edit lookups, such as applicant and organisation
+	PermDevconLookupCreate authaus.PermissionU16 = 708 // User is allowed to create new lookups
+	PermDevconLookupDelete authaus.PermissionU16 = 709 // User is allowed to delete lookups
+	PermDevconLookupManagement authaus.PermissionU16 = 710 // User is allowed to access the lookup management page and manage lookups
+	PermDevconTemplateManagement authaus.PermissionU16 = 711 // User is allowed to access the feedback template management page and update templates
+	PermDevconReportViewing authaus.PermissionU16 = 712 // User is allowed to view reports
 	PermImqsDeveloper authaus.PermissionU16 = 999 // IMQS Developer
 	PermAssetsModuleAccess authaus.PermissionU16 = 1100 // User is allowed to access the Assets module
 	PermCogtaModuleAccess authaus.PermissionU16 = 1101 // User is allowed to access the COGTA module
@@ -174,6 +187,7 @@ const (
 	PermWaterDemandModuleAccess authaus.PermissionU16 = 1121 // User is allowed to access the Water Demand module
 	PermWaterPRPModuleAccess authaus.PermissionU16 = 1122 // User is allowed to access the Water PRP module
 	PermWipModuleAccess authaus.PermissionU16 = 1123 // User is allowed to access the WIP module
+	PermDevelopmentControlModuleAccess authaus.PermissionU16 = 1124 // User is allowed to access the Development Control module
 
 )
 
@@ -318,6 +332,19 @@ func init() {
 	PermissionsTable[PermEnergyGateAccessFirmwareVersionRefresh] = "energygateaccessfirmwareversionrefresh" // User is allowed to refresh gate access firmware version
 	PermissionsTable[PermEnergySiteInfoEdit] = "energysiteinfoedit" // User is allowed to edit site info
 	PermissionsTable[PermEnergySitePACEdit] = "energysitepacedit" // User is allowed to edit site PAC
+	PermissionsTable[PermDevconProjectEdit] = "devconprojectedit" // User is allowed to edit projects
+	PermissionsTable[PermDevconProjectCreate] = "devconprojectcreate" // User is allowed to create new projects
+	PermissionsTable[PermDevconProjectDelete] = "devconprojectdelete" // User is allowed to delete projects
+	PermissionsTable[PermDevconProjectMerge] = "devconprojectmerge" // User is allowed to merge projects
+	PermissionsTable[PermDevconApplicationEdit] = "devconapplicationedit" // User is allowed to edit applications
+	PermissionsTable[PermDevconApplicationCreate] = "devconapplicationcreate" // User is allowed to create new applications
+	PermissionsTable[PermDevconApplicationDelete] = "devconapplicationdelete" // User is allowed to delete applications
+	PermissionsTable[PermDevconLookupEdit] = "devconlookupedit" // User is allowed to edit lookups, such as applicant and organisation
+	PermissionsTable[PermDevconLookupCreate] = "devconlookupcreate" // User is allowed to create new lookups
+	PermissionsTable[PermDevconLookupDelete] = "devconlookupdelete" // User is allowed to delete lookups
+	PermissionsTable[PermDevconLookupManagement] = "devconlookupmanagement" // User is allowed to access the lookup management page and manage lookups
+	PermissionsTable[PermDevconTemplateManagement] = "devcontemplatemanagement" // User is allowed to access the feedback template management page and update templates
+	PermissionsTable[PermDevconReportViewing] = "devconreportviewing" // User is allowed to view reports
 	PermissionsTable[PermImqsDeveloper] = "imqsdeveloper" // IMQS Developer
 	PermissionsTable[PermAssetsModuleAccess] = "assetsmoduleaccess" // User is allowed to access the Assets module
 	PermissionsTable[PermCogtaModuleAccess] = "cogtamoduleaccess" // User is allowed to access the COGTA module
@@ -343,5 +370,6 @@ func init() {
 	PermissionsTable[PermWaterDemandModuleAccess] = "waterdemandmoduleaccess" // User is allowed to access the Water Demand module
 	PermissionsTable[PermWaterPRPModuleAccess] = "waterprpmoduleaccess" // User is allowed to access the Water PRP module
 	PermissionsTable[PermWipModuleAccess] = "wipmoduleaccess" // User is allowed to access the WIP module
+	PermissionsTable[PermDevelopmentControlModuleAccess] = "developmentcontrolmoduleaccess" // User is allowed to access the Development Control module
 
 }
