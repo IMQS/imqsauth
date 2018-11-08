@@ -43,6 +43,7 @@ const (
 	PermReportViewer authaus.PermissionU16 = 201 // Can view reports
 	PermImporter authaus.PermissionU16 = 300 // User is allowed to handle data imports
 	PermFileDrop authaus.PermissionU16 = 301 // User is allowed to drop files onto IMQS Web
+	PermHydroWorkOrderCreation authaus.PermissionU16 = 302 // User is allowed to view and use the hydrojet work order creation tool
 	PermMm authaus.PermissionU16 = 400 // MM
 	PermMmWorkRequestView authaus.PermissionU16 = 401 // Work Request View
 	PermMmWorkRequestAddAndDelete authaus.PermissionU16 = 402 // Work Request Add/Delete
@@ -226,6 +227,7 @@ func init() {
 	PermissionsTable[PermReportViewer] = "reportviewer" // Can view reports
 	PermissionsTable[PermImporter] = "importer" // User is allowed to handle data imports
 	PermissionsTable[PermFileDrop] = "filedrop" // User is allowed to drop files onto IMQS Web
+	PermissionsTable[PermHydroWorkOrderCreation] = "hydroworkordercreation" // User is allowed to view and use the hydrojet work order creation tool
 	PermissionsTable[PermMm] = "mm" // MM
 	PermissionsTable[PermMmWorkRequestView] = "mmworkrequestview" // Work Request View
 	PermissionsTable[PermMmWorkRequestAddAndDelete] = "mmworkrequestaddanddelete" // Work Request Add/Delete
