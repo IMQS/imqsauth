@@ -158,6 +158,8 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 		ic.Central.Auditor = imqsauth.NewIMQSAuditor(ic.Central.Log)
 	}
 
+
+
 	success := false
 	switch cmdName {
 	case "createdb":
@@ -175,6 +177,20 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	case "resetauthgroups":
 		success = imqsauth.ResetAuthGroups(ic)
 	case "run":
+		// Create initial user if there is one.
+		user := os.Getenv("IMQS_INIT_USER")
+		pass := os.Getenv("IMQS_INIT_PASS")
+		if ic.Config.IsContainer() && user != "" && pass != "" {
+			// first check if the user already exists
+			_, err := ic.Central.GetUserFromIdentity(user)
+			if err != nil {
+				fmt.Printf("Creating intial admin user: %v\n", user)
+				options := make(map[string]string)
+				createUser(ic, options , user, pass)
+				permGroupAddOrDel(ic, user, "admin" , true)
+				permGroupAddOrDel(ic, user, "enabled" , true)
+			}
+		}
 		if options.Has("nosvc") || !service.RunAsService(handlerNoRetVal) {
 			success = false
 			fmt.Print(handler())
