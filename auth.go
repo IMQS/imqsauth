@@ -186,6 +186,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 			if err != nil {
 				fmt.Printf("Creating intial admin user: %v\n", user)
 				options := make(map[string]string)
+				imqsauth.ResetAuthGroups(ic)
 				createUser(ic, options , user, pass)
 				permGroupAddOrDel(ic, user, "admin" , true)
 				permGroupAddOrDel(ic, user, "enabled" , true)
