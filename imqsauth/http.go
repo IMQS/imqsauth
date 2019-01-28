@@ -121,79 +121,89 @@ type ImqsCentral struct {
 	subscriberLock sync.RWMutex
 }
 
+func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, http.ResponseWriter, *httpRequest), flags handlerFlags) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != string(method) {
+			authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("API must be accessed using an HTTP %v method", method))
+			return
+		}
+		httpReq := &httpRequest{
+			http: r,
+		}
+
+		needAdmin := 0 != (flags & handlerFlagNeedAdminRights)
+		needToken := 0 != (flags & handlerFlagNeedToken)
+		if !needAdmin && !needToken {
+			actual(x, w, httpReq)
+			return
+		}
+
+		if err := serviceauth.VerifyInterServiceRequest(r); err == nil {
+			actual(x, w, httpReq)
+			return
+		}
+
+		permOK := false
+		if token, err := authaus.HttpHandlerPreludeWithError(&x.Config.Authaus.HTTP, x.Central, w, r); err == nil {
+			if permList, errDecodePerms := authaus.PermitResolveToList(token.Permit.Roles, x.Central.GetRoleGroupDB()); errDecodePerms != nil {
+				authaus.HttpSendTxt(w, http.StatusInternalServerError, errDecodePerms.Error())
+			} else {
+				httpReq.token = token
+				httpReq.permList = permList
+				if needAdmin {
+					if !permList.Has(PermAdmin) {
+						authaus.HttpSendTxt(w, http.StatusForbidden, msgNotAdmin)
+					} else if !permList.Has(PermEnabled) {
+						httpSendAccountDisabled(w)
+					} else {
+						permOK = true
+					}
+				} else {
+					// for this case (ie needToken), so long as we have the token and permList, we are fine
+					permOK = true
+				}
+			}
+		} else {
+			// HttpHandlerPreludeWithError has already sent the error to http.ResponseWriter
+			permOK = false
+		}
+
+		if !permOK {
+			return
+		}
+
+		actual(x, w, httpReq)
+	}
+}
+
 func (x *ImqsCentral) RunHttp() error {
 	// The built-in go ServeMux does not support differentiating based on HTTP verb, so we have to make
 	// the request path unique for each verb. I think this is OK as far as API design is concerned - at least in this domain.
-	makehandler := func(method HttpMethod, actual func(*ImqsCentral, http.ResponseWriter, *httpRequest), flags handlerFlags) func(http.ResponseWriter, *http.Request) {
-		return func(w http.ResponseWriter, r *http.Request) {
-			if r.Method != string(method) {
-				authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("API must be accessed using an HTTP %v method", method))
-				return
-			}
-			httpReq := &httpRequest{
-				http: r,
-			}
-			needAdmin := 0 != (flags & handlerFlagNeedAdminRights)
-			needToken := 0 != (flags & handlerFlagNeedToken)
-			if needAdmin || needToken {
-				permOK := false
-				if token, err := authaus.HttpHandlerPreludeWithError(&x.Config.Authaus.HTTP, x.Central, w, r); err == nil {
-					if permList, errDecodePerms := authaus.PermitResolveToList(token.Permit.Roles, x.Central.GetRoleGroupDB()); errDecodePerms != nil {
-						authaus.HttpSendTxt(w, http.StatusInternalServerError, errDecodePerms.Error())
-					} else {
-						httpReq.token = token
-						httpReq.permList = permList
-						if needAdmin {
-							if !permList.Has(PermAdmin) {
-								authaus.HttpSendTxt(w, http.StatusForbidden, msgNotAdmin)
-							} else if !permList.Has(PermEnabled) {
-								httpSendAccountDisabled(w)
-							} else {
-								permOK = true
-							}
-						} else {
-							// for this case (ie needToken), so long as we have the token and permList, we are fine
-							permOK = true
-						}
-					}
-				} else {
-					// HttpHandlerPreludeWithError has already sent the error to http.ResponseWriter
-					permOK = false
-				}
-
-				if !permOK {
-					return
-				}
-			}
-
-			actual(x, w, httpReq)
-		}
-	}
 	smux := http.NewServeMux()
-	smux.HandleFunc("/hello", makehandler(HttpMethodGet, httpHandlerHello, 0))
-	smux.HandleFunc("/ping", makehandler(HttpMethodGet, httpHandlerPing, 0))
-	smux.HandleFunc("/login", makehandler(HttpMethodPost, httpHandlerLogin, 0))
-	smux.HandleFunc("/login_yellowfin", makehandler(HttpMethodPost, httpHandlerLoginYellowfin, handlerFlagNeedToken))
-	smux.HandleFunc("/logout", makehandler(HttpMethodPost, httpHandlerLogout, 0))
-	smux.HandleFunc("/check", makehandler(HttpMethodGet, httpHandlerCheck, 0))
-	smux.HandleFunc("/create_user", makehandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/update_user", makehandler(HttpMethodPost, httpHandlerUpdateUser, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/archive_user", makehandler(HttpMethodPost, httpHandlerArchiveUser, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/create_group", makehandler(HttpMethodPut, httpHandlerCreateGroup, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/update_group", makehandler(HttpMethodPost, httpHandlerUpdateGroup, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/delete_group", makehandler(HttpMethodPut, httpHandlerDeleteGroup, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/rename_user", makehandler(HttpMethodPost, httpHandlerRenameUser, handlerFlagNeedToken))
-	smux.HandleFunc("/set_group_roles", makehandler(HttpMethodPut, httpHandlerSetGroupRoles, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/set_user_groups", makehandler(HttpMethodPost, httpHandlerSetUserGroups, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/set_password", makehandler(HttpMethodPost, httpHandlerSetPassword, handlerFlagNeedToken))
-	smux.HandleFunc("/update_password", makehandler(HttpMethodPost, httpHandlerUpdatePassword, 0))
-	smux.HandleFunc("/check_password", makehandler(HttpMethodPost, httpHandlerCheckPassword, 0))
-	smux.HandleFunc("/reset_password_start", makehandler(HttpMethodPost, httpHandlerResetPasswordStart, 0))
-	smux.HandleFunc("/reset_password_finish", makehandler(HttpMethodPost, httpHandlerResetPasswordFinish, 0))
-	smux.HandleFunc("/users", makehandler(HttpMethodGet, httpHandlerGetEmails, handlerFlagNeedToken))
-	smux.HandleFunc("/userobjects", makehandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/groups", makehandler(HttpMethodGet, httpHandlerGetGroups, 0))
-	smux.HandleFunc("/hasactivedirectory", makehandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
+	smux.HandleFunc("/hello", x.makeHandler(HttpMethodGet, httpHandlerHello, 0))
+	smux.HandleFunc("/ping", x.makeHandler(HttpMethodGet, httpHandlerPing, 0))
+	smux.HandleFunc("/login", x.makeHandler(HttpMethodPost, httpHandlerLogin, 0))
+	smux.HandleFunc("/login_yellowfin", x.makeHandler(HttpMethodPost, httpHandlerLoginYellowfin, handlerFlagNeedToken))
+	smux.HandleFunc("/logout", x.makeHandler(HttpMethodPost, httpHandlerLogout, 0))
+	smux.HandleFunc("/check", x.makeHandler(HttpMethodGet, httpHandlerCheck, 0))
+	smux.HandleFunc("/create_user", x.makeHandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/update_user", x.makeHandler(HttpMethodPost, httpHandlerUpdateUser, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/archive_user", x.makeHandler(HttpMethodPost, httpHandlerArchiveUser, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/create_group", x.makeHandler(HttpMethodPut, httpHandlerCreateGroup, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/update_group", x.makeHandler(HttpMethodPost, httpHandlerUpdateGroup, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/delete_group", x.makeHandler(HttpMethodPut, httpHandlerDeleteGroup, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/rename_user", x.makeHandler(HttpMethodPost, httpHandlerRenameUser, handlerFlagNeedToken))
+	smux.HandleFunc("/set_group_roles", x.makeHandler(HttpMethodPut, httpHandlerSetGroupRoles, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/set_user_groups", x.makeHandler(HttpMethodPost, httpHandlerSetUserGroups, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/set_password", x.makeHandler(HttpMethodPost, httpHandlerSetPassword, handlerFlagNeedToken))
+	smux.HandleFunc("/update_password", x.makeHandler(HttpMethodPost, httpHandlerUpdatePassword, 0))
+	smux.HandleFunc("/check_password", x.makeHandler(HttpMethodPost, httpHandlerCheckPassword, 0))
+	smux.HandleFunc("/reset_password_start", x.makeHandler(HttpMethodPost, httpHandlerResetPasswordStart, 0))
+	smux.HandleFunc("/reset_password_finish", x.makeHandler(HttpMethodPost, httpHandlerResetPasswordFinish, 0))
+	smux.HandleFunc("/users", x.makeHandler(HttpMethodGet, httpHandlerGetEmails, handlerFlagNeedToken))
+	smux.HandleFunc("/userobjects", x.makeHandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/groups", x.makeHandler(HttpMethodGet, httpHandlerGetGroups, 0))
+	smux.HandleFunc("/hasactivedirectory", x.makeHandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
 
 	server := &http.Server{}
 	server.Handler = smux
