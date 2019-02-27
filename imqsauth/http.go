@@ -435,7 +435,7 @@ func httpSendPermitsJson(central *ImqsCentral, users []authaus.AuthUser, ident2p
 	httpSendJson(w, jresponse)
 }
 
-func httpSendUserObjectsJson(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit, w http.ResponseWriter) {
+func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit, w http.ResponseWriter) ([]*userResponseJson, error) {
 	emptyPermit := authaus.Permit{}
 
 	//jresponse := make(map[string]*userResponseJson)
@@ -447,13 +447,11 @@ func httpSendUserObjectsJson(central *ImqsCentral, users []authaus.AuthUser, ide
 		}
 		groups, err := authaus.DecodePermit(permit.Roles)
 		if err != nil {
-			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
-			return
+			return nil, err
 		}
 		groupnames, err := authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB())
 		if err != nil {
-			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
-			return
+			return nil, err
 		}
 
 		jresponse = append(jresponse, &userResponseJson{
@@ -475,7 +473,55 @@ func httpSendUserObjectsJson(central *ImqsCentral, users []authaus.AuthUser, ide
 		})
 	}
 
-	httpSendJson(w, jresponse)
+	return jresponse, nil
+}
+
+// To filter users with withPerm permission,
+func filterUserObjectsByPermission(users []*userResponseJson, central *ImqsCentral, ident2perm map[authaus.UserId]*authaus.Permit, perm authaus.PermissionU16) ([]*userResponseJson, error) {
+	emptyPermit := authaus.Permit{}
+	jFiltered := make([]*userResponseJson, 0)
+
+	if perm == 0 {
+		return append(jFiltered, users...), nil
+	}
+
+	// get groups with 'perm' permission
+	var authGroupsWithPerm []authaus.GroupIDU32
+	authGroups, err := central.Central.GetRoleGroupDB().GetGroups()
+	if err != nil {
+		return nil, err
+	}
+	for _, g := range authGroups {
+		if g.HasPerm(perm) {
+			authGroupsWithPerm = append(authGroupsWithPerm, g.ID)
+		}
+	}
+
+	for _, user := range users {
+		permit := ident2perm[user.UserId]
+		if permit == nil { // here we INCLUDE permits for archived users
+			permit = &emptyPermit
+		}
+		groups, err := authaus.DecodePermit(permit.Roles)
+		if err != nil {
+			return nil, err
+		}
+
+		include := false
+		for _, g := range groups {
+			include = containsElement(authGroupsWithPerm, g)
+			if include {
+				break
+			}
+		}
+		if !include {
+			continue // user doesn't have the specified permission
+		}
+
+		jFiltered = append(jFiltered, user)
+	}
+
+	return jFiltered, nil
 }
 
 func httpSendAccountDisabled(w http.ResponseWriter) {
@@ -1353,7 +1399,26 @@ func httpHandlerGetUsers(central *ImqsCentral, w http.ResponseWriter, r *httpReq
 		return
 	}
 
-	httpSendUserObjectsJson(central, users, ident2perm, w)
+	jresponse, err := httpSendUserObjectsJSON(central, users, ident2perm, w)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	permission := strings.TrimSpace(r.http.URL.Query().Get("permission"))
+	if permission != "" {
+		if perm, err := strconv.ParseInt(permission, 10, 16); err == nil {
+			withPerm := authaus.PermissionU16(perm)
+
+			// override jresponse with filtered version
+			if jresponse, err = filterUserObjectsByPermission(jresponse, central, ident2perm, withPerm); err != nil {
+				authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+		}
+	}
+
+	httpSendJson(w, jresponse)
 }
 
 func httpHandlerGetGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {

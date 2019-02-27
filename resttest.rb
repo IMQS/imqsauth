@@ -268,13 +268,13 @@ class Authorization < AuthBase
     dopost("/rename_user?old=joe&new=joe", nil, basicauth_joe, 200, "Renamed 'joe' to 'joe'")
     dopost("/rename_user?old=joe&new=jack", nil, basicauth_jack, 403, longmsg_wronguser)
     dopost("/rename_user?old=joe&new=sarah", nil, basicauth_joe, 200, "Renamed 'joe' to 'sarah'")
-    end
+  end
 
   def test_rename_as_admin
     dopost("/rename_user?old=joe&new=jack", nil, basicauth_admin, 400, "Identity already exists")
     dopost("/rename_user?old=joe&new=sarah", nil, basicauth_admin, 200, "Renamed 'joe' to 'sarah'")
     dopost("/rename_user?old=sarah&new=sarah@abc.com", nil, basicauth_admin, 200, "Renamed 'sarah' to 'sarah@abc.com'")
-    end
+  end
 
   def test_update_users
     dopost("/update_user?userid=#{@joe_user_id}&email=email&username=username&firstname=firstname&lastname=lastname&mobilenumber=mobilenumber&authusertype=DEFAULT", nil, basicauth_joe, 403, "You are not an administrator")
@@ -296,13 +296,13 @@ class Authorization < AuthBase
     assert(joeUser["Mobile"] == "084674")
     assert(joeUser["AuthUserType"] == 1)
     dopost("/update_user?userid=#{@joe_user_id}&email=joeEmailUpdated&username=joeUsernameUpdated&firstname=joeFirstnameUpdated&lastname=joeLastnameUpdated&mobilenumber=084674&authusertype=InvalidAuthUserType", nil, basicauth_admin, 400, "Invalid AuthUserType: 'InvalidAuthUserType'")
-    end
+  end
 
   def test_archive_users
     dopost("/archive_user?userid=#{@joe_user_id}", nil, basicauth_joe, 403, "You are not an administrator")
     dopost("/archive_user?userid=#{@unknown_user_id}", nil, basicauth_admin, 403, "Identity authorization not found")
     dopost("/archive_user?userid=#{@joe_user_id}", nil, basicauth_admin, 200, "Archived user: '1'")
-    end
+  end
 end
 
 class AdminTasks < AuthBase
@@ -336,6 +336,13 @@ class AdminTasks < AuthBase
       assert(array_eq_any_order(search_in_users(identity.downcase, users)["groups"], groups))
     end
     # dumpany("GET", "/users", nil, basicauth_admin)
+  end
+
+  def verify_number_of_users_with_permission(permission, num)
+    doget("/userobjects?permission=#{permission}", basicauth_admin, 200) do |r|
+      users = JSON.parse(r.body.downcase)
+      assert_equal(users.length, num)
+    end
   end
 
   def test_top_filter_admin_rights
@@ -386,6 +393,23 @@ class AdminTasks < AuthBase
 
     verify_role_groups_userobject_endpoint("sam", [])
     verify_role_groups_user_endpoint("sam", [])
+  end
+
+  def test_get_users_with_permission
+    doput("/create_user?email=bilbo&password=BILBO", nil, basicauth_admin, 200, "Created identity 'bilbo'")
+
+    # create 'fellowship' group with permission 999 (which isn't used in any other test)
+    doput("/create_group?groupname=fellowship", nil, basicauth_admin, 200, "")
+    doput("/set_group_roles?groupname=fellowship&roles=1,999", nil, basicauth_admin, 200, "")
+    bilbo_user_id = getUserId("bilbo")
+    
+    # Assign 'fellowship' group to 'bilbo'
+    dopost("/set_user_groups?userid=#{bilbo_user_id}&groups=fellowship", nil, basicauth_admin, 200, "'#{bilbo_user_id}' groups set to (fellowship)")
+    verify_number_of_users_with_permission(999, 1)
+
+    # Assign no groups to 'bilbo'
+    dopost("/set_user_groups?userid=#{bilbo_user_id}&groups=", nil, basicauth_admin, 200, "'#{bilbo_user_id}' groups set to ()")
+    verify_number_of_users_with_permission(999, 0)
   end
 
   def test_list_users_noadmin
