@@ -189,6 +189,7 @@ const (
 	PermWaterPRPModuleAccess authaus.PermissionU16 = 1122 // User is allowed to access the Water PRP module
 	PermWipModuleAccess authaus.PermissionU16 = 1123 // User is allowed to access the WIP module
 	PermDevelopmentControlModuleAccess authaus.PermissionU16 = 1124 // User is allowed to access the Development Control module
+	PermRoadSignsModuleAccess authaus.PermissionU16 = 1125 // User is allowed to access the Road Signs module
 
 )
 
@@ -373,5 +374,6 @@ func init() {
 	PermissionsTable[PermWaterPRPModuleAccess] = "waterprpmoduleaccess" // User is allowed to access the Water PRP module
 	PermissionsTable[PermWipModuleAccess] = "wipmoduleaccess" // User is allowed to access the WIP module
 	PermissionsTable[PermDevelopmentControlModuleAccess] = "developmentcontrolmoduleaccess" // User is allowed to access the Development Control module
+	PermissionsTable[PermRoadSignsModuleAccess] = "roadsignsmoduleaccess" // User is allowed to access the Road Signs module
 
 }
