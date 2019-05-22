@@ -15,8 +15,7 @@ func NewIMQSAuditor(logger *log.Logger) *IMQSAuditor {
 }
 
 func (a *IMQSAuditor) AuditUserAction(username, item, context string, auditActionType authaus.AuditActionType) {
-	err := serviceauth.AddToAuditLogServiceToService(username, string(auditActionType), item, context)
-	if err != nil {
+	if err := serviceauth.AddToAuditLogServiceToService(username, string(auditActionType), item, context); err != nil {
 		a.Log.Errorf("%v", err)
 	}
 }
