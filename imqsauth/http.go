@@ -571,6 +571,7 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 	}
 
 	if sessionkey, token, err := central.Central.Login(identity, password); err != nil {
+		auditUserLogAction(central, r, 0, identity, "User Profile: "+identity, authaus.AuditActionFailedLogin)
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
 		r.token = token
