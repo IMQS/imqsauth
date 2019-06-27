@@ -95,21 +95,22 @@ type groupsResponseJson struct {
 }
 
 type userResponseJson struct {
-	UserId       authaus.UserId
-	Email        string
-	Username     string
-	Name         string
-	Surname      string
-	Mobile       string
-	Telephone    string
-	Remarks      string
-	Created      time.Time
-	CreatedBy    string
-	Modified     time.Time
-	ModifiedBy   string
-	Groups       []string
-	AuthUserType authaus.AuthUserType
-	Archived     bool
+	UserId        authaus.UserId
+	Email         string
+	Username      string
+	Name          string
+	Surname       string
+	Mobile        string
+	Telephone     string
+	Remarks       string
+	Created       time.Time
+	CreatedBy     string
+	Modified      time.Time
+	ModifiedBy    string
+	Groups        []string
+	AuthUserType  authaus.AuthUserType
+	Archived      bool
+	AccountLocked bool
 }
 
 type ImqsCentral struct {
@@ -188,6 +189,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/check", x.makeHandler(HttpMethodGet, httpHandlerCheck, 0))
 	smux.HandleFunc("/create_user", x.makeHandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/update_user", x.makeHandler(HttpMethodPost, httpHandlerUpdateUser, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/unlock_user", x.makeHandler(HttpMethodPost, httpHandlerUnlockUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/archive_user", x.makeHandler(HttpMethodPost, httpHandlerArchiveUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/create_group", x.makeHandler(HttpMethodPut, httpHandlerCreateGroup, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/update_group", x.makeHandler(HttpMethodPost, httpHandlerUpdateGroup, handlerFlagNeedAdminRights))
@@ -455,21 +457,22 @@ func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ide
 		}
 
 		jresponse = append(jresponse, &userResponseJson{
-			Email:        user.Email,
-			UserId:       user.UserId,
-			Username:     user.Username,
-			Name:         user.Firstname,
-			Surname:      user.Lastname,
-			Mobile:       user.Mobilenumber,
-			Telephone:    user.Telephonenumber,
-			Remarks:      user.Remarks,
-			Created:      user.Created,
-			CreatedBy:    central.Central.GetUserNameFromUserId(user.CreatedBy),
-			Modified:     user.Modified,
-			ModifiedBy:   central.Central.GetUserNameFromUserId(user.ModifiedBy),
-			Groups:       groupnames,
-			AuthUserType: user.Type,
-			Archived:     user.Archived,
+			Email:         user.Email,
+			UserId:        user.UserId,
+			Username:      user.Username,
+			Name:          user.Firstname,
+			Surname:       user.Lastname,
+			Mobile:        user.Mobilenumber,
+			Telephone:     user.Telephonenumber,
+			Remarks:       user.Remarks,
+			Created:       user.Created,
+			CreatedBy:     central.Central.GetUserNameFromUserId(user.CreatedBy),
+			Modified:      user.Modified,
+			ModifiedBy:    central.Central.GetUserNameFromUserId(user.ModifiedBy),
+			Groups:        groupnames,
+			AuthUserType:  user.Type,
+			Archived:      user.Archived,
+			AccountLocked: user.AccountLocked,
 		})
 	}
 
@@ -570,9 +573,11 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 		return
 	}
 
-	if sessionkey, token, err := central.Central.Login(identity, password); err != nil {
-		auditUserLogAction(central, r, 0, identity, "User Profile: "+identity, authaus.AuditActionFailedLogin)
+	var address = r.http.Header["Origin"][0]
+
+	if sessionkey, token, err := central.Central.Login(identity, password, address); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+		auditUserLogAction(central, r, 0, identity, "User Profile: "+identity, authaus.AuditActionFailedLogin)
 	} else {
 		r.token = token
 		auditUserLogAction(central, r, token.UserId, token.Username, "User Profile: "+token.Identity, authaus.AuditActionAuthentication)
@@ -773,6 +778,35 @@ func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	} else {
 		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionUpdated)
 		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Updated user: '%v'", userId))
+	}
+}
+
+func httpHandlerUnlockUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	email := strings.TrimSpace(r.http.URL.Query().Get("email"))
+	username := strings.TrimSpace(r.http.URL.Query().Get("username"))
+
+	userId, err := getUserId(r)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Get the userId of the logged-in user
+	user := authaus.AuthUser{
+		UserId:   authaus.UserId(userId),
+		Email:    email,
+		Username: username,
+	}
+
+	x := central.Central
+	var address = r.http.Header["Origin"][0]
+
+	if err := x.UnlockAccount(&user); err != nil {
+		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+	} else {
+		x.Stats.ResetInvalidPasswordHistory(x.Log, username, address)
+		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionUnlocked)
+		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Unlocked user: '%v'", userId))
 	}
 }
 
