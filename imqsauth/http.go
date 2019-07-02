@@ -122,6 +122,24 @@ type ImqsCentral struct {
 	subscriberLock sync.RWMutex
 }
 
+func (x *ImqsCentral) IsLockable(identity string) (bool, error) {
+
+	var err error
+	if user, eUserId := x.Central.GetUserFromIdentity(identity); eUserId == nil {
+		if perm, ePerm := x.Central.GetPermit(user.UserId); ePerm == nil {
+			if pbits, eGroup := authaus.PermitResolveToList(perm.Roles, x.Central.GetRoleGroupDB()); eGroup == nil {
+				return pbits.Has(PermAdmin), nil
+			}
+		} else {
+			err = ePerm
+		}
+	} else {
+		err = eUserId
+	}
+
+	return false, err
+}
+
 func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, http.ResponseWriter, *httpRequest), flags handlerFlags) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != string(method) {
@@ -572,10 +590,9 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 		httpSendNoIdentity(w)
 		return
 	}
+	clientIPAddress := getIPAddress(r.http)
 
-	var address = r.http.Header["Origin"][0]
-
-	if sessionkey, token, err := central.Central.Login(identity, password, address); err != nil {
+	if sessionkey, token, err := central.Central.Login(identity, password, clientIPAddress); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 		auditUserLogAction(central, r, 0, identity, "User Profile: "+identity, authaus.AuditActionFailedLogin)
 	} else {
@@ -782,7 +799,6 @@ func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 }
 
 func httpHandlerUnlockUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	email := strings.TrimSpace(r.http.URL.Query().Get("email"))
 	username := strings.TrimSpace(r.http.URL.Query().Get("username"))
 
 	userId, err := getUserId(r)
@@ -794,17 +810,16 @@ func httpHandlerUnlockUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	// Get the userId of the logged-in user
 	user := authaus.AuthUser{
 		UserId:   authaus.UserId(userId),
-		Email:    email,
 		Username: username,
 	}
 
 	x := central.Central
-	var address = r.http.Header["Origin"][0]
+	clientIPAddress := getIPAddress(r.http)
 
-	if err := x.UnlockAccount(&user); err != nil {
+	if err := x.UnlockAccount(userId); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
-		x.Stats.ResetInvalidPasswordHistory(x.Log, username, address)
+		x.Stats.ResetInvalidPasswordHistory(x.Log, username, clientIPAddress)
 		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionUnlocked)
 		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Unlocked user: '%v'", userId))
 	}
