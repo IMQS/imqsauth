@@ -122,6 +122,8 @@ type ImqsCentral struct {
 	subscriberLock sync.RWMutex
 }
 
+// Admin accounts are not lockable, otherwise an attack could lock all accounts with noone to unlock them.
+// Additionally inter-service accounts are also admins, and we dont want "machine" accounts to be lockable.
 func (x *ImqsCentral) IsLockable(identity string) (bool, error) {
 
 	var err error
@@ -814,12 +816,10 @@ func httpHandlerUnlockUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	}
 
 	x := central.Central
-	clientIPAddress := getIPAddress(r.http)
 
 	if err := x.UnlockAccount(userId); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
-		x.Stats.ResetInvalidPasswordHistory(x.Log, username, clientIPAddress)
 		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionUnlocked)
 		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Unlocked user: '%v'", userId))
 	}
