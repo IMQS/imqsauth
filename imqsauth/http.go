@@ -128,7 +128,7 @@ func (x *ImqsCentral) IsLockable(identity string) (bool, error) {
 	if user, eUserId := x.Central.GetUserFromIdentity(identity); eUserId == nil {
 		if perm, ePerm := x.Central.GetPermit(user.UserId); ePerm == nil {
 			if pbits, eGroup := authaus.PermitResolveToList(perm.Roles, x.Central.GetRoleGroupDB()); eGroup == nil {
-				return pbits.Has(PermAdmin), nil
+				return !pbits.Has(PermAdmin), nil
 			}
 		} else {
 			err = ePerm
