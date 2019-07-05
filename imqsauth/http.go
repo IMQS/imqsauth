@@ -803,13 +803,13 @@ func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 func httpHandlerUnlockUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	username := strings.TrimSpace(r.http.URL.Query().Get("username"))
 
+	// Get the userId of the locked out user
 	userId, err := getUserId(r)
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	// Get the userId of the logged-in user
 	user := authaus.AuthUser{
 		UserId:   authaus.UserId(userId),
 		Username: username,
