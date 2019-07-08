@@ -127,7 +127,7 @@ type ImqsCentral struct {
 func (x *ImqsCentral) IsLockable(identity string) (bool, error) {
 
 	var err error
-	if user, eUserId := x.Central.GetUserFromIdentity(identity); eUserId == nil {
+	if user, eUser := x.Central.GetUserFromIdentity(identity); eUser == nil {
 		if perm, ePerm := x.Central.GetPermit(user.UserId); ePerm == nil {
 			if pbits, eGroup := authaus.PermitResolveToList(perm.Roles, x.Central.GetRoleGroupDB()); eGroup == nil {
 				return !pbits.Has(PermAdmin), nil
@@ -136,7 +136,7 @@ func (x *ImqsCentral) IsLockable(identity string) (bool, error) {
 			err = ePerm
 		}
 	} else {
-		err = eUserId
+		err = eUser
 	}
 
 	return false, err
@@ -596,7 +596,9 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 
 	if sessionkey, token, err := central.Central.Login(identity, password, clientIPAddress); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
-		auditUserLogAction(central, r, 0, identity, "User Profile: "+identity, authaus.AuditActionFailedLogin)
+		if user, eUser := central.Central.GetUserFromIdentity(identity); eUser == nil {
+			auditUserLogAction(central, r, user.UserId, identity, "User Profile: "+identity, authaus.AuditActionFailedLogin)
+		}
 	} else {
 		r.token = token
 		auditUserLogAction(central, r, token.UserId, token.Username, "User Profile: "+token.Identity, authaus.AuditActionAuthentication)
