@@ -158,7 +158,9 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 		ic.Central.Auditor = imqsauth.NewIMQSAuditor(ic.Central.Log)
 	}
 
-	ic.Central.LockingPolicy = ic
+	if ic.Central != nil {
+		ic.Central.LockingPolicy = ic
+	}
 
 	success := false
 	switch cmdName {
