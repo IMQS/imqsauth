@@ -158,7 +158,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 		ic.Central.Auditor = imqsauth.NewIMQSAuditor(ic.Central.Log)
 	}
 
-
+	ic.Central.LockingPolicy = ic
 
 	success := false
 	switch cmdName {
@@ -187,9 +187,9 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 				fmt.Printf("Creating intial admin user: %v\n", user)
 				options := make(map[string]string)
 				imqsauth.ResetAuthGroups(ic)
-				createUser(ic, options , user, pass)
-				permGroupAddOrDel(ic, user, "admin" , true)
-				permGroupAddOrDel(ic, user, "enabled" , true)
+				createUser(ic, options, user, pass)
+				permGroupAddOrDel(ic, user, "admin", true)
+				permGroupAddOrDel(ic, user, "enabled", true)
 			}
 		}
 		if options.Has("nosvc") || !service.RunAsService(handlerNoRetVal) {

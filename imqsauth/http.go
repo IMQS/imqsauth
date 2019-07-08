@@ -95,21 +95,22 @@ type groupsResponseJson struct {
 }
 
 type userResponseJson struct {
-	UserId       authaus.UserId
-	Email        string
-	Username     string
-	Name         string
-	Surname      string
-	Mobile       string
-	Telephone    string
-	Remarks      string
-	Created      time.Time
-	CreatedBy    string
-	Modified     time.Time
-	ModifiedBy   string
-	Groups       []string
-	AuthUserType authaus.AuthUserType
-	Archived     bool
+	UserId        authaus.UserId
+	Email         string
+	Username      string
+	Name          string
+	Surname       string
+	Mobile        string
+	Telephone     string
+	Remarks       string
+	Created       time.Time
+	CreatedBy     string
+	Modified      time.Time
+	ModifiedBy    string
+	Groups        []string
+	AuthUserType  authaus.AuthUserType
+	Archived      bool
+	AccountLocked bool
 }
 
 type ImqsCentral struct {
@@ -119,6 +120,26 @@ type ImqsCentral struct {
 
 	// Guards access to roleChangeSubscribers and lastSubscriberId
 	subscriberLock sync.RWMutex
+}
+
+// Admin accounts are not lockable, otherwise an attack could lock all accounts with noone to unlock them.
+// Additionally inter-service accounts are also admins, and we dont want "machine" accounts to be lockable.
+func (x *ImqsCentral) IsLockable(identity string) (bool, error) {
+
+	var err error
+	if user, eUserId := x.Central.GetUserFromIdentity(identity); eUserId == nil {
+		if perm, ePerm := x.Central.GetPermit(user.UserId); ePerm == nil {
+			if pbits, eGroup := authaus.PermitResolveToList(perm.Roles, x.Central.GetRoleGroupDB()); eGroup == nil {
+				return !pbits.Has(PermAdmin), nil
+			}
+		} else {
+			err = ePerm
+		}
+	} else {
+		err = eUserId
+	}
+
+	return false, err
 }
 
 func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, http.ResponseWriter, *httpRequest), flags handlerFlags) func(http.ResponseWriter, *http.Request) {
@@ -188,6 +209,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/check", x.makeHandler(HttpMethodGet, httpHandlerCheck, 0))
 	smux.HandleFunc("/create_user", x.makeHandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/update_user", x.makeHandler(HttpMethodPost, httpHandlerUpdateUser, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/unlock_user", x.makeHandler(HttpMethodPost, httpHandlerUnlockUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/archive_user", x.makeHandler(HttpMethodPost, httpHandlerArchiveUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/create_group", x.makeHandler(HttpMethodPut, httpHandlerCreateGroup, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/update_group", x.makeHandler(HttpMethodPost, httpHandlerUpdateGroup, handlerFlagNeedAdminRights))
@@ -455,21 +477,22 @@ func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ide
 		}
 
 		jresponse = append(jresponse, &userResponseJson{
-			Email:        user.Email,
-			UserId:       user.UserId,
-			Username:     user.Username,
-			Name:         user.Firstname,
-			Surname:      user.Lastname,
-			Mobile:       user.Mobilenumber,
-			Telephone:    user.Telephonenumber,
-			Remarks:      user.Remarks,
-			Created:      user.Created,
-			CreatedBy:    central.Central.GetUserNameFromUserId(user.CreatedBy),
-			Modified:     user.Modified,
-			ModifiedBy:   central.Central.GetUserNameFromUserId(user.ModifiedBy),
-			Groups:       groupnames,
-			AuthUserType: user.Type,
-			Archived:     user.Archived,
+			Email:         user.Email,
+			UserId:        user.UserId,
+			Username:      user.Username,
+			Name:          user.Firstname,
+			Surname:       user.Lastname,
+			Mobile:        user.Mobilenumber,
+			Telephone:     user.Telephonenumber,
+			Remarks:       user.Remarks,
+			Created:       user.Created,
+			CreatedBy:     central.Central.GetUserNameFromUserId(user.CreatedBy),
+			Modified:      user.Modified,
+			ModifiedBy:    central.Central.GetUserNameFromUserId(user.ModifiedBy),
+			Groups:        groupnames,
+			AuthUserType:  user.Type,
+			Archived:      user.Archived,
+			AccountLocked: user.AccountLocked,
 		})
 	}
 
@@ -569,10 +592,11 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 		httpSendNoIdentity(w)
 		return
 	}
+	clientIPAddress := getIPAddress(r.http)
 
-	if sessionkey, token, err := central.Central.Login(identity, password); err != nil {
-		auditUserLogAction(central, r, 0, identity, "User Profile: "+identity, authaus.AuditActionFailedLogin)
+	if sessionkey, token, err := central.Central.Login(identity, password, clientIPAddress); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+		auditUserLogAction(central, r, 0, identity, "User Profile: "+identity, authaus.AuditActionFailedLogin)
 	} else {
 		r.token = token
 		auditUserLogAction(central, r, token.UserId, token.Username, "User Profile: "+token.Identity, authaus.AuditActionAuthentication)
@@ -773,6 +797,31 @@ func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	} else {
 		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionUpdated)
 		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Updated user: '%v'", userId))
+	}
+}
+
+func httpHandlerUnlockUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	username := strings.TrimSpace(r.http.URL.Query().Get("username"))
+
+	// Get the userId of the locked out user
+	userId, err := getUserId(r)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	user := authaus.AuthUser{
+		UserId:   authaus.UserId(userId),
+		Username: username,
+	}
+
+	x := central.Central
+
+	if err := x.UnlockAccount(userId); err != nil {
+		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+	} else {
+		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionUnlocked)
+		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Unlocked user: '%v'", userId))
 	}
 }
 
