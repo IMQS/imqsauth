@@ -14,6 +14,7 @@ type ContextDetails struct {
 	Origin   string `json:"origin"`
 	Username string `json:"username"`
 	UserId   int64  `json:"userid"`
+	Email    string `json:"email"`
 }
 
 // Source - https://husobee.github.io/golang/ip-address/2015/12/17/remote-ip-go.html
