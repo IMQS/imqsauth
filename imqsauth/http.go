@@ -601,7 +601,7 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 		}
 	} else {
 		r.token = token
-		auditUserLogAction(central, r, token.UserId, token.Username, "User Profile: "+token.Identity, authaus.AuditActionAuthentication)
+		auditUserLogAction(central, r, token.UserId, token.Identity, "User Profile: "+token.Identity, authaus.AuditActionAuthentication)
 		if permList, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup != nil {
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, egroup.Error())
 		} else {
