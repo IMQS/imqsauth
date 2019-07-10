@@ -37,6 +37,7 @@ func getIPAddress(r *http.Request) string {
 	if remoteAddrNoPort, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
 		return remoteAddrNoPort
 	}
+	return r.RemoteAddr
 }
 
 func auditUserLogAction(central *ImqsCentral, req *httpRequest, userId authaus.UserId, username, description string, actionType authaus.AuditActionType) {
