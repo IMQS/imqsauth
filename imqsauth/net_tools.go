@@ -14,6 +14,7 @@ type ContextDetails struct {
 	Origin   string `json:"origin"`
 	Username string `json:"username"`
 	UserId   int64  `json:"userid"`
+	Email    string `json:"email"`
 }
 
 // Source - https://husobee.github.io/golang/ip-address/2015/12/17/remote-ip-go.html
@@ -33,20 +34,27 @@ func getIPAddress(r *http.Request) string {
 			return ip
 		}
 	}
+	if remoteAddrNoPort, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
+		return remoteAddrNoPort
+	}
 	return r.RemoteAddr
 }
 
 func auditUserLogAction(central *ImqsCentral, req *httpRequest, userId authaus.UserId, username, description string, actionType authaus.AuditActionType) {
 	var actorUserId authaus.UserId
-	serverAddress := central.Config.GetHostname()
-	if serverAddress == "" {
-		serverAddress = getIPAddress(req.http)
+
+	var email string
+	user, eUser := central.Central.GetUserFromIdentity(username)
+	if eUser == nil {
+		email = user.Email
 	}
+
 	contextDetails := ContextDetails{
 		Service:  "auth",
-		Origin:   serverAddress,
+		Origin:   getIPAddress(req.http),
 		Username: username,
 		UserId:   int64(userId),
+		Email:    email,
 	}
 
 	if req.token != nil {
