@@ -232,7 +232,7 @@ const (
 	PermNewMmTcView authaus.PermissionU16 = 1230 // User can view a Time Sheet
 	PermNewMmTcArchive authaus.PermissionU16 = 1231 // User can archive a Time Sheet
 	PermNewMmTcTimeExports authaus.PermissionU16 = 1232 // User can export Time Sheets
-	PermNewMmTcReportsView authaus.PermissionU16 = 1233 // User can view Incident Logger Reports
+	PermNewMmTcReportsView authaus.PermissionU16 = 1233 // User can view Time and Cost Reports
 	PermNewMmRm authaus.PermissionU16 = 1234 // User can access the Resource Manager Module
 	PermNewMmRmEmployeeCreateAddEmployee authaus.PermissionU16 = 1235 // User can add a new Employee
 	PermNewMmRmEmployeeView authaus.PermissionU16 = 1236 // User can view Employees grid and Employee data
@@ -611,7 +611,7 @@ func init() {
 	PermissionsTable[PermNewMmTcView] = "newmmtcview" // User can view a Time Sheet
 	PermissionsTable[PermNewMmTcArchive] = "newmmtcarchive" // User can archive a Time Sheet
 	PermissionsTable[PermNewMmTcTimeExports] = "newmmtctimeexports" // User can export Time Sheets
-	PermissionsTable[PermNewMmTcReportsView] = "newmmtcreportsview" // User can view Incident Logger Reports
+	PermissionsTable[PermNewMmTcReportsView] = "newmmtcreportsview" // User can view Time and Cost Reports
 	PermissionsTable[PermNewMmRm] = "newmmrm" // User can access the Resource Manager Module
 	PermissionsTable[PermNewMmRmEmployeeCreateAddEmployee] = "newmmrmemployeecreateaddemployee" // User can add a new Employee
 	PermissionsTable[PermNewMmRmEmployeeView] = "newmmrmemployeeview" // User can view Employees grid and Employee data
