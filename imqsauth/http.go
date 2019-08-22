@@ -721,7 +721,10 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	}
 
 	// Get the userId of the logged-in user
-	createdby := r.token.UserId
+	var createdby authaus.UserId
+	if r.token != nil {
+		createdby = r.token.UserId
+	}
 	created := time.Now().UTC()
 	user := authaus.AuthUser{
 		Email:           email,
