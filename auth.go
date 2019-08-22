@@ -32,7 +32,7 @@ func main() {
 	app.DefaultExec = exec
 
 	app.AddCommand("createdb", "Create the postgres database")
-	app.AddCommand("resetauthgroups", "Reset the [admin,enabled] groups")
+	app.AddCommand("resetauthgroups", "Reset the [admin,enabled] groups, and few others")
 
 	createUserDesc := "Create a user in the authentication system\nThis affects only the 'authentication' system - the permit database is not altered by this command. " +
 		"This has no effect on Yellowfin. Yellowfin users are created automatically during HTTP login."
@@ -188,7 +188,9 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 			if err != nil {
 				fmt.Printf("Creating intial admin user: %v\n", user)
 				options := make(map[string]string)
-				imqsauth.ResetAuthGroups(ic)
+				if !imqsauth.ResetAuthGroups(ic) {
+					fmt.Printf("ResetAuthGroups failed\n")
+				}
 				createUser(ic, options, user, pass)
 				permGroupAddOrDel(ic, user, "admin", true)
 				permGroupAddOrDel(ic, user, "enabled", true)

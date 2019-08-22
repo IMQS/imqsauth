@@ -6,17 +6,31 @@ import (
 )
 
 const (
-	// Hard-coded group names
+	// Hard-coded group names, which a lot of the system depends on
 	RoleGroupAdmin   = "admin"
 	RoleGroupEnabled = "enabled"
+	// Hard-coded group names, which used to be created by our Windows ruby installer scripts.
+	// Since moving to docker, we've moved these elements into ResetAuthGroups
+	RoleGroupFileDrop      = "filedrop"
+	RoleGroupReportCreator = "reportcreator"
+	RoleGroupReportViewer  = "reportviewer"
 )
 
 // Reset auth groups to a sane state. After running this, you should be able to use
-// the web interface to do everything else. That's the idea at least (the web interface has yet to be built).
+// the web interface to do everything else. That's the idea at least.
 func ResetAuthGroups(icentral *ImqsCentral) bool {
 	ok := true
+
+	// mandatory groups, used by a lot of things across the entire IMQS ecosystem
 	ok = ok && ModifyGroup(icentral, GroupModifySet, RoleGroupAdmin, authaus.PermissionList{PermAdmin})
 	ok = ok && ModifyGroup(icentral, GroupModifySet, RoleGroupEnabled, authaus.PermissionList{PermEnabled})
+
+	// not-so-mandatory groups, used by a few specific things
+	// This list was ported from https://github.com/IMQS/InfrastructureBin/blob/dd525a2d4ab7ec7b81aa8111b264bc72eb827dbd/ops/installers/03_deploy_win.rb
+	ok = ok && ModifyGroup(icentral, GroupModifyAdd, RoleGroupFileDrop, authaus.PermissionList{PermFileDrop})
+	ok = ok && ModifyGroup(icentral, GroupModifyAdd, RoleGroupReportCreator, authaus.PermissionList{PermReportCreator})
+	ok = ok && ModifyGroup(icentral, GroupModifyAdd, RoleGroupReportViewer, authaus.PermissionList{PermReportViewer})
+
 	if !ok {
 		return false
 	}
