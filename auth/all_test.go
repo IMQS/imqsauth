@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 const origin = "http://localhost/"
@@ -77,6 +78,7 @@ func TestDistributerPost(t *testing.T) {
 		ic.Config.NotificationUrl = server.URL
 		ic.RunHttp()
 	}()
+	time.Sleep(5 * time.Millisecond)
 
 	cookie, err := login()
 	if err != nil {

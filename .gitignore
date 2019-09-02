@@ -1,3 +1,5 @@
 docs/build
 .idea/
 /imqsauth
+/test-output
+Dockerfile-gotest

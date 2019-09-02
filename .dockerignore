@@ -1,0 +1,4 @@
+.git
+run-go-tests
+Dockerfile
+Dockerfile-*
