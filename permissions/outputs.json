@@ -1,0 +1,28 @@
+{
+  "outputs": [
+    {
+      "type": "cpp_otaku",
+      "target_path": "otaku/proj/ImqsServer/ImqsAuth.h"
+    },
+    {
+      "type": "cpp_aries",
+      "target_path": "maps/lib/service/auth/Permissions.h"
+    },
+    {
+      "type": "java",
+      "target_path": "common/common/src/main/java/za/co/imqs/common/security/Permissions.java"
+    },
+    {
+      "type": "go",
+      "target_path": "auth/src/github.com/IMQS/imqsauth/imqsauth/perms.go"
+    },
+    {
+      "type": "go_serviceauth",
+      "target_path": "serviceauth/permissions/permissions.go"
+    },
+    {
+      "type": "typescript",
+      "target_path": "www/js/lib/auth/permissions.ts"
+    }
+  ]
+}

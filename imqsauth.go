@@ -12,8 +12,8 @@ import (
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/cli"
 	"github.com/IMQS/gowinsvc/service"
+	auth "github.com/IMQS/imqsauth/auth"
 	"github.com/IMQS/imqsauth/cros"
-	"github.com/IMQS/imqsauth/imqsauth"
 )
 
 // These files are written by create-keys.rb
@@ -61,7 +61,7 @@ func main() {
 		"launch as a Windows Service. Otherwise, this runs in the foreground, and returns with an error code of 1. When running in the foreground, "+
 		"log messages are still sent to the logfile (not to the console).")
 
-	app.AddValueOption("c", "configfile", "Specify the imqsauth config file. A pseudo file called "+imqsauth.TestConfig1+" is "+
+	app.AddValueOption("c", "configfile", "Specify the imqsauth config file. A pseudo file called "+auth.TestConfig1+" is "+
 		"used by the REST test suite to load a test configuration. This option is mandatory.")
 
 	app.AddBoolOption("nosvc", "Do not try to run as a Windows Service. Normally, the 'run' command detects whether this is an "+
@@ -70,7 +70,7 @@ func main() {
 	app.Run()
 }
 
-func exec(cmdName string, args []string, options cli.OptionSet) {
+func exec(cmd string, args []string, options cli.OptionSet) int {
 
 	// panic(string) to show an error message.
 	// panic(error) will show a stack trace
@@ -95,13 +95,13 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 		}
 	}()
 
-	ic := &imqsauth.ImqsCentral{}
-	ic.Config = &imqsauth.Config{}
+	ic := &auth.ImqsCentral{}
+	ic.Config = &auth.Config{}
 
 	configFile := options["c"]
 
 	// Try test config first; otherwise load real config
-	isTestConfig := imqsauth.LoadTestConfig(ic, configFile)
+	isTestConfig := auth.LoadTestConfig(ic, configFile)
 	if !isTestConfig {
 		if err := ic.Config.LoadFile(configFile); err != nil {
 			panic(fmt.Sprintf("Error loading config file '%v': %v", configFile, err))
@@ -129,7 +129,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	// "createdb" is different to the other command.
 	// We cannot initialize an authaus Central object until the DB has been created.
 	// The "run" command already creates a new Central object.
-	createCentral := cmdName != "createdb" && !isTestConfig
+	createCentral := cmd != "createdb" && !isTestConfig
 
 	if createCentral {
 		var err error
@@ -140,12 +140,14 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 		defer ic.Central.Close()
 	}
 
-	// Run migrations
-	createDB(&ic.Config.Authaus)
+	if !isTestConfig {
+		// Run migrations
+		createDB(&ic.Config.Authaus)
+	}
 
 	// Setup yellowfin
 	if ic.Central != nil {
-		ic.Yellowfin = imqsauth.NewYellowfin(ic.Central.Log)
+		ic.Yellowfin = auth.NewYellowfin(ic.Central.Log)
 		if ic.Config.Yellowfin.Enabled && !ic.Config.IsContainer() {
 			if err := ic.Yellowfin.LoadConfig(ic.Config.Yellowfin, cros.YellowfinAdminPasswordFile, cros.YellowfinUserPasswordFile); err != nil {
 				panic(fmt.Sprintf("Error loading yellowfin config: %v", err))
@@ -155,7 +157,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 
 	// Setup audit service
 	if ic.Central != nil {
-		ic.Central.Auditor = imqsauth.NewIMQSAuditor(ic.Central.Log)
+		ic.Central.Auditor = auth.NewIMQSAuditor(ic.Central.Log)
 	}
 
 	if ic.Central != nil {
@@ -163,7 +165,7 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	}
 
 	success := false
-	switch cmdName {
+	switch cmd {
 	case "createdb":
 		success = createDB(&ic.Config.Authaus)
 	case "createuser":
@@ -177,7 +179,11 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	case "permshow":
 		success = permShow(ic, 0, args[0])
 	case "resetauthgroups":
-		success = imqsauth.ResetAuthGroups(ic)
+		if err := auth.ResetAuthGroups(ic); err != nil {
+			fmt.Printf("Error: %v\n", err)
+		} else {
+			success = true
+		}
 	case "run":
 		// Create initial user if there is one.
 		user := os.Getenv("IMQS_INIT_USER")
@@ -186,10 +192,10 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 			// first check if the user already exists
 			_, err := ic.Central.GetUserFromIdentity(user)
 			if err != nil {
-				fmt.Printf("Creating intial admin user: %v\n", user)
+				fmt.Printf("Creating initial admin user: %v\n", user)
 				options := make(map[string]string)
-				if !imqsauth.ResetAuthGroups(ic) {
-					fmt.Printf("ResetAuthGroups failed\n")
+				if err := auth.ResetAuthGroups(ic); err != nil {
+					fmt.Printf("ResetAuthGroups failed: %v\n", err)
 				}
 				createUser(ic, options, user, pass)
 				permGroupAddOrDel(ic, user, "admin", true)
@@ -220,8 +226,9 @@ func exec(cmdName string, args []string, options cli.OptionSet) {
 	}
 
 	if !success {
-		panic("")
+		return 1
 	}
+	return 0
 }
 
 func createDB(config *authaus.Config) bool {
@@ -237,7 +244,7 @@ func createDB(config *authaus.Config) bool {
 	return true
 }
 
-func resetGroup(icentral *imqsauth.ImqsCentral, group *authaus.AuthGroup) bool {
+func resetGroup(icentral *auth.ImqsCentral, group *authaus.AuthGroup) bool {
 	if existing, eget := icentral.Central.GetRoleGroupDB().GetByName(group.Name); eget == nil {
 		group.ID = existing.ID
 		existing.PermList = group.PermList
@@ -261,7 +268,7 @@ func resetGroup(icentral *imqsauth.ImqsCentral, group *authaus.AuthGroup) bool {
 }
 
 //add or remove an identity (e.g. user) to or from a group
-func permGroupAddOrDel(icentral *imqsauth.ImqsCentral, identity string, groupname string, isAdd bool) (success bool) {
+func permGroupAddOrDel(icentral *auth.ImqsCentral, identity string, groupname string, isAdd bool) (success bool) {
 	user, eUserId := icentral.Central.GetUserFromIdentity(identity)
 	if eUserId != nil {
 		fmt.Printf("Error retrieving userid for identity: %v\n", identity)
@@ -306,7 +313,7 @@ func permGroupAddOrDel(icentral *imqsauth.ImqsCentral, identity string, groupnam
 	return false
 }
 
-func permShow(icentral *imqsauth.ImqsCentral, identityColumnWidth int, identity string) (success bool) {
+func permShow(icentral *auth.ImqsCentral, identityColumnWidth int, identity string) (success bool) {
 	permStr := ""
 	success = false
 	user, eUserId := icentral.Central.GetUserFromIdentity(identity)
@@ -334,7 +341,7 @@ func permShow(icentral *imqsauth.ImqsCentral, identityColumnWidth int, identity 
 	return
 }
 
-func showAllGroups(icentral *imqsauth.ImqsCentral) bool {
+func showAllGroups(icentral *auth.ImqsCentral) bool {
 	groups, err := icentral.Central.GetRoleGroupDB().GetGroups()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
@@ -355,7 +362,7 @@ func showAllGroups(icentral *imqsauth.ImqsCentral) bool {
 	for _, group := range groups {
 		roles := []string{}
 		for _, perm := range group.PermList {
-			roles = append(roles, imqsauth.PermissionsTable[perm])
+			roles = append(roles, auth.PermissionsTable[perm])
 		}
 		sort.Strings(roles)
 		fmt.Printf(formatStr, group.Name, strings.Join(roles, " "))
@@ -365,7 +372,7 @@ func showAllGroups(icentral *imqsauth.ImqsCentral) bool {
 
 func showAllRoles() {
 	roles := []string{}
-	for _, name := range imqsauth.PermissionsTable {
+	for _, name := range auth.PermissionsTable {
 		roles = append(roles, name)
 	}
 	sort.Strings(roles)
@@ -374,7 +381,7 @@ func showAllRoles() {
 	}
 }
 
-func showAllIdentities(icentral *imqsauth.ImqsCentral) bool {
+func showAllIdentities(icentral *auth.ImqsCentral) bool {
 	users, err := icentral.Central.GetAuthenticatorIdentities(authaus.GetIdentitiesFlagNone)
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
@@ -395,9 +402,9 @@ func showAllIdentities(icentral *imqsauth.ImqsCentral) bool {
 	return true
 }
 
-func setGroup(icentral *imqsauth.ImqsCentral, groupName string, roles []string) bool {
+func setGroup(icentral *auth.ImqsCentral, groupName string, roles []string) bool {
 	perms := []authaus.PermissionU16{}
-	nameToPerm := imqsauth.PermissionsTable.Inverted()
+	nameToPerm := auth.PermissionsTable.Inverted()
 
 	for _, pname := range roles {
 		if perm, ok := nameToPerm[pname]; ok {
@@ -408,10 +415,15 @@ func setGroup(icentral *imqsauth.ImqsCentral, groupName string, roles []string) 
 		}
 	}
 
-	return imqsauth.ModifyGroup(icentral, imqsauth.GroupModifySet, groupName, perms)
+	err := auth.ModifyGroup(icentral, auth.GroupModifySet, groupName, perms)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return false
+	}
+	return true
 }
 
-func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, identity string, password string) bool {
+func createUser(icentral *auth.ImqsCentral, options map[string]string, identity string, password string) bool {
 
 	isEmail, _ := regexp.MatchString("^([\\w-]+(?:\\.[\\w-]+)*)@((?:[\\w-]+\\.)*\\w[\\w-]{0,66})\\.([a-z]{2,6}(?:\\.[a-z]{2})?)$", identity)
 	var e error
@@ -451,7 +463,7 @@ func createUser(icentral *imqsauth.ImqsCentral, options map[string]string, ident
 	}
 }
 
-func killSessions(icentral *imqsauth.ImqsCentral, identity string) bool {
+func killSessions(icentral *auth.ImqsCentral, identity string) bool {
 	user, eUserId := icentral.Central.GetUserFromIdentity(identity)
 	if eUserId != nil {
 		fmt.Printf("Error retrieving userid for identity: %v\n", identity)
@@ -466,7 +478,7 @@ func killSessions(icentral *imqsauth.ImqsCentral, identity string) bool {
 	}
 }
 
-func setPassword(icentral *imqsauth.ImqsCentral, identity string, password string) bool {
+func setPassword(icentral *auth.ImqsCentral, identity string, password string) bool {
 	user, eUserId := icentral.Central.GetUserFromIdentity(identity)
 	if eUserId != nil {
 		fmt.Printf("Error retrieving userid for identity: %v\n", identity)
@@ -481,7 +493,7 @@ func setPassword(icentral *imqsauth.ImqsCentral, identity string, password strin
 	}
 }
 
-func renameUser(icentral *imqsauth.ImqsCentral, oldIdent string, newIdent string) bool {
+func renameUser(icentral *auth.ImqsCentral, oldIdent string, newIdent string) bool {
 	if e := icentral.Central.RenameIdentity(oldIdent, newIdent); e == nil {
 		fmt.Printf("Renamed %v to %v\n", oldIdent, newIdent)
 		return true
@@ -491,7 +503,7 @@ func renameUser(icentral *imqsauth.ImqsCentral, oldIdent string, newIdent string
 	}
 }
 
-func setPasswordYellowfin(icentral *imqsauth.ImqsCentral, identity string, password string) bool {
+func setPasswordYellowfin(icentral *auth.ImqsCentral, identity string, password string) bool {
 	if !icentral.Yellowfin.Enabled {
 		fmt.Printf("Yellowfin is disabled\n")
 		return false
@@ -505,7 +517,7 @@ func setPasswordYellowfin(icentral *imqsauth.ImqsCentral, identity string, passw
 	}
 }
 
-func resetPassword(icentral *imqsauth.ImqsCentral, identity string) bool {
+func resetPassword(icentral *auth.ImqsCentral, identity string) bool {
 	user, eUserId := icentral.Central.GetUserFromIdentity(identity)
 	if eUserId != nil {
 		fmt.Printf("Error retrieving userid for identity: %v\n", identity)

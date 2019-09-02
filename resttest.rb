@@ -3,7 +3,7 @@ require "base64"
 require "cgi"
 require "test/unit"
 require "securerandom"
-require "rest_client"
+require "rest-client"
 require "digest/sha1"
 require "json"
 
@@ -28,7 +28,7 @@ class RestBase < Test::Unit::TestCase
       raise "RestBase: unknown verb #{verb}"
     end
 
-    print(">>  #{path}  =>  #{r.code} #{r.body[0, 300]} (#{r.class})\n")
+    #print(">>  #{path}  =>  #{r.code} #{r.body[0, 300]} (#{r.class})\n")
     if block_given?
       yield(r)
     else
@@ -167,7 +167,23 @@ end
 class AuthBase < RestBase
   def setup
     @baseurl = "http://127.0.0.1:3377"
-    @pid = spawn("bin/imqsauth -c=!TESTCONFIG1 -nosvc run")
+    @pid = spawn("./imqsauth -c=!TESTCONFIG1 -nosvc run")
+
+    # Poll until we can successfully ping the service
+    have_ping = false
+    for i in 0..50 do
+      begin
+        resp = RestClient.get(@baseurl + "/ping", {}) { |response, _request, _result| response }
+        if resp.code.to_i == 200
+          have_ping = true
+          break
+        end
+      rescue
+        #print("error #{$!}\n")
+      end
+      sleep(0.1)
+    end
+    raise "Ping failed (waiting for imqsauth to startup)" if !have_ping
 
     # Load user ids
     doany("GET", "/userobjects", nil, basicauth("admin", "ADMIN")) do |r|
@@ -188,6 +204,7 @@ class AuthBase < RestBase
 
   def teardown
     Process.kill("KILL", @pid)
+    sleep(0.01)
   end
 
   def basicauth_joe
