@@ -14,7 +14,7 @@
     },
     {
       "type": "go",
-      "target_path": "auth/src/github.com/IMQS/imqsauth/imqsauth/perms.go"
+      "target_path": "imqsauth/auth/perms.go"
     },
     {
       "type": "go_serviceauth",
