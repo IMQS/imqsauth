@@ -128,16 +128,23 @@ const (
 CONST
 )
 
-// Mapping from 16-bit permission integer to string-based name
+// PermissionsTable is a map from 16-bit permission integer to string-based name (eg 1120 to watermoduleaccess)
 var PermissionsTable authaus.PermissionNameTable
+
+// PermissionModuleMap is a map from a model name (eg "Water") to the permission required to use that module (eg 1120, aka PermWaterModuleAccess)
+var PermissionModuleMap map[string]authaus.PermissionU16
 
 func init() {
 	PermissionsTable = authaus.PermissionNameTable{}
+	PermissionModuleMap = map[string]authaus.PermissionU16{}
 
 	// It is better not to include the 'zero' permission in here, otherwise it leaks
 	// out into things like an inverted map from permission name to permission number.
 
-INIT
+INIT_PERMISSION_NAMES
+
+INIT_MODULE_NAMES
+
 }
 END
 
@@ -249,8 +256,18 @@ Generators = {
 		:template => go_template,
 		:procs => {
 			"CONST" => lambda { |enum, perm, islast| "\tPerm#{camel_to_pascal(perm['v'])} authaus.PermissionU16 = #{enum} // #{perm['d']}" },
-			"INIT" => lambda { |enum, perm, islast| enum == 0 ? "" : "\tPermissionsTable[Perm#{camel_to_pascal(perm['v'])}] = \"#{perm['v'].downcase}\" // #{perm['d']}" }
-		}
+			"INIT_PERMISSION_NAMES" => lambda { |enum, perm, islast| enum == 0 ? "" : "\tPermissionsTable[Perm#{camel_to_pascal(perm['v'])}] = \"#{perm['v'].downcase}\" // #{perm['d']}" },
+			"INIT_MODULE_NAMES" => lambda { |enum, perm, islast|
+				# Example line:
+				# "1102": {"v": "conditionAssessmentModuleAccess",		"n": "Condition Assessment",		"m": "CONDITION_ASSESSMENT",		"a": true,			"d": "User is allowed to access the Condition Assessment module"},
+				if enum == 0 || perm['v'] !~ /.+ModuleAccess$/
+					""
+				else
+					# We want: PermissionModuleMap["Water"] = PermWaterModuleAccess
+					"\tPermissionModuleMap[\"#{perm['n']}\"] = Perm#{camel_to_pascal(perm['v'])}"
+				end
+			},
+		},
 	},
 	"go_serviceauth" => {
 		:template => go_serviceauth_template,

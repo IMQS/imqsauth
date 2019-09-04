@@ -1,4 +1,4 @@
-# docker build -t imqs/imqsauth:master --build-arg SSH_KEY="`cat ~/.ssh/id_rsa`" .
+# docker build -t imqs/auth:master --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" .
 
 ##################################
 # Builder image

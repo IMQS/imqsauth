@@ -4,7 +4,6 @@
 	"0": {"v": "reservedZero",							"n": "Reserved Zero",						"m": "GLOBAL",						"a": false,			"d": "Avoid the danger of having a zero mean something"},
 	"1": {"v": "admin",									"n": "Administrator",						"m": "GLOBAL",						"a": true,			"d": "Super-user who can control all aspects of the auth system"},
 	"2": {"v": "enabled",								"n": "Enabled",								"m": "GLOBAL",					 	"a": true,			"d": "User is allowed to use the system. Without this no request is authorized"},
-	"3": {"v": "pcs",									"n": "PCS",									"m": "GLOBAL",						"a": true,			"d": "User is allowed to access the PCS module."},
 	"4": {"v": "bulkSms",								"n": "Bulk SMS",							"m": "GLOBAL",						"a": true,			"d": "User is allowed to send SMS messages."},
 
 	"100": {"v": "pcsSuperUser",						"n": "Super User",							"m": "PCS",							"a": true,			"d": "User can perform all actions in PCS}"},
@@ -179,7 +178,7 @@
 	"1109": {"v": "landUseModuleAccess",					"n": "Land Use",					"m": "LAND_USE",					"a": true,			"d": "User is allowed to access the Land Use module"},
 	"1110": {"v": "maintenanceManagementModuleAccess",		"n": "Maintenance Management",		"m": "MAINTENANCE_MANAGEMENT",		"a": true,			"d": "User is allowed to access the Maintenance Management module"},
 	"1111": {"v": "meterMaintenanceModuleAccess",			"n": "Meter Maintenance",			"m": "METER_MAINTENANCE",			"a": true,			"d": "User is allowed to access the Meter Maintenance module"},
-	"1112": {"v": "pcsModuleAccess",						"n": "PCS",							"m": "PCS",							"a": true,			"d": "User is allowed to access the PCS module"},
+	"3":    {"v": "pcsModuleAccess",						"n": "PCS",							"m": "PCS",							"a": true,			"d": "User is allowed to access the PCS module"},
 	"1113": {"v": "propertiesandBuildingsModuleAccess",		"n": "Properties and Buildings",	"m": "PROPERTIES_AND_BUILDINGS",	"a": true,			"d": "User is allowed to access the Properties and Buildings module"},
 	"1114": {"v": "revenueEnhancementModuleAccess",			"n": "Revenue Enhancement",			"m": "REVENUE_ENHANCEMENT",			"a": true,			"d": "User is allowed to access the Revenue Enhancement module"},
 	"1115": {"v": "roadsModuleAccess",						"n": "Roads",						"m": "ROADS",						"a": true,			"d": "User is allowed to access the Roads module"},

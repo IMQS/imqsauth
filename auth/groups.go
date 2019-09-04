@@ -15,6 +15,7 @@ const (
 	RoleGroupFileDrop      = "filedrop"
 	RoleGroupReportCreator = "reportcreator"
 	RoleGroupReportViewer  = "reportviewer"
+	RoleGroupPCS           = "PCS"
 )
 
 type predefinedGroup struct {
@@ -38,6 +39,30 @@ func ResetAuthGroups(icentral *ImqsCentral) error {
 		{RoleGroupFileDrop, authaus.PermissionList{PermFileDrop}},
 		{RoleGroupReportCreator, authaus.PermissionList{PermReportCreator}},
 		{RoleGroupReportViewer, authaus.PermissionList{PermReportViewer}},
+		// [2019-09-03] PCS access used to be a permission in the "Global" module, but today we moved to be the same as other modules.
+		// HOWEVER, we retained the permission number (3). So basically, we renamed the PCS permission, and we moved it from
+		// "Global" into the "PCS" module. As part of this exercise, we also got rid of the old "PCS" permission, which was 1112.
+		//{RoleGroupPCS, authaus.PermissionList{PermPcs}},
+	}
+
+	// Create a group for every module. If you belong to one of these groups, then you are allowed
+	// to access that module.
+	for name, perm := range PermissionModuleMap {
+		others = append(others, predefinedGroup{name, authaus.PermissionList{perm}})
+	}
+
+	// Create the "AllModuleAccess" group, which can access any module
+	allModuleAccess := authaus.PermissionList{}
+	for _, perm := range PermissionModuleMap {
+		allModuleAccess = append(allModuleAccess, perm)
+	}
+	others = append(others, predefinedGroup{"AllModuleAccess", allModuleAccess})
+
+	// See comment above, about PCS, from 2019-09-03.
+	// Basically, we got rid of 1112, which no part of our system ever respected, and we replaced it
+	// with 3, which PCS has respected since many years ago.
+	if err := ModifyGroup(icentral, GroupModifyRemove, "PCS", authaus.PermissionList{1112}); err != nil {
+		return err
 	}
 
 	for _, p := range mandatory {

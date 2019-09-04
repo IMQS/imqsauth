@@ -18,7 +18,7 @@ def generate_permissions
   permissions = JSON.parse(File.read('permissions.json'))['permissions']
   outputs = JSON.parse(File.read('outputs.json'))['outputs']
 
-  outputs.each{ |output|
+  outputs.each { |output|
     type = Generators[output["type"]]
     template = type[:template]
     procs = type[:procs]
@@ -26,7 +26,11 @@ def generate_permissions
       code = ''
       permissions.each_with_index { |pair, i|
         enum, perm = pair[0], pair[1]
-        code += pfunc.call(enum.to_i, perm, i == permissions.length - 1) + "\n"
+        line = pfunc.call(enum.to_i, perm, i == permissions.length - 1)
+        if line != ""
+          code += line
+          code += "\n"
+        end
       }
       template = template.sub!(pname, code)
     }

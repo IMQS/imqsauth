@@ -185,6 +185,11 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 			success = true
 		}
 	case "run":
+		// Reset auth groups, always
+		if err := auth.ResetAuthGroups(ic); err != nil {
+			fmt.Printf("ResetAuthGroups failed: %v\n", err)
+		}
+
 		// Create initial user if there is one.
 		user := os.Getenv("IMQS_INIT_USER")
 		pass := os.Getenv("IMQS_INIT_PASS")
@@ -193,11 +198,7 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 			_, err := ic.Central.GetUserFromIdentity(user)
 			if err != nil {
 				fmt.Printf("Creating initial admin user: %v\n", user)
-				options := make(map[string]string)
-				if err := auth.ResetAuthGroups(ic); err != nil {
-					fmt.Printf("ResetAuthGroups failed: %v\n", err)
-				}
-				createUser(ic, options, user, pass)
+				createUser(ic, map[string]string{}, user, pass)
 				permGroupAddOrDel(ic, user, "admin", true)
 				permGroupAddOrDel(ic, user, "enabled", true)
 			}

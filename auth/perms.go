@@ -20,7 +20,6 @@ const (
 	PermReservedZero authaus.PermissionU16 = 0 // Avoid the danger of having a zero mean something
 	PermAdmin authaus.PermissionU16 = 1 // Super-user who can control all aspects of the auth system
 	PermEnabled authaus.PermissionU16 = 2 // User is allowed to use the system. Without this no request is authorized
-	PermPcs authaus.PermissionU16 = 3 // User is allowed to access the PCS module.
 	PermBulkSms authaus.PermissionU16 = 4 // User is allowed to send SMS messages.
 	PermPcsSuperUser authaus.PermissionU16 = 100 // User can perform all actions in PCS}
 	PermPcsBudgetAddAndDelete authaus.PermissionU16 = 101 // User is allowed to add and delete a budget to PCS
@@ -184,7 +183,7 @@ const (
 	PermLandUseModuleAccess authaus.PermissionU16 = 1109 // User is allowed to access the Land Use module
 	PermMaintenanceManagementModuleAccess authaus.PermissionU16 = 1110 // User is allowed to access the Maintenance Management module
 	PermMeterMaintenanceModuleAccess authaus.PermissionU16 = 1111 // User is allowed to access the Meter Maintenance module
-	PermPcsModuleAccess authaus.PermissionU16 = 1112 // User is allowed to access the PCS module
+	PermPcsModuleAccess authaus.PermissionU16 = 3 // User is allowed to access the PCS module
 	PermPropertiesandBuildingsModuleAccess authaus.PermissionU16 = 1113 // User is allowed to access the Properties and Buildings module
 	PermRevenueEnhancementModuleAccess authaus.PermissionU16 = 1114 // User is allowed to access the Revenue Enhancement module
 	PermRoadsModuleAccess authaus.PermissionU16 = 1115 // User is allowed to access the Roads module
@@ -387,19 +386,21 @@ const (
 
 )
 
-// Mapping from 16-bit permission integer to string-based name
+// PermissionsTable is a map from 16-bit permission integer to string-based name (eg 1120 to watermoduleaccess)
 var PermissionsTable authaus.PermissionNameTable
+
+// PermissionModuleMap is a map from a model name (eg "Water") to the permission required to use that module (eg 1120, aka PermWaterModuleAccess)
+var PermissionModuleMap map[string]authaus.PermissionU16
 
 func init() {
 	PermissionsTable = authaus.PermissionNameTable{}
+	PermissionModuleMap = map[string]authaus.PermissionU16{}
 
 	// It is better not to include the 'zero' permission in here, otherwise it leaks
 	// out into things like an inverted map from permission name to permission number.
 
-
 	PermissionsTable[PermAdmin] = "admin" // Super-user who can control all aspects of the auth system
 	PermissionsTable[PermEnabled] = "enabled" // User is allowed to use the system. Without this no request is authorized
-	PermissionsTable[PermPcs] = "pcs" // User is allowed to access the PCS module.
 	PermissionsTable[PermBulkSms] = "bulksms" // User is allowed to send SMS messages.
 	PermissionsTable[PermPcsSuperUser] = "pcssuperuser" // User can perform all actions in PCS}
 	PermissionsTable[PermPcsBudgetAddAndDelete] = "pcsbudgetaddanddelete" // User is allowed to add and delete a budget to PCS
@@ -763,5 +764,35 @@ func init() {
 	PermissionsTable[PermMmRoadsDataFilter] = "mmroadsdatafilter" // User can see data in grid and dropdowns for the Roads and Storm Water Department
 	PermissionsTable[PermMmSolidWasteDataFilter] = "mmsolidwastedatafilter" // User can see data in grid and dropdowns for the Solid Waste Department
 	PermissionsTable[PermMmSewerDataFilter] = "mmsewerdatafilter" // User can see data in grid and dropdowns for the Sewer Department
+
+
+	PermissionModuleMap["Assets"] = PermAssetsModuleAccess
+	PermissionModuleMap["COGTA"] = PermCogtaModuleAccess
+	PermissionModuleMap["Condition Assessment"] = PermConditionAssessmentModuleAccess
+	PermissionModuleMap["Document Explorer"] = PermDocumentExplorerModuleAccess
+	PermissionModuleMap["Electricity"] = PermElectricityModuleAccess
+	PermissionModuleMap["Electricity Demand"] = PermElectricityDemandModuleAccess
+	PermissionModuleMap["Electricity Demo"] = PermElectricityDemoModuleAccess
+	PermissionModuleMap["Energy"] = PermEnergyModuleAccess
+	PermissionModuleMap["Indigent"] = PermIndigentModuleAccess
+	PermissionModuleMap["Land Use"] = PermLandUseModuleAccess
+	PermissionModuleMap["Maintenance Management"] = PermMaintenanceManagementModuleAccess
+	PermissionModuleMap["Meter Maintenance"] = PermMeterMaintenanceModuleAccess
+	PermissionModuleMap["PCS"] = PermPcsModuleAccess
+	PermissionModuleMap["Properties and Buildings"] = PermPropertiesandBuildingsModuleAccess
+	PermissionModuleMap["Revenue Enhancement"] = PermRevenueEnhancementModuleAccess
+	PermissionModuleMap["Roads"] = PermRoadsModuleAccess
+	PermissionModuleMap["Sewer"] = PermSewerModuleAccess
+	PermissionModuleMap["Sewer PRP"] = PermSewerPRPModuleAccess
+	PermissionModuleMap["Stormwater"] = PermStormwaterModuleAccess
+	PermissionModuleMap["Telcos"] = PermTelcosModuleAccess
+	PermissionModuleMap["Water"] = PermWaterModuleAccess
+	PermissionModuleMap["Water Demand"] = PermWaterDemandModuleAccess
+	PermissionModuleMap["Water PRP"] = PermWaterPRPModuleAccess
+	PermissionModuleMap["WIP"] = PermWipModuleAccess
+	PermissionModuleMap["Development Control"] = PermDevelopmentControlModuleAccess
+	PermissionModuleMap["Road Signs"] = PermRoadSignsModuleAccess
+	PermissionModuleMap["Electricity RP"] = PermElectricityRPModuleAccess
+
 
 }
