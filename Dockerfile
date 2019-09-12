@@ -5,7 +5,7 @@
 ##################################
 FROM golang:1.12 as builder
 
-ARG SSH_KEY
+ARG ssh_pvt_key
 
 # Authorize SSH Host
 RUN mkdir -p /root/.ssh && \
@@ -13,7 +13,7 @@ RUN mkdir -p /root/.ssh && \
     ssh-keyscan github.com > /root/.ssh/known_hosts
 
 # We need this key so that we can read our private IMQS git repos from github
-RUN echo "$SSH_KEY" > /root/.ssh/id_rsa && \
+RUN echo "$ssh_pvt_key" > /root/.ssh/id_rsa && \
     chmod 600 /root/.ssh/id_rsa
 
 RUN git config --global url."git@github.com:".insteadOf "https://github.com/"
