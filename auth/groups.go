@@ -43,6 +43,10 @@ func ResetAuthGroups(icentral *ImqsCentral) error {
 		// HOWEVER, we retained the permission number (3). So basically, we renamed the PCS permission, and we moved it from
 		// "Global" into the "PCS" module. As part of this exercise, we also got rid of the old "PCS" permission, which was 1112.
 		//{RoleGroupPCS, authaus.PermissionList{PermPcs}},
+		{"DevelopmentControl", authaus.PermissionList{PermDevelopmentControlModuleAccess}},
+		{"DevelopmentControl - Admin", authaus.PermissionList{PermDevelopmentControlModuleAccess, PermDevconProjectEdit, PermDevconProjectCreate, PermDevconProjectDelete, PermDevconProjectMerge, PermDevconApplicationEdit, PermDevconApplicationCreate, PermDevconApplicationDelete, PermDevconLookupEdit, PermDevconLookupCreate, PermDevconLookupDelete, PermDevconLookupManagement, PermDevconTemplateManagement, PermDevconReportViewing}},
+		{"DevelopmentControl - Operator", authaus.PermissionList{PermDevelopmentControlModuleAccess, PermDevconProjectEdit, PermDevconProjectCreate, PermDevconProjectDelete, PermDevconProjectMerge, PermDevconApplicationEdit, PermDevconApplicationCreate, PermDevconApplicationDelete, PermDevconLookupEdit, PermDevconLookupCreate, PermDevconLookupDelete, PermDevconReportViewing}},
+		{"DevelopmentControl - Service Desk User", authaus.PermissionList{PermDevelopmentControlModuleAccess, PermDevconProjectEdit, PermDevconProjectCreate, PermDevconProjectDelete, PermDevconApplicationEdit, PermDevconApplicationCreate, PermDevconApplicationDelete, PermDevconLookupEdit, PermDevconLookupCreate, PermDevconLookupDelete}},
 	}
 
 	// Create a group for every module. If you belong to one of these groups, then you are allowed
