@@ -1,0 +1,158 @@
+@import (reference) "../../../css/00-global-vars-mixins.less";
+
+.imqs-background {
+	width: 100%;
+	height: 100%;
+	position: relative;
+}
+
+.imqs-address {
+	position: absolute;
+	//background-image: url("../../../../img/login/imqs-website-address-lime.svg");
+	background-position: bottom right;
+	background-repeat: no-repeat;
+	background-size: contain;
+	width: 380px;
+	height: 57px;
+	bottom: 40px;
+	right: 40px;
+}
+
+.login-page-container {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	font-size: 18px;
+}
+
+.login-frame {
+	border-top-right-radius: 20px;
+	border-top-left-radius: 20px;
+	border-bottom-right-radius: 10px;
+	border-bottom-left-radius: 10px;
+	border-left: 1px solid #d3d3d3;
+	border-right: 1px solid #d3d3d3;
+	border-bottom: 1px solid #d3d3d3;
+	padding: 55px;
+	position: fixed;
+	margin: auto;
+	width: 370px;
+	height: 390px;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
+
+.login-logo-top {
+	border-top: 1px solid #d3d3d3;
+	border-left: 1px solid #d3d3d3;
+	border-right: 1px solid #d3d3d3;
+	border-top-right-radius: 10px;
+	border-top-left-radius: 10px;
+	background-color: @iq-color-gray-10;
+	height: 66px;
+	margin-top: -55px; // only to correct for old login page theme. TODO: remove once we move over to new themes
+	margin-bottom: 20px; // only to correct for old login page theme. TODO: remove once we move over to new themes
+	margin-left: -56px; // only to correct for old login page theme. TODO: remove once we move over to new themes
+	padding: 55px 55px 40px 55px;
+	width: 100%;
+}
+
+.imqs-logo {
+	display: inline-block;
+	margin-top: -14px; // only to correct for old login page theme. TODO: remove once we move over to new themes
+	margin-left: -11px; // only to correct for old login page theme. TODO: remove once we move over to new themes
+	width: 60%; // only to correct for old login page theme. TODO: remove once we move over to new themes
+	height: 80px;
+	background-image: url("../../../../img/logo/IMQS-logo-old.png");
+	background-repeat: no-repeat;
+	background-size: contain;
+}
+
+.login-input-header {
+	width: 100%;
+	padding-top: 10px;
+	margin-bottom: 10px;
+	font-size: 18px;
+	text-align: left;
+	color: @iq-color-gray-40;
+}
+
+.login-frame input {
+	border: 1px solid lightgray;
+	outline: none;
+	font-size: 20px;
+	vertical-align: top;
+}
+
+.login-frame .input-error-underline {
+	border-bottom: 1px solid red;
+}
+
+.login-frame button[type="button"] {
+	padding-bottom: 9px;
+	line-height: 18px;
+	margin-left: 0px;
+	font-size: 18px;
+}
+
+.login-error {
+	height: 30px;
+}
+
+.login-error div {
+	padding-top: 6px;
+	color: #e8194d;
+	font-size: 13px;
+}
+
+.login-password-forget {
+	color: @iq-color-gray-100;
+	font-size: 14px;
+	padding-top: 12px;
+	float: right;
+}
+
+.login-password-forget a {
+	float: right;
+}
+
+.login-password-forget .disabled {
+	color: @iq-color-gray-30;
+	pointer-events: none;
+	cursor: default;
+}
+
+.login-loader {
+	margin-right: 60px;
+	margin-top: 6px;
+	float: right;
+	border: 4px solid @iq-color-gray-10;
+	border-top: 4px solid #0063a3; /* Old IMQS Blue */
+	border-radius: 50%;
+	width: 15px;
+	height: 15px;
+	animation: spin 1.2s linear infinite;
+}
+#login-email {
+	width: 100%;
+	border-radius: 3px;
+	padding: 5px 0 5px 7px;
+}
+
+// Get rid of the 'x' on the right of the input box, on IE and Edge.
+// This makes our Screenster test runs more consistent between IE and Chrome.
+#login-email::-ms-clear {
+	width: 0;
+	height: 0;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}

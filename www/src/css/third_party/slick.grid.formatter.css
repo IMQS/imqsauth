@@ -1,0 +1,31 @@
+.percent-complete-bar {
+    display: inline-block;
+    height: 6px;
+    margin-bottom: 8px;
+    font-weight: bold;
+    float:left;
+}
+
+.percent-complete-bar-background {
+    display: inline-block;
+    height: 8px;
+    -moz-border-radius: 0px;
+    -webkit-border-radius: 0px;
+    font-weight: bold;
+    width:100%;
+    background:#E5E5E5;
+}
+
+.slick-grid-percent-complete-green {
+   color:green 
+}
+
+.slick-grid-percent-complete-red {
+   color:red; 
+   font-weight: bold
+}
+
+.slick-grid-physical-Scurve-percent {
+   color:grey; 
+   font-weight: bold
+}

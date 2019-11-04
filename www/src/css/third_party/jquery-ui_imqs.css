@@ -1,0 +1,177 @@
+/*
+  In this Cascading Style Sheet, we'll add our changes to jquery-ui's default styles.
+  The idea is that we don't want to struggle in the future when upgrading jquery-ui to a later version.
+  We'll take advantage of the override ability of CSS, to just use the same class as jquery-ui and let
+  our style/theme be applied last.
+  This will ensure a sudo-future-proof solution.
+*/
+
+.ui-dialog {
+    position: absolute;
+    width: 300px;
+    overflow: hidden;
+    padding: 0;
+    background: #fcfcfc;
+	z-index: 1000;
+}
+
+.ui-dialog .ui-dialog-title {
+    vertical-align: middle;
+    color: black;
+}
+
+.ui-dialog .ui-dialog-title {
+    padding-bottom: 2px;
+}
+
+.ui-dialog .ui-dialog-titlebar {
+    font-size: 16px;
+    background: #efefef;
+    border-bottom-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+    padding: 5px;
+}
+
+.ui-dialog .ui-dialog-content {
+    font-size: 1.5em;
+    padding: 0px;
+}
+
+.ui-button-icon-only .ui-icon {
+    margin-left: -8.1px;
+}
+.ui-datepicker { 
+	z-index: 999; 
+	background: white;
+}
+.ui-datepicker-inline { z-index: 999; }
+
+/* position: relative prevents IE scroll bug (element with position: relative inside container with overflow: auto appear as "fixed") */
+.ui-tabs {
+    position: relative;
+    padding: 0em; zoom: 1;
+}
+.ui-tabs .ui-tabs-nav {
+    margin: 0;
+    padding: 0em .5em 0;
+}
+
+.ui-tabs .ui-tabs-nav li {
+    list-style: none;
+    float: left; position: relative;
+    top: 0;
+    margin: 1px .2em 0 0;
+    border-bottom-width: 1px;
+    padding: 0;
+    white-space: nowrap;
+}
+
+.ui-tabs .ui-tabs-nav li a {
+    float: left;
+    padding: .5em .8em;
+    text-decoration: none;
+    background-color: #c4c4c4;
+    margin-top: -2px;
+}
+
+.ui-tabs .ui-tabs-nav li.ui-tabs-active {
+    margin-bottom: -1px;
+    padding-bottom: 1px;
+    background-color: white;
+}
+
+.ui-tabs .ui-tabs-nav li.ui-tabs-active a,
+.ui-tabs .ui-tabs-nav li.ui-state-disabled a,
+.ui-tabs .ui-tabs-nav li.ui-tabs-loading a {
+    cursor: text;
+    background-color: #efefef;
+    border-top-color: #efefef;
+    margin-top: -2px;
+}
+
+.ui-tabs .ui-tabs-panel {
+    display: block;
+    border-width: 0;
+    border:0px transparent solid;
+    background-color:  #efefef;
+}
+
+.ui-widget {
+    /* See comment in 00-global-vars-mixins.less, for @clearfont */
+    font-family:-apple-system,BlinkMacSystemFont,Verdana,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+    font-size: 10px/*{fsDefault}*/;
+}
+
+.ui-widget-header {
+    background: #EFEFEF/*{bgColorHeader} url(images/ui-bg_highlight-soft_75_cccccc_1x100.png)/*{bgImgUrlHeader}*/ 50%/*{bgHeaderXPos}*/ 50%/*{bgHeaderYPos}*/ repeat-x/*{bgHeaderRepeat}*/;
+    color: #222222/*{fcHeader}*/;
+    font-weight: bold; border: 0;
+}
+
+.ui-state-default a,
+.ui-state-default a:link,
+.ui-state-default a:visited {
+    color: #555555/*{fcDefault}*/;
+    text-decoration: none;
+    outline: none;
+}
+
+.ui-state-active a,
+.ui-state-active a:link,
+.ui-state-active a:visited {
+    color: #212121/*{fcActive}*/;
+    text-decoration: none;
+    background-color: #efefef;
+    border:1px #efefef solid;
+}
+
+.ui-button {
+    position: absolute;
+    height: 20px;
+    right: 3px;
+    top: 4px;
+}
+
+.ui-button-icon-only {
+    width: 21px;
+}
+
+.ui-widget-overlay {
+    background: black;
+    opacity: 0.6;
+	z-index: 1000;
+}
+
+.ui-spinner-input {
+	 outline: none; 
+	 margin-left: .1em;
+	 margin-top: .1em;
+	 width:32px;
+	 text-align:right;
+}
+
+/**
+ * Do not view span with text "close" on corner close button.
+ * Need to create new dialog class and remove all custom dialogs
+ * and then remove the span in javascript rather.
+ */
+button.ui-dialog-titlebar-close span.ui-button-text {
+	display: none !important;
+}
+
+.ui-widget.ui-widget-content {
+	border: 1px solid #aaaaaa/*{borderColorContent}*/;
+	color: #222222/*{fcContent}*/;
+}
+
+/*///////////////////////////////////////////////////
+///////   Search based color adjustments
+///////////////////////////////////////////////////*/
+.ui-menu .ui-menu-item-wrapper {
+    padding: 0px;
+}
+
+.ui-menu-item-wrapper:hover .imqs-search-result-row-highlight {
+    color: inherit;
+}
+/*/////////////////////////////////////////////////*/

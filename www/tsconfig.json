@@ -1,0 +1,53 @@
+{
+	"compilerOptions": {
+		"module": "esnext",
+		"moduleResolution": "node",
+		"sourceMap": true,
+		"target": "es5",
+		"downlevelIteration": true,
+		"allowSyntheticDefaultImports": true,
+		"experimentalDecorators": true,
+		"importHelpers": true,
+		"noImplicitThis": false,
+		"incremental": true,
+		"lib": [
+			"dom",
+			"es5",
+			"es2015",
+			"es2016",
+			"es2017.object",
+			"scripthost"
+		],
+		"baseUrl": ".",
+		"paths": {
+			"@/*": [
+				"src/*"
+			],
+			"~/*": [
+				"src/*"
+			],
+			"src/*": [
+				"src/*"
+			],
+			"css/*": [
+				"src/css/*"
+			],
+			"lib/*": [
+				"src/lib/*"
+			]
+		}
+	},
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.vue",
+		"store/**/*.ts",
+		"src/**/*.srcon"
+	],
+	"exclude": [
+		"node_modules",
+		"src/lib/node_modules",
+		"src/lib/main.ts",
+		"src/lib/pages/**",
+		"src/lib/**/*.spec.ts"
+	]
+}

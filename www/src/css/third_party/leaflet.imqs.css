@@ -1,0 +1,77 @@
+.leaflet-top,
+.leaflet-bottom {
+	position: absolute;
+	z-index: 900;
+	pointer-events: none;
+}
+
+.leaflet-tile-container img {
+	-webkit-backface-visibility: hidden;
+}
+
+.leaflet-popup-content {
+	margin: 0px;
+	line-height: 1.4;
+}
+
+.leaflet-popup-content-wrapper {
+	padding: 0px;
+	text-align: left;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+}
+
+.leaflet-container {
+	touch-action: none;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+	position: absolute;
+	top: 2px;
+	right: 1px;
+	padding: 4px 4px 0 0;
+	text-align: center;
+	width: 18px;
+	height: 14px;
+	font: 16px/14px opensans, Verdana, sans-serif;
+	color: #c3c3c3;
+	text-decoration: none;
+	font-weight: bold;
+	background: transparent;
+}
+
+.leaflet-right .leaflet-control {
+	margin-right: 15px;
+}
+
+.leaflet-bottom .leaflet-control {
+	margin-bottom: 15px;
+}
+
+.leaflet-bottom.leaflet-right .leaflet-control.leaflet-control-attribution {
+	margin-right: 133px;
+	margin-bottom: 0px;
+	background-color: white;
+	border: white;
+}
+
+.leaflet-bottom.leaflet-right .leaflet-control.leaflet-control-scale {
+	width: 123px;
+	background: white;
+	margin-right: 0px;
+	padding-left: 5px;
+	padding-right: 5px;
+	margin-bottom: 0px;
+	height: 16px;
+}
+
+.leaflet-control-attribution, .leaflet-control-layers, .leaflet-control-scale-line {
+	background: white;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.leaflet-bar {
+	box-shadow: 0 1px 5px rgba(0,0,0,0);
+	border-radius: 4px;
+}

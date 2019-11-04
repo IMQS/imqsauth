@@ -1,0 +1,82 @@
+@import (reference) '00-global-vars-mixins.less';
+
+@iq-tabs-border-color: #bbb;
+@iq-tabs-switcher-pad-base: 7px;
+
+.iq-tabs-pane {
+	.border-box;
+	background-color: white;
+	// height is set by code
+	width: 100%;
+	padding: 0px 10px 0px 12px;
+	position: relative;
+	overflow-x: hidden;
+	overflow-y: auto;
+	font-family: @clearfont;
+}
+
+.iq-tabs-switcher {
+	.border-box;
+	position: relative;
+	height: 32px;
+	font-size: 12px;
+	background-color: @iq-color-gray-light;
+	padding: 0;
+}
+
+.iq-tabs-switcher-separator-line {
+	width: 100%;
+	height: 1px;
+	background-color: @iq-tabs-border-color;
+	z-index: 0; // draw beneath switcher-active
+}
+
+.iq-tabs-switcher-list {
+	padding: 0 1px 0 1px;
+}
+
+.iq-tabs-switcher-list-item {
+	cursor: pointer;
+	display: inline-block;
+	padding: 7px 10px @iq-tabs-switcher-pad-base 10px;
+	border-radius: 0 0 5px 5px;
+}
+
+.iq-tabs-switcher-list-item-top {
+	cursor: pointer;
+	display: inline-block;
+	padding: @iq-tabs-switcher-pad-base 10px 9px 10px;
+	border-radius: 5px 5px 0 0;
+}
+
+.iq-tabs-switcher-active {
+	z-index: 1; // draw over separator-line
+	background-color: white;
+	border: solid 1px @iq-tabs-border-color;
+	border-top: none;
+	position: relative;
+	top: -1px;
+	padding-bottom: @iq-tabs-switcher-pad-base + 2px;
+}
+
+.iq-tabs-switcher-inactive {
+	background-color: #ddd;
+	border: solid 1px #cdcdcd;
+	border-top: none;
+}
+
+.iq-tabs-switcher-inactive-top {
+	background-color: #ddd;
+	border: solid 1px #cdcdcd;
+	border-bottom: none;
+}
+
+.iq-tabs-switcher-active-top {
+	z-index: 1; // draw over separator-line
+	background-color: white;
+	border: solid 1px @iq-tabs-border-color;
+	border-bottom: none;
+	position: relative;
+	bottom: -1px;
+	padding-top: @iq-tabs-switcher-pad-base + 2px;
+}

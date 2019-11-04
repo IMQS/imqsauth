@@ -1,0 +1,174 @@
+@import (reference) "00-global-vars-mixins.less";
+
+////////////////////////////////////////////////////////
+// Toolbox
+////////////////////////////////////////////////////////
+@map-toolbox-width: 42px;
+
+.map-toolbox {
+	z-index: @iq-zindex-top;
+	.border-box;
+	position: absolute;
+	left: 0px;
+	top: calc(@nav-header-height + 2px); // to accound for border on navbar and top of nav-content
+	padding-left: 1px;
+	width: @map-toolbox-width;
+	border: 0;
+	background-color: white;
+	overflow: hidden;
+}
+
+.map-toolbox-icon-container {
+	border-radius: 0px;
+	display: inline-block;
+	width: 30px;
+	height: 31px;
+	padding: 2px 1px 2px 1px;
+	margin: 2px 1px 0px 0px;
+	border: 0;
+	background: white;
+	border-left: white 5px solid;
+	cursor: pointer;
+}
+
+.map-toolbox-icon-container .map-toolbox-icon {
+	margin-left: -3px;
+}
+
+.map-toolbox-icon-container:hover {
+	border: 0;
+	background: white;
+	border-left: @iq-color-lime-100 5px solid;
+}
+
+.map-toolbox-icon-container:active {
+	background-color: @iq-color-lime-60;
+	border-left: @iq-color-lime-60 5px solid;
+}
+
+.map-toolbox-icon-container.subtool-active {
+	border-left: @iq-color-lime-80 5px solid;
+	margin-left: 0px;
+	cursor: default;
+}
+
+.map-toolbox-icon-container.map-toolbox-icon-container-disabled {
+	cursor: default;
+	border-left: white 5px solid;
+	background-color: white;
+}
+
+.map-toolbox-icon.map-toolbox-icon-disabled {
+	background-color: white;
+	cursor: default;
+}
+
+////////////////////////////////////////////////////////
+// Toolbox Subtools
+////////////////////////////////////////////////////////
+.map-select-container {
+	background: white;
+	border-radius: 0px;
+	border: 0;
+	display: inline-block;
+	width: 32px;
+	height: 31px;
+	padding: 1px 1px 2px 2px;
+	margin: 1px 1px 1px 0px;
+	border-left: white 5px solid;
+}
+
+.map-select-container:hover {
+	border-radius: 0px;
+	display: inline-block;
+	width: 32px;
+	border: 0;
+	background: @iq-color-lime-60;
+	border-left: white 5px solid;
+	overflow: auto;
+	cursor: pointer;
+	position: relative;
+}
+
+.map-toolbox-sub {
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	left: @map-toolbox-width;
+	padding: 2px 4px 0px 0px;
+	margin: 1px 1px 0px 0px;
+	position: absolute;
+	display: inline-block;
+	border: 0;
+	border-radius: 1px;
+	background-color: white;
+	z-index: 999;
+}
+
+.map-toolbox-subtool {
+	border-radius: 0px;
+	line-height: 27px;
+	vertical-align: middle;
+	padding: 2px 0px 3px 1px;
+	margin: 2px 0px 4px 0px;
+	border: 0;
+	background: white;
+	border-left: white 5px solid;
+	cursor: pointer;
+}
+
+.map-toolbox-subtool:hover {
+	background: @iq-color-lime-80;
+	border-left: white 5px solid;
+}
+
+.map-toolbox-subtool:active {
+	background: @iq-color-lime-100;
+	border-left: white 5px solid;
+}
+
+.g-button-neutral.map-toolbox-subtool {
+	padding: 2px 0px 3px 1px;
+	border-left: 0;
+	margin-left: 3px;
+}
+
+.g-button-neutral.map-toolbox-subtool:hover {
+	padding: 2px 0px 3px 1px;
+	border-left: 0;
+	margin-left: 3px;
+}
+
+.g-button-neutral.map-toolbox-subtool:active {
+	padding: 2px 0px 3px 1px;
+	border-left: 0;
+	margin-left: 3px;
+}
+
+.map-select-tools-default {
+	background-size: 30px 30px;
+	width: 30px;
+	height: 30px;
+	position: absolute;
+}
+
+.map-background-manager-main-container {
+	padding: 5px;
+}
+
+.map-background-manager-image-container {
+	border-radius: 2px;
+}
+
+.maptool-background-type-container {
+	padding: 5px 13px 10px 11px;
+}
+
+.maptool-background-type-container:hover {
+	background-color: @iq-color-lime-40;
+}
+
+.context-toolbox {
+	padding-top: 1px;
+	background-color: white;
+	height: 42px;
+}

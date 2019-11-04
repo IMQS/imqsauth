@@ -1,0 +1,62 @@
+@import (reference) '00-global-vars-mixins.less';
+
+.iq-resize-horizontal-resize-handle-circle-wrapper {
+	position: absolute;
+	z-index: @iq-resize-handle-zindex;
+	height: 13px;
+	width: 28px;
+	padding-top: 2px;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+
+.iq-resize-vertical-resize-handle-circle-wrapper {
+	position: absolute;
+	z-index: @iq-resize-handle-zindex;
+	padding: 0px 2px;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+
+.iq-resize-infra-resize-handle-circle {
+	border-radius: 50%;
+	width: 2px;
+	height: 2px;
+	margin: 2px;
+	background: grey;
+	border: 1.5px solid lightgrey;
+	display: block;
+	float: left;
+}
+
+.iq-resize-horizontal-resize-handle {
+	width: 100%;
+	height: 5px;
+	cursor: row-resize;
+	text-align: center;
+	position: absolute;
+	z-index: @iq-resize-handle-zindex;
+}
+
+.iq-resize-vertical-resize-handle {
+	width: 5px;
+	height: 100%;
+	cursor: col-resize;
+	text-align: center;
+	position: absolute;
+	z-index: @iq-resize-handle-zindex;
+}
+
+.iq-resize-ghostbar {
+	height: 2px;
+	width: 2px;
+	background-color: black;
+	opacity: 0.3;
+	position: absolute;
+	z-index: @iq-resize-ghostbar-zindex;
+}
+
+.iq-resize-has-absolute-child {
+	position: relative; 
+	box-sizing: border-box;
+}

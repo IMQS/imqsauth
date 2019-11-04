@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 19.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1"
+	 id="svg2" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:cc="http://creativecommons.org/ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" sodipodi:docname="mm-incident-light-logger.svg" inkscape:version="0.91 r13725"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="-411 298 256 256"
+	 style="enable-background:new -411 298 256 256;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:url(#SVGID_1_);stroke:#015491;stroke-miterlimit:10;}
+	.st1{fill:url(#SVGID_2_);stroke:#015491;stroke-miterlimit:10;}
+	.st2{fill:url(#SVGID_3_);stroke:#015491;stroke-miterlimit:10;}
+	.st3{fill:url(#SVGID_4_);stroke:#015491;stroke-miterlimit:10;}
+</style>
+<g>
+	
+		<radialGradient id="SVGID_1_" cx="-331.95" cy="421.65" r="10.1146" gradientTransform="matrix(1 0 0 -1 0 854)" gradientUnits="userSpaceOnUse">
+		<stop  offset="0" style="stop-color:#0081D4"/>
+		<stop  offset="1" style="stop-color:#0068AA"/>
+	</radialGradient>
+	<rect x="-338.2" y="419.5" class="st0" width="12.5" height="25.8"/>
+	
+		<radialGradient id="SVGID_2_" cx="-234.4833" cy="421.65" r="10.1121" gradientTransform="matrix(1 0 0 -1 0 854)" gradientUnits="userSpaceOnUse">
+		<stop  offset="0" style="stop-color:#0081D4"/>
+		<stop  offset="1" style="stop-color:#0068AA"/>
+	</radialGradient>
+	<rect x="-240.7" y="419.5" class="st1" width="12.5" height="25.8"/>
+	
+		<radialGradient id="SVGID_3_" cx="-283" cy="466.35" r="66.0743" gradientTransform="matrix(1 0 0 -1 0 854)" gradientUnits="userSpaceOnUse">
+		<stop  offset="0" style="stop-color:#0081D4"/>
+		<stop  offset="1" style="stop-color:#0068AA"/>
+	</radialGradient>
+	<path class="st2" d="M-244.7,378.7v-27h-76.7v27h-47.7v45h24.3v-11h25.3v11h72.2v-11h25.3v11h25.1v-45H-244.7z M-309.9,362.8h54.1
+		v15.8h-54.1V362.8z"/>
+	
+		<radialGradient id="SVGID_4_" cx="-282.8" cy="386.65" r="62.8958" gradientTransform="matrix(1 0 0 -1 0 854)" gradientUnits="userSpaceOnUse">
+		<stop  offset="0" style="stop-color:#0081D4"/>
+		<stop  offset="1" style="stop-color:#0068AA"/>
+	</radialGradient>
+	<polygon class="st3" points="-221.9,434.3 -221.9,451.7 -247.1,451.7 -247.1,434.3 -319.6,434.3 -319.6,451.7 -344.7,451.7 
+		-344.7,434.3 -365.4,434.3 -365.4,500.3 -200.2,500.3 -200.2,434.3 	"/>
+</g>
+<sodipodi:namedview  id="namedview16" inkscape:cx="160" pagecolor="#ffffff" bordercolor="#666666" objecttolerance="10" borderopacity="1" guidetolerance="10" inkscape:zoom="0.7375" inkscape:cy="160" showgrid="false" gridtolerance="10" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-height="480" inkscape:window-x="0" inkscape:window-y="0" inkscape:window-maximized="0" inkscape:current-layer="svg2" inkscape:window-width="640">
+	</sodipodi:namedview>
+</svg>

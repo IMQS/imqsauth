@@ -1,0 +1,101 @@
+@import (reference) '00-global-vars-mixins.less';
+
+.spimPopupContainer {
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	display: table;
+	width: 100%;
+}
+
+.spimPopupColumn {
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	display: table-cell;
+	width: 50%;
+	padding: 1em 2em;
+	vertical-align: middle;
+}
+
+#spimPopupTitle {
+	background-color: @imqs-blue;
+	width: 100%;
+	display: table;
+	vertical-align: middle;
+	text-align: center;
+	padding: 15px 0px;
+	font-size: 17px;
+	color: white;
+}
+
+#spimPopupIncidentTable {
+	display: flex;
+	flex-flow: column;
+	height: 100%;
+	width: 100%;
+	border: 1px solid black;
+}
+
+#spimPopupIncidentTable thead {
+	/* head takes the height it requires, 
+	and it's not scaled when table is resized */
+	flex: 0 0 auto;
+	width: calc(~"100% - 1.15em");
+	display: table;
+	table-layout: fixed;
+}
+
+#spimPopupIncidentTable tbody {
+	/* body takes all the remaining available space */
+	flex: 1 1 auto;
+	display: block;
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+
+#spimPopupIncidentTable tbody tr {
+	cursor: pointer;
+	-webkit-transition: all 0.5s ease-out;
+	-moz-transition: all 0.5s ease-out;
+	-o-transition: all 0.5s ease-out;
+	-ms-transition: all 0.5s ease-out;
+	transition: all 0.5s ease-out;
+	display: table;
+	width: 100%;
+	table-layout: fixed;
+}
+
+#spimPopupIncidentTable tbody tr:hover {
+	-webkit-transition: all 0.1s ease-in;
+	-moz-transition: all 0.1s ease-in;
+	-o-transition: all 0.1s ease-in;
+	-ms-transition: all 0.1s ease-in;
+	transition: all 0.1s ease-in;
+	background-color: @imqs-blue;
+}
+
+#spimPopupIncidentTable th {
+	font-weight: bold;
+}
+
+#spimPopupIncidentTable th, #spimPopupIncidentTable td {
+	border: 1px solid black;
+	padding: 0.3em;
+}
+
+.spimIncidentRowSelected {
+	background-color: @imqs-blue;
+	color: white;
+}
+
+.spimListTable {
+	width: 90%;
+	margin-top: 10px;
+	margin-left: 25px;
+	margin-bottom: 30px;
+}
+
+.spimListTable tr td:nth-child(1) {
+	width: 50%;
+}

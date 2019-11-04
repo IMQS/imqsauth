@@ -1,0 +1,41 @@
+{
+	"linterOptions": {
+		"exclude": [
+			"src/**/*.d.ts",
+			"node_modules"
+		]
+	},
+	"defaultSeverity": "warning",
+	"rules": {
+		"class-name": true,
+		"comment-format": [
+			true,
+			"check-space"
+		],
+		"indent": [
+			true,
+			"tabs"
+		],
+		"jsdoc-format": true,
+		"no-var-keyword": true,
+		"no-duplicate-variable": true,
+		"semicolon": [
+			true,
+			"always"
+		],
+		"no-internal-module": true,
+		"typedef": [
+			true,
+			"property-declaration"
+		],
+		"no-trailing-whitespace": false,
+		"whitespace": [
+			true,
+			"check-branch",
+			"check-decl",
+			"check-operator",
+			"check-separator",
+			"check-type"
+		]
+	}
+}

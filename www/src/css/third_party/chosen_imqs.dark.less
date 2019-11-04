@@ -1,0 +1,29 @@
+﻿@import "../00-global-vars-mixins.less";
+
+.chosen-container ul.chosen-results li.highlighted {
+	background-color: @iq-color-lime-60;
+	background-image: none;
+	color: black;
+	font-weight: 400;
+}
+
+.chosen-container ul.chosen-results li.result-selected {
+	background-color: @iq-color-lime-20;
+	background-image: none;
+	color: black;
+	font-weight: 400;
+}
+
+.chosen-container ul.chosen-results li.highlighted.result-selected:hover {
+	background-color: @iq-color-lime-60;
+	background-image: none;
+	color: black;
+	font-weight: 400;
+}
+
+.chosen-container-active .chosen-single {
+	border: solid @iq-color-gray-40 1px;
+	box-shadow: 0 0 1px @iq-color-lime-100 inset, 0 1px 1px @iq-color-lime-100;
+	-webkit-box-shadow: 0 0 1px @iq-color-lime-100 inset, 0 1px 1px @iq-color-lime-100;
+	
+}

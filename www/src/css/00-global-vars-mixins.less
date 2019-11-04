@@ -1,0 +1,146 @@
+@import (reference) "~lib/css/00-vars-mixins.less";
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global Variables
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//assetcap
+@dimtxtcolor: #444;
+@leftmargin: 15px;
+@hairlineborder: #fafafa;
+@assetlistrowheight: 50px;
+
+//navigation.less
+@nav-header-height: 58px;
+
+//map.less
+@map-toolbox-width: 37px;
+
+// This is copied from GitHub's list, with our own modification, which is the insertion of Verdana in front of Segoe UI.
+// Why Verdana instead of Segoe UI?
+// The main reason is because at the time when this change was made, we were using OpenSans in these places (eg Property Box, Grid),
+// and Segoe UI is quite a bit smaller than OpenSans, at the same font-size. Verdana is a tiny bit larger than OpenSans at the same
+// size, so primarily in order to maintain the same text size, I'm going with Verdana.
+// Also.. IMO Verdana actually looks a lot better for the property box. I'm not sure why. Ben 2019-07-25.
+@clearfont: -apple-system,BlinkMacSystemFont,Verdana,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global Mixins
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* ********************************************************************************************************************************* */
+/* Top-level macros */
+
+.border-box {
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+/* ********************************************************************************************************************************* */
+
+.g-button-base {
+	.border-box;
+	border: #ccc 1px solid;
+	background: #f4f4f4;
+	padding: 8px 15px;
+	border-radius: 5px;
+	margin-left: 10px;
+	color: #555;
+	text-align: center;
+	text-decoration: none;
+	font-size: 14px;
+	cursor: pointer;
+	min-width: 100px;
+	user-select: none;
+	-webkit-user-select: none; /* Chrome/Safari */
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* IE10+ */
+}
+
+.m-button-neutral-hover {
+	border-color: #bcbcbc;
+	background: linear-gradient(@button-gray-color-bottom, @button-gray-color-top);
+}
+
+.m-button-neutral-active {
+	border-color: #bcbcbc;
+	background: linear-gradient(@button-gray-color-top, @button-gray-color-bottom);
+}
+
+.m-button-neutral-disabled {
+	color: #d2d2d2;
+	background: #f1f1f1;
+	border-color: #dcdcdc;
+	cursor: default;
+}
+
+.m-button-primary-hover {
+	border-color: #005b96;
+	background: linear-gradient(
+		to bottom,
+		@button-blue-color-bottom 0%,
+		@button-blue-color-middle 2%,
+		@button-blue-color-top 100%
+	); /* W3C */
+}
+
+.m-button-primary-active {
+	border-color: #005b96;
+
+	background: #0063a3; /* Old browsers */
+	background: linear-gradient(
+		to bottom,
+		@button-blue-color-top 0%,
+		@button-blue-color-middle 98%,
+		@button-blue-color-bottom 100%
+	); /* W3C */
+}
+
+.m-button-primary-disabled {
+	color: #d2d2d2;
+	background: #f1f1f1;
+	border-color: #dcdcdc;
+	cursor: default;
+}
+
+.g-textbox-base {
+	border: #b0b0b0 1px solid;
+}
+
+.navigate-container {
+	background: white;
+	opacity: 0.8;
+	text-align: center;
+	font-weight: bold;
+	font-size: 30px;
+	cursor: pointer;
+	border-color: rgba(147, 147, 147, 0.48);
+	border-width: 3px;
+	border-style: solid;
+}
+
+.navigate-label {
+	cursor: pointer;
+	position: relative;
+	display: block;
+	width: 100%;
+	height: 100%;
+	float: left;
+}
+
+.no-text-select {
+	user-select: none; 
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none;   /* Chrome/Safari/Opera */
+	-khtml-user-select: none;    /* Konqueror */
+	-moz-user-select: none;      /* Firefox */
+	-ms-user-select: none;       /* Internet Explorer/Edge */
+	user-select: none;
+  }
+
+.iq-control-heading {
+	background-color: @iq-color-background-gray; 
+	color:black;
+	font-weight: bold;
+}

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 19.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1"
+	 id="svg2" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:cc="http://creativecommons.org/ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" sodipodi:docname="pcs-programme.svg" inkscape:version="0.91 r13725"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="-411 298 256 256"
+	 style="enable-background:new -411 298 256 256;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#015491;}
+	.st1{fill:#FFFFFF;}
+	.st2{fill:none;stroke:#015491;stroke-width:2;stroke-miterlimit:10;}
+	.st3{fill:url(#SVGID_1_);}
+	.st4{fill:url(#SVGID_2_);}
+</style>
+<g>
+	<polygon class="st0" points="-319.5,393.8 -328.9,393.8 -328.9,417.2 -328.9,427.5 -328.9,493.2 -327.4,493.2 -319.5,493.2 
+		-290.9,493.2 -290.9,484.1 -319.5,484.1 -319.5,427.5 -290.9,427.5 -290.9,417.2 -319.5,417.2 	"/>
+	<g>
+		<path class="st1" d="M-362.6,382.3c0,1.6,1.4,3,3,3h71.8c1.6,0,3-1.4,3-3v-38c0-1.6-1.4-3-3-3h-71.8c-1.6,0-3,1.4-3,3V382.3z"/>
+		<path class="st2" d="M-362.6,382.3c0,1.6,1.4,3,3,3h71.8c1.6,0,3-1.4,3-3v-38c0-1.6-1.4-3-3-3h-71.8c-1.6,0-3,1.4-3,3V382.3z"/>
+	</g>
+	<g>
+		<radialGradient id="SVGID_1_" cx="-242.25" cy="423.5833" r="31.5853" gradientUnits="userSpaceOnUse">
+			<stop  offset="0" style="stop-color:#0081D4"/>
+			<stop  offset="0.3187" style="stop-color:#007CCB"/>
+			<stop  offset="0.8348" style="stop-color:#006DB3"/>
+			<stop  offset="1" style="stop-color:#0068AA"/>
+		</radialGradient>
+		<path class="st3" d="M-278.1,401.6c-1.6,0-3,1.4-3,3v38c0,1.6,1.4,3,3,3h71.8c1.6,0,3-1.4,3-3v-38c0-1.6-1.4-3-3-3H-278.1z
+			 M-271.6,414.6c0-1.4,0-1.4,0-1.4c1.4-0.6,3.9-1.1,5.5-1.1h24.9c1.6,0,4.1,0.5,5.5,1.1c0,0,0,0,0,1.4c0,1.4,0,1.4,0,1.4
+			c-1.4,0.6-3.9,1.1-5.5,1.1h-24.9c-1.6,0-4.1-0.5-5.5-1.1C-271.6,416-271.6,416-271.6,414.6z M-215.3,432.1
+			c-1.5,0.7-4.1,1.2-5.7,1.2h-11.4c-1.6,0-4.2-0.6-5.7-1.2c0,0-0.2-0.1-0.2-1.7s0.2-1.7,0.2-1.7c1.5-0.7,4.1-1.2,5.7-1.2h11.4
+			c1.6,0,4.2,0.6,5.7,1.2c0,0,0.2,0.1,0.2,1.7S-215.3,432.1-215.3,432.1z"/>
+		<path class="st2" d="M-278.1,401.6c-1.6,0-3,1.4-3,3v38c0,1.6,1.4,3,3,3h71.8c1.6,0,3-1.4,3-3v-38c0-1.6-1.4-3-3-3H-278.1z
+			 M-271.6,414.6c0-1.4,0-1.4,0-1.4c1.4-0.6,3.9-1.1,5.5-1.1h24.9c1.6,0,4.1,0.5,5.5,1.1c0,0,0,0,0,1.4c0,1.4,0,1.4,0,1.4
+			c-1.4,0.6-3.9,1.1-5.5,1.1h-24.9c-1.6,0-4.1-0.5-5.5-1.1C-271.6,416-271.6,416-271.6,414.6z M-215.3,432.1
+			c-1.5,0.7-4.1,1.2-5.7,1.2h-11.4c-1.6,0-4.2-0.6-5.7-1.2c0,0-0.2-0.1-0.2-1.7s0.2-1.7,0.2-1.7c1.5-0.7,4.1-1.2,5.7-1.2h11.4
+			c1.6,0,4.2,0.6,5.7,1.2c0,0,0.2,0.1,0.2,1.7S-215.3,432.1-215.3,432.1z"/>
+	</g>
+	<path class="st1" d="M-235.6,414.6c0-1.4-1.1-2.5-2.5-2.5h-30.9c-1.4,0-2.5,1.1-2.5,2.5c0,1.4,1.1,2.5,2.5,2.5h30.9
+		C-236.8,417.2-235.6,416-235.6,414.6z"/>
+	<path class="st1" d="M-218,427.5h-17.4c-1.6,0-2.9,1.3-2.9,2.9s1.3,2.9,2.9,2.9h17.4c1.6,0,2.9-1.3,2.9-2.9S-216.4,427.5-218,427.5
+		z"/>
+	<g>
+		<radialGradient id="SVGID_2_" cx="-242.25" cy="488.6667" r="31.5853" gradientUnits="userSpaceOnUse">
+			<stop  offset="0" style="stop-color:#0081D4"/>
+			<stop  offset="0.3187" style="stop-color:#007CCB"/>
+			<stop  offset="0.8348" style="stop-color:#006DB3"/>
+			<stop  offset="1" style="stop-color:#0068AA"/>
+		</radialGradient>
+		<path class="st4" d="M-281.1,507.7c0,1.6,1.4,3,3,3h71.8c1.6,0,3-1.4,3-3v-38c0-1.6-1.4-3-3-3h-71.8c-1.6,0-3,1.4-3,3V507.7z
+			 M-221,494.8c1.6,0,4.2,0.6,5.7,1.2c0,0,0.2,0.1,0.2,1.7s-0.2,1.7-0.2,1.7c-1.5,0.7-4.1,1.2-5.7,1.2h-11.4c-1.6,0-4.2-0.6-5.7-1.2
+			c0,0-0.2-0.1-0.2-1.7s0.2-1.7,0.2-1.7c1.5-0.7,4.1-1.2,5.7-1.2H-221z M-271.6,480.5c1.4-0.6,3.9-1.1,5.5-1.1h24.9
+			c1.6,0,4.1,0.5,5.5,1.1c0,0,0,0,0,1.4c0,1.4,0,1.4,0,1.4c-1.4,0.6-3.9,1.1-5.5,1.1h-24.9c-1.6,0-4.1-0.5-5.5-1.1c0,0,0,0,0-1.4
+			C-271.6,480.5-271.6,480.5-271.6,480.5z"/>
+		<path class="st2" d="M-281.1,507.7c0,1.6,1.4,3,3,3h71.8c1.6,0,3-1.4,3-3v-38c0-1.6-1.4-3-3-3h-71.8c-1.6,0-3,1.4-3,3V507.7z
+			 M-221,494.8c1.6,0,4.2,0.6,5.7,1.2c0,0,0.2,0.1,0.2,1.7s-0.2,1.7-0.2,1.7c-1.5,0.7-4.1,1.2-5.7,1.2h-11.4c-1.6,0-4.2-0.6-5.7-1.2
+			c0,0-0.2-0.1-0.2-1.7s0.2-1.7,0.2-1.7c1.5-0.7,4.1-1.2,5.7-1.2H-221z M-271.6,480.5c1.4-0.6,3.9-1.1,5.5-1.1h24.9
+			c1.6,0,4.1,0.5,5.5,1.1c0,0,0,0,0,1.4c0,1.4,0,1.4,0,1.4c-1.4,0.6-3.9,1.1-5.5,1.1h-24.9c-1.6,0-4.1-0.5-5.5-1.1c0,0,0,0,0-1.4
+			C-271.6,480.5-271.6,480.5-271.6,480.5z"/>
+	</g>
+	<path class="st1" d="M-269.1,484.4h30.9c1.4,0,2.5-1.1,2.5-2.5c0-1.4-1.1-2.5-2.5-2.5h-30.9c-1.4,0-2.5,1.1-2.5,2.5
+		C-271.6,483.3-270.5,484.4-269.1,484.4z"/>
+	<path class="st1" d="M-238.4,497.7c0,1.6,1.3,2.9,2.9,2.9h17.4c1.6,0,2.9-1.3,2.9-2.9s-1.3-2.9-2.9-2.9h-17.4
+		C-237.1,494.8-238.4,496.1-238.4,497.7z"/>
+</g>
+<sodipodi:namedview  id="namedview28" inkscape:cx="160" pagecolor="#ffffff" bordercolor="#666666" objecttolerance="10" borderopacity="1" guidetolerance="10" inkscape:zoom="0.7375" inkscape:cy="160" showgrid="false" gridtolerance="10" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-height="480" inkscape:window-x="0" inkscape:window-y="0" inkscape:window-maximized="0" inkscape:current-layer="svg2" inkscape:window-width="640">
+	</sodipodi:namedview>
+</svg>
