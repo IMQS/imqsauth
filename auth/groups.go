@@ -139,6 +139,10 @@ func RollbackUnwantedGroups(icentral *ImqsCentral) error {
 	groupTouched := map[authaus.GroupIDU32]bool{}
 
 	for _, user := range users {
+		if permits[user.UserId] == nil {
+			// icentral.Central.Log.Infof("Rolling back unwanted groups - user %v (%v) has no permit", user.UserId, user.Username)
+			continue
+		}
 		userGroups, err := authaus.DecodePermit(permits[user.UserId].Roles)
 		if err != nil {
 			return err
