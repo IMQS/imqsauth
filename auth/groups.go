@@ -2,6 +2,10 @@ package imqsauth
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"runtime"
+	"time"
 
 	"github.com/IMQS/authaus"
 )
@@ -37,30 +41,33 @@ func ResetAuthGroups(icentral *ImqsCentral) error {
 	// This list was ported from https://github.com/IMQS/InfrastructureBin/blob/dd525a2d4ab7ec7b81aa8111b264bc72eb827dbd/ops/installers/03_deploy_win.rb
 	others := []predefinedGroup{
 		{RoleGroupFileDrop, authaus.PermissionList{PermFileDrop}},
-		{RoleGroupReportCreator, authaus.PermissionList{PermReportCreator}},
-		{RoleGroupReportViewer, authaus.PermissionList{PermReportViewer}},
-		// [2019-09-03] PCS access used to be a permission in the "Global" module, but today we moved to be the same as other modules.
-		// HOWEVER, we retained the permission number (3). So basically, we renamed the PCS permission, and we moved it from
-		// "Global" into the "PCS" module. As part of this exercise, we also got rid of the old "PCS" permission, which was 1112.
-		//{RoleGroupPCS, authaus.PermissionList{PermPcs}},
-		{"DevelopmentControl", authaus.PermissionList{PermDevelopmentControlModuleAccess}},
-		{"DevelopmentControl - Admin", authaus.PermissionList{PermDevelopmentControlModuleAccess, PermDevconProjectEdit, PermDevconProjectCreate, PermDevconProjectDelete, PermDevconProjectMerge, PermDevconApplicationEdit, PermDevconApplicationCreate, PermDevconApplicationDelete, PermDevconLookupEdit, PermDevconLookupCreate, PermDevconLookupDelete, PermDevconLookupManagement, PermDevconTemplateManagement, PermDevconReportViewing}},
-		{"DevelopmentControl - Operator", authaus.PermissionList{PermDevelopmentControlModuleAccess, PermDevconProjectEdit, PermDevconProjectCreate, PermDevconProjectDelete, PermDevconProjectMerge, PermDevconApplicationEdit, PermDevconApplicationCreate, PermDevconApplicationDelete, PermDevconLookupEdit, PermDevconLookupCreate, PermDevconLookupDelete, PermDevconReportViewing}},
-		{"DevelopmentControl - Service Desk User", authaus.PermissionList{PermDevelopmentControlModuleAccess, PermDevconProjectEdit, PermDevconProjectCreate, PermDevconProjectDelete, PermDevconApplicationEdit, PermDevconApplicationCreate, PermDevconApplicationDelete, PermDevconLookupEdit, PermDevconLookupCreate, PermDevconLookupDelete}},
+		// Commented out - See RollbackUnwantedgroups
+		// {RoleGroupReportCreator, authaus.PermissionList{PermReportCreator}},
+		// {RoleGroupReportViewer, authaus.PermissionList{PermReportViewer}},
+		// // [2019-09-03] PCS access used to be a permission in the "Global" module, but today we moved to be the same as other modules.
+		// // HOWEVER, we retained the permission number (3). So basically, we renamed the PCS permission, and we moved it from
+		// // "Global" into the "PCS" module. As part of this exercise, we also got rid of the old "PCS" permission, which was 1112.
+		// //{RoleGroupPCS, authaus.PermissionList{PermPcs}},
+		// {"DevelopmentControl", authaus.PermissionList{PermDevelopmentControlModuleAccess}},
+		// {"DevelopmentControl - Admin", authaus.PermissionList{PermDevelopmentControlModuleAccess, PermDevconProjectEdit, PermDevconProjectCreate, PermDevconProjectDelete, PermDevconProjectMerge, PermDevconApplicationEdit, PermDevconApplicationCreate, PermDevconApplicationDelete, PermDevconLookupEdit, PermDevconLookupCreate, PermDevconLookupDelete, PermDevconLookupManagement, PermDevconTemplateManagement, PermDevconReportViewing}},
+		// {"DevelopmentControl - Operator", authaus.PermissionList{PermDevelopmentControlModuleAccess, PermDevconProjectEdit, PermDevconProjectCreate, PermDevconProjectDelete, PermDevconProjectMerge, PermDevconApplicationEdit, PermDevconApplicationCreate, PermDevconApplicationDelete, PermDevconLookupEdit, PermDevconLookupCreate, PermDevconLookupDelete, PermDevconReportViewing}},
+		// {"DevelopmentControl - Service Desk User", authaus.PermissionList{PermDevelopmentControlModuleAccess, PermDevconProjectEdit, PermDevconProjectCreate, PermDevconProjectDelete, PermDevconApplicationEdit, PermDevconApplicationCreate, PermDevconApplicationDelete, PermDevconLookupEdit, PermDevconLookupCreate, PermDevconLookupDelete}},
 	}
 
 	// Create a group for every module. If you belong to one of these groups, then you are allowed
 	// to access that module.
-	for name, perm := range PermissionModuleMap {
-		others = append(others, predefinedGroup{name, authaus.PermissionList{perm}})
-	}
+	// Commented out - See RollbackUnwantedgroups
+	// for name, perm := range PermissionModuleMap {
+	// 	others = append(others, predefinedGroup{name, authaus.PermissionList{perm}})
+	// }
 
+	// Commented out - See RollbackUnwantedgroups
 	// Create the "AllModuleAccess" group, which can access any module
-	allModuleAccess := authaus.PermissionList{}
-	for _, perm := range PermissionModuleMap {
-		allModuleAccess = append(allModuleAccess, perm)
-	}
-	others = append(others, predefinedGroup{"AllModuleAccess", allModuleAccess})
+	// allModuleAccess := authaus.PermissionList{}
+	// for _, perm := range PermissionModuleMap {
+	// 	allModuleAccess = append(allModuleAccess, perm)
+	// }
+	// others = append(others, predefinedGroup{"AllModuleAccess", allModuleAccess})
 
 	// See comment above, about PCS, from 2019-09-03.
 	// Basically, we got rid of 1112, which no part of our system ever respected, and we replaced it
@@ -80,6 +87,97 @@ func ResetAuthGroups(icentral *ImqsCentral) error {
 			return err
 		}
 	}
+
+	return nil
+}
+
+func RollbackUnwantedGroupsOnce(icentral *ImqsCentral) error {
+	if time.Now().Year() > 2019 {
+		// If you're in 2020, then you should be able to get rid of all of this rollback code
+		return nil
+	}
+	if runtime.GOOS == "linux" {
+		// This fix was only necessary for clients on Windows
+		return nil
+	}
+	onceFile := "c:/imqsvar/cache/auth-groups-rolled-back"
+	if _, err := os.Stat(onceFile); err == nil {
+		return nil
+	}
+	err := RollbackUnwantedGroups(icentral)
+	if err != nil {
+		return err
+	}
+	ioutil.WriteFile(onceFile, []byte("yes"), 0644)
+	return nil
+}
+
+// RollbackUnwantedGroups was created on 8 November 2019.
+// On 4 September a change was comitted (https://github.com/IMQS/imqsauth/commit/a30698f3432d213a9e4b50789b9482f028c80632) which
+// automatically created a bunch of groups. After this was rolled out, we discovered that customers REALLY don't want this.
+// So this function reverses those automatic group creations.
+// Once it's rolled out to clients, we can delete this function.
+func RollbackUnwantedGroups(icentral *ImqsCentral) error {
+	icentral.Central.Log.Infof("Rolling back unwanted groups - starting")
+
+	// Step 1: Figure out which groups have zero members
+	users, err := icentral.Central.GetAuthenticatorIdentities(authaus.GetIdentitiesFlagNone)
+	if err != nil {
+		return err
+	}
+
+	permits, err := icentral.Central.GetPermits()
+	if err != nil {
+		return err
+	}
+
+	groups, err := icentral.Central.GetRoleGroupDB().GetGroups()
+	if err != nil {
+		return err
+	}
+
+	groupTouched := map[authaus.GroupIDU32]bool{}
+
+	for _, user := range users {
+		userGroups, err := authaus.DecodePermit(permits[user.UserId].Roles)
+		if err != nil {
+			return err
+		}
+		for _, g := range userGroups {
+			groupTouched[g] = true
+		}
+	}
+
+	emptyGroups := map[string]*authaus.AuthGroup{}
+	for _, g := range groups {
+		if !groupTouched[g.ID] {
+			emptyGroups[g.Name] = g
+		}
+	}
+
+	others := []string{
+		RoleGroupReportCreator,
+		RoleGroupReportViewer,
+		"DevelopmentControl",
+		"DevelopmentControl - Admin",
+		"DevelopmentControl - Operator",
+		"DevelopmentControl - Service Desk User",
+	}
+	for name := range PermissionModuleMap {
+		others = append(others, name)
+	}
+	others = append(others, "AllModuleAccess")
+
+	for _, name := range others {
+		if g, ok := emptyGroups[name]; ok {
+			icentral.Central.Log.Infof("Deleting unwanted and empty group %v", g.Name)
+			if err := icentral.Central.GetRoleGroupDB().DeleteGroup(g); err != nil {
+				icentral.Central.Log.Errorf("Failed to delete group %v: %v", name, err)
+			}
+		}
+	}
+
+	icentral.Central.Log.Infof("Rolling back unwanted groups - finished")
 
 	return nil
 }

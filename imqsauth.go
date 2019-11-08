@@ -33,6 +33,7 @@ func main() {
 
 	app.AddCommand("createdb", "Create the postgres database")
 	app.AddCommand("resetauthgroups", "Reset the [admin,enabled] groups, and few others")
+	app.AddCommand("rollbackgroups", "Roll back undesired auto-created groups from September 2019")
 
 	createUserDesc := "Create a user in the authentication system\nThis affects only the 'authentication' system - the permit database is not altered by this command. " +
 		"This has no effect on Yellowfin. Yellowfin users are created automatically during HTTP login."
@@ -184,10 +185,20 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		} else {
 			success = true
 		}
+	case "rollbackgroups":
+		if err := auth.RollbackUnwantedGroups(ic); err != nil {
+			fmt.Printf("RollbackUnwantedGroups failed: %v", err)
+		} else {
+			success = true
+		}
 	case "run":
 		// Reset auth groups, always
 		if err := auth.ResetAuthGroups(ic); err != nil {
 			fmt.Printf("ResetAuthGroups failed: %v\n", err)
+		}
+
+		if err := auth.RollbackUnwantedGroupsOnce(ic); err != nil {
+			fmt.Printf("RollbackUnwantedGroups failed: %v", err)
 		}
 
 		// Create initial user if there is one.
