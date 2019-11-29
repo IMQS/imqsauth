@@ -22,7 +22,7 @@
     },
     {
       "type": "typescript",
-      "target_path": "www/js/lib/auth/permissions.ts"
+      "target_path": "www-lib/packages/auth/permissions.ts"
     }
   ]
 }

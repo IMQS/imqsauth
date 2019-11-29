@@ -23,6 +23,8 @@
 	"114": {"v": "pcsDynamicContent",					"n": "Dynamic Content",						"m": "PCS",							"a": true,			"d": "User is allowed to get dynamic configuration"},
 	"115": {"v": "pcsProjectsUnassignedView",			"n": "Projects Unassigned View",			"m": "PCS",							"a": true,			"d": "User is allowed to view all the projects that are not assigned to programmes"},
 	"116": {"v": "pcsBudgetItemsAvailable",				"n": "Budget Items Available",				"m": "PCS",							"a": true,			"d": "User is allowed to view the allocatable budget items"},
+	"117": {"v": "pcsProjectViewAll",					"n": "Project View All",					"m": "PCS",							"a": true,			"d": "User is allowed to view all projects"},
+	"118": {"v": "pcsProjectEditAll",					"n": "Project Edit All",					"m": "PCS",							"a": true,			"d": "User is allowed to edit all projects"},
 	
 	"200": {"v": "reportCreator",						"n": "Report Creator",						"m": "GLOBAL",						"a": true,			"d": "Can create reports"},
 	"201": {"v": "reportViewer",						"n": "Report Viewer",						"m": "GLOBAL",						"a": true,			"d": "Can view reports"},

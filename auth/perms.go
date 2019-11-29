@@ -38,6 +38,8 @@ const (
 	PermPcsDynamicContent authaus.PermissionU16 = 114 // User is allowed to get dynamic configuration
 	PermPcsProjectsUnassignedView authaus.PermissionU16 = 115 // User is allowed to view all the projects that are not assigned to programmes
 	PermPcsBudgetItemsAvailable authaus.PermissionU16 = 116 // User is allowed to view the allocatable budget items
+	PermPcsProjectViewAll authaus.PermissionU16 = 117 // User is allowed to view all projects
+	PermPcsProjectEditAll authaus.PermissionU16 = 118 // User is allowed to edit all projects
 	PermReportCreator authaus.PermissionU16 = 200 // Can create reports
 	PermReportViewer authaus.PermissionU16 = 201 // Can view reports
 	PermImporter authaus.PermissionU16 = 300 // User is allowed to handle data imports
@@ -241,8 +243,8 @@ const (
 	PermNewMmRmEmployeeViewGeneral authaus.PermissionU16 = 1240 // User can view Employee data in the General Tab
 	PermNewMmRmEmployeeEditAppointment authaus.PermissionU16 = 1241 // User can edit Employee data in the Appointment Tab
 	PermNewMmRmEmployeeViewAppointment authaus.PermissionU16 = 1242 // User can view Employee data in the Appointment Tab
-	PermNewMmRmEmployeeEditLicense authaus.PermissionU16 = 1243 // User can edit Employee data in the Driver’s License Tab
-	PermNewMmRmEmployeeViewLicense authaus.PermissionU16 = 1244 // User can view Employee data in the Driver’s License Tab
+	PermNewMmRmEmployeeEditLicense authaus.PermissionU16 = 1243 // User can edit Employee data in the DriverΓÇÖs License Tab
+	PermNewMmRmEmployeeViewLicense authaus.PermissionU16 = 1244 // User can view Employee data in the DriverΓÇÖs License Tab
 	PermNewMmRmEmployeeEditTimeProgram authaus.PermissionU16 = 1245 // User can edit Employee data in the Time Program Tab
 	PermNewMmRmEmployeeViewTimeProgram authaus.PermissionU16 = 1246 // User can view Employee data in the Time Program Tab
 	PermNewMmRmEmployeeEditButtonHistory authaus.PermissionU16 = 1247 // User can edit Employee data in the Button History Tab
@@ -419,6 +421,8 @@ func init() {
 	PermissionsTable[PermPcsDynamicContent] = "pcsdynamiccontent" // User is allowed to get dynamic configuration
 	PermissionsTable[PermPcsProjectsUnassignedView] = "pcsprojectsunassignedview" // User is allowed to view all the projects that are not assigned to programmes
 	PermissionsTable[PermPcsBudgetItemsAvailable] = "pcsbudgetitemsavailable" // User is allowed to view the allocatable budget items
+	PermissionsTable[PermPcsProjectViewAll] = "pcsprojectviewall" // User is allowed to view all projects
+	PermissionsTable[PermPcsProjectEditAll] = "pcsprojecteditall" // User is allowed to edit all projects
 	PermissionsTable[PermReportCreator] = "reportcreator" // Can create reports
 	PermissionsTable[PermReportViewer] = "reportviewer" // Can view reports
 	PermissionsTable[PermImporter] = "importer" // User is allowed to handle data imports
@@ -622,8 +626,8 @@ func init() {
 	PermissionsTable[PermNewMmRmEmployeeViewGeneral] = "newmmrmemployeeviewgeneral" // User can view Employee data in the General Tab
 	PermissionsTable[PermNewMmRmEmployeeEditAppointment] = "newmmrmemployeeeditappointment" // User can edit Employee data in the Appointment Tab
 	PermissionsTable[PermNewMmRmEmployeeViewAppointment] = "newmmrmemployeeviewappointment" // User can view Employee data in the Appointment Tab
-	PermissionsTable[PermNewMmRmEmployeeEditLicense] = "newmmrmemployeeeditlicense" // User can edit Employee data in the Driver’s License Tab
-	PermissionsTable[PermNewMmRmEmployeeViewLicense] = "newmmrmemployeeviewlicense" // User can view Employee data in the Driver’s License Tab
+	PermissionsTable[PermNewMmRmEmployeeEditLicense] = "newmmrmemployeeeditlicense" // User can edit Employee data in the DriverΓÇÖs License Tab
+	PermissionsTable[PermNewMmRmEmployeeViewLicense] = "newmmrmemployeeviewlicense" // User can view Employee data in the DriverΓÇÖs License Tab
 	PermissionsTable[PermNewMmRmEmployeeEditTimeProgram] = "newmmrmemployeeedittimeprogram" // User can edit Employee data in the Time Program Tab
 	PermissionsTable[PermNewMmRmEmployeeViewTimeProgram] = "newmmrmemployeeviewtimeprogram" // User can view Employee data in the Time Program Tab
 	PermissionsTable[PermNewMmRmEmployeeEditButtonHistory] = "newmmrmemployeeeditbuttonhistory" // User can edit Employee data in the Button History Tab
