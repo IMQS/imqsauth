@@ -25,13 +25,13 @@
 	"116": {"v": "pcsBudgetItemsAvailable",				"n": "Budget Items Available",				"m": "PCS",							"a": true,			"d": "User is allowed to view the allocatable budget items"},
 	"117": {"v": "pcsProjectViewAll",					"n": "Project View All",					"m": "PCS",							"a": true,			"d": "User is allowed to view all projects"},
 	"118": {"v": "pcsProjectEditAll",					"n": "Project Edit All",					"m": "PCS",							"a": true,			"d": "User is allowed to edit all projects"},
-	
+
 	"200": {"v": "reportCreator",						"n": "Report Creator",						"m": "GLOBAL",						"a": true,			"d": "Can create reports"},
 	"201": {"v": "reportViewer",						"n": "Report Viewer",						"m": "GLOBAL",						"a": true,			"d": "Can view reports"},
 
 	"300": {"v": "importer",							"n": "Importer",							"m": "GLOBAL",						"a": true,			"d": "User is allowed to handle data imports"},
 	"301": {"v": "fileDrop",							"n": "File Drop",							"m": "GLOBAL",						"a": true,			"d": "User is allowed to drop files onto IMQS Web"},
-	
+
 	"400": {"v": "mm",									"n": "Old MM - Maintenance Management",				"m": "MAINTENANCE_MANAGEMENT",		"a": true,			"d": "MM"},
 	"401": {"v": "mmWorkRequestView",					"n": "Old MM - Work Request View",					"m": "MAINTENANCE_MANAGEMENT",		"a": true,			"d": "Work Request View"},
 	"402": {"v": "mmWorkRequestAddAndDelete",			"n": "Old MM - Work Request Add/Delete",				"m": "MAINTENANCE_MANAGEMENT",		"a": true,			"d": "Work Request Add/Delete"},
@@ -380,6 +380,22 @@
 	"1381": {"v": "mmWaterDataFilter",									"n": "Data Filter - Water Department",							"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can see data in grid and dropdowns for the Water Department"},
 	"1382": {"v": "mmRoadsDataFilter",									"n": "Data Filter – Roads and Storm Water Department",			"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can see data in grid and dropdowns for the Roads and Storm Water Department"},
 	"1383": {"v": "mmSolidWasteDataFilter",								"n": "Data Filter – Solid Waste Department",					"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can see data in grid and dropdowns for the Solid Waste Department"},
-	"1384": {"v": "mmSewerDataFilter",									"n": "Data Filter – Sewer Department",							"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can see data in grid and dropdowns for the Sewer Department"}
+	"1384": {"v": "mmSewerDataFilter",									"n": "Data Filter – Sewer Department",							"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can see data in grid and dropdowns for the Sewer Department"},
+
+	"10000": {"v": "leasingModuleAccess",								"n": "Leasing",													"m": "LEASING"					,"a": true 			,"d": "User can access the Leasing module"},
+	"10001": {"v": "leasingLeasedInView",								"n": "Leased In - View",										"m": "LEASING"					,"a": true 			,"d": "User can view Leased In agreements"},
+	"10002": {"v": "leasingLeasedInCreate",								"n": "Leased In - Create",										"m": "LEASING"					,"a": true 			,"d": "User can create Leased In agreements"},
+	"10003": {"v": "leasingLeasedInUpdate",								"n": "Leased In - Update",										"m": "LEASING"					,"a": true 			,"d": "User can update Leased In agreements"},
+	"10004": {"v": "leasingLeasedInDelete",								"n": "Leased In - Delete",										"m": "LEASING"					,"a": true 			,"d": "User can delete Leased In agreements"},
+	"10005": {"v": "leasingLeasedInStatus",								"n": "Leased In - Status",										"m": "LEASING"					,"a": true 			,"d": "User can change the status Leased In agreements"},
+	"10006": {"v": "leasingOwnerCreate",								"n": "Owner - Create",											"m": "LEASING"					,"a": true 			,"d": "User can create an Owner in the Leasing Module"},
+	"10007": {"v": "leasingFacilityCreate",								"n": "Facility - Create",										"m": "LEASING"					,"a": true 			,"d": "User can create facilities that will appear both in Leasing and in the Asset Core database"},
+	"10008": {"v": "leasingLeasedOutView",								"n": "Leased Out - View",										"m": "LEASING"					,"a": true 			,"d": "User can view Leased Out agreements"},
+	"10009": {"v": "leasingLeasedOutCreate",							"n": "Leased Out - Create",										"m": "LEASING"					,"a": true 			,"d": "User can create Leased Out agreements"},
+	"10010": {"v": "leasingLeasedOutUpdate",							"n": "Leased Out - Update",										"m": "LEASING"					,"a": true 			,"d": "User can update Leased Out agreements"},
+	"10011": {"v": "leasingLeasedOutDelete",							"n": "Leased Out - Delete",										"m": "LEASING"					,"a": true 			,"d": "User can delete Leased Out agreements"},
+	"10012": {"v": "leasingLeasedOutStatus",							"n": "Leased Out - Status",										"m": "LEASING"					,"a": true 			,"d": "User can change the status Leased Out agreements"},
+	"10013": {"v": "leasingTenantCreate",								"n": "Tenant - Create",											"m": "LEASING"					,"a": true 			,"d": "User can create a Tenant in the Leasing Module"},
+	"10014": {"v": "leasingFacilityConfigure",							"n": "Facility - Configure",									"m": "LEASING"					,"a": true 			,"d": "User can configure the leasing configurations of facilities, subdiving these facilities into lettable units"}
 	}
 }

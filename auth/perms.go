@@ -243,8 +243,8 @@ const (
 	PermNewMmRmEmployeeViewGeneral authaus.PermissionU16 = 1240 // User can view Employee data in the General Tab
 	PermNewMmRmEmployeeEditAppointment authaus.PermissionU16 = 1241 // User can edit Employee data in the Appointment Tab
 	PermNewMmRmEmployeeViewAppointment authaus.PermissionU16 = 1242 // User can view Employee data in the Appointment Tab
-	PermNewMmRmEmployeeEditLicense authaus.PermissionU16 = 1243 // User can edit Employee data in the DriverΓÇÖs License Tab
-	PermNewMmRmEmployeeViewLicense authaus.PermissionU16 = 1244 // User can view Employee data in the DriverΓÇÖs License Tab
+	PermNewMmRmEmployeeEditLicense authaus.PermissionU16 = 1243 // User can edit Employee data in the Driver’s License Tab
+	PermNewMmRmEmployeeViewLicense authaus.PermissionU16 = 1244 // User can view Employee data in the Driver’s License Tab
 	PermNewMmRmEmployeeEditTimeProgram authaus.PermissionU16 = 1245 // User can edit Employee data in the Time Program Tab
 	PermNewMmRmEmployeeViewTimeProgram authaus.PermissionU16 = 1246 // User can view Employee data in the Time Program Tab
 	PermNewMmRmEmployeeEditButtonHistory authaus.PermissionU16 = 1247 // User can edit Employee data in the Button History Tab
@@ -385,6 +385,21 @@ const (
 	PermMmRoadsDataFilter authaus.PermissionU16 = 1382 // User can see data in grid and dropdowns for the Roads and Storm Water Department
 	PermMmSolidWasteDataFilter authaus.PermissionU16 = 1383 // User can see data in grid and dropdowns for the Solid Waste Department
 	PermMmSewerDataFilter authaus.PermissionU16 = 1384 // User can see data in grid and dropdowns for the Sewer Department
+	PermLeasingModuleAccess authaus.PermissionU16 = 10000 // User can access the Leasing module
+	PermLeasingLeasedInView authaus.PermissionU16 = 10001 // User can view Leased In agreements
+	PermLeasingLeasedInCreate authaus.PermissionU16 = 10002 // User can create Leased In agreements
+	PermLeasingLeasedInUpdate authaus.PermissionU16 = 10003 // User can update Leased In agreements
+	PermLeasingLeasedInDelete authaus.PermissionU16 = 10004 // User can delete Leased In agreements
+	PermLeasingLeasedInStatus authaus.PermissionU16 = 10005 // User can change the status Leased In agreements
+	PermLeasingOwnerCreate authaus.PermissionU16 = 10006 // User can create an Owner in the Leasing Module
+	PermLeasingFacilityCreate authaus.PermissionU16 = 10007 // User can create facilities that will appear both in Leasing and in the Asset Core database
+	PermLeasingLeasedOutView authaus.PermissionU16 = 10008 // User can view Leased Out agreements
+	PermLeasingLeasedOutCreate authaus.PermissionU16 = 10009 // User can create Leased Out agreements
+	PermLeasingLeasedOutUpdate authaus.PermissionU16 = 10010 // User can update Leased Out agreements
+	PermLeasingLeasedOutDelete authaus.PermissionU16 = 10011 // User can delete Leased Out agreements
+	PermLeasingLeasedOutStatus authaus.PermissionU16 = 10012 // User can change the status Leased Out agreements
+	PermLeasingTenantCreate authaus.PermissionU16 = 10013 // User can create a Tenant in the Leasing Module
+	PermLeasingFacilityConfigure authaus.PermissionU16 = 10014 // User can configure the leasing configurations of facilities, subdiving these facilities into lettable units
 
 )
 
@@ -626,8 +641,8 @@ func init() {
 	PermissionsTable[PermNewMmRmEmployeeViewGeneral] = "newmmrmemployeeviewgeneral" // User can view Employee data in the General Tab
 	PermissionsTable[PermNewMmRmEmployeeEditAppointment] = "newmmrmemployeeeditappointment" // User can edit Employee data in the Appointment Tab
 	PermissionsTable[PermNewMmRmEmployeeViewAppointment] = "newmmrmemployeeviewappointment" // User can view Employee data in the Appointment Tab
-	PermissionsTable[PermNewMmRmEmployeeEditLicense] = "newmmrmemployeeeditlicense" // User can edit Employee data in the DriverΓÇÖs License Tab
-	PermissionsTable[PermNewMmRmEmployeeViewLicense] = "newmmrmemployeeviewlicense" // User can view Employee data in the DriverΓÇÖs License Tab
+	PermissionsTable[PermNewMmRmEmployeeEditLicense] = "newmmrmemployeeeditlicense" // User can edit Employee data in the Driver’s License Tab
+	PermissionsTable[PermNewMmRmEmployeeViewLicense] = "newmmrmemployeeviewlicense" // User can view Employee data in the Driver’s License Tab
 	PermissionsTable[PermNewMmRmEmployeeEditTimeProgram] = "newmmrmemployeeedittimeprogram" // User can edit Employee data in the Time Program Tab
 	PermissionsTable[PermNewMmRmEmployeeViewTimeProgram] = "newmmrmemployeeviewtimeprogram" // User can view Employee data in the Time Program Tab
 	PermissionsTable[PermNewMmRmEmployeeEditButtonHistory] = "newmmrmemployeeeditbuttonhistory" // User can edit Employee data in the Button History Tab
@@ -768,6 +783,21 @@ func init() {
 	PermissionsTable[PermMmRoadsDataFilter] = "mmroadsdatafilter" // User can see data in grid and dropdowns for the Roads and Storm Water Department
 	PermissionsTable[PermMmSolidWasteDataFilter] = "mmsolidwastedatafilter" // User can see data in grid and dropdowns for the Solid Waste Department
 	PermissionsTable[PermMmSewerDataFilter] = "mmsewerdatafilter" // User can see data in grid and dropdowns for the Sewer Department
+	PermissionsTable[PermLeasingModuleAccess] = "leasingmoduleaccess" // User can access the Leasing module
+	PermissionsTable[PermLeasingLeasedInView] = "leasingleasedinview" // User can view Leased In agreements
+	PermissionsTable[PermLeasingLeasedInCreate] = "leasingleasedincreate" // User can create Leased In agreements
+	PermissionsTable[PermLeasingLeasedInUpdate] = "leasingleasedinupdate" // User can update Leased In agreements
+	PermissionsTable[PermLeasingLeasedInDelete] = "leasingleasedindelete" // User can delete Leased In agreements
+	PermissionsTable[PermLeasingLeasedInStatus] = "leasingleasedinstatus" // User can change the status Leased In agreements
+	PermissionsTable[PermLeasingOwnerCreate] = "leasingownercreate" // User can create an Owner in the Leasing Module
+	PermissionsTable[PermLeasingFacilityCreate] = "leasingfacilitycreate" // User can create facilities that will appear both in Leasing and in the Asset Core database
+	PermissionsTable[PermLeasingLeasedOutView] = "leasingleasedoutview" // User can view Leased Out agreements
+	PermissionsTable[PermLeasingLeasedOutCreate] = "leasingleasedoutcreate" // User can create Leased Out agreements
+	PermissionsTable[PermLeasingLeasedOutUpdate] = "leasingleasedoutupdate" // User can update Leased Out agreements
+	PermissionsTable[PermLeasingLeasedOutDelete] = "leasingleasedoutdelete" // User can delete Leased Out agreements
+	PermissionsTable[PermLeasingLeasedOutStatus] = "leasingleasedoutstatus" // User can change the status Leased Out agreements
+	PermissionsTable[PermLeasingTenantCreate] = "leasingtenantcreate" // User can create a Tenant in the Leasing Module
+	PermissionsTable[PermLeasingFacilityConfigure] = "leasingfacilityconfigure" // User can configure the leasing configurations of facilities, subdiving these facilities into lettable units
 
 
 	PermissionModuleMap["Assets"] = PermAssetsModuleAccess
@@ -797,6 +827,7 @@ func init() {
 	PermissionModuleMap["Development Control"] = PermDevelopmentControlModuleAccess
 	PermissionModuleMap["Road Signs"] = PermRoadSignsModuleAccess
 	PermissionModuleMap["Electricity RP"] = PermElectricityRPModuleAccess
+	PermissionModuleMap["Leasing"] = PermLeasingModuleAccess
 
 
 }
