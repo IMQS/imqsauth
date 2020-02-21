@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/IMQS/authaus"
-	"github.com/IMQS/serviceconfigsgo"
+	serviceconfig "github.com/IMQS/serviceconfigsgo"
 )
 
 const (
@@ -79,5 +79,4 @@ func (x *Config) GetHostname() string {
 		}
 	}
 	return x.hostname
-
 }

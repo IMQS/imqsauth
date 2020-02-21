@@ -195,6 +195,7 @@
 	"1124": {"v": "developmentControlModuleAccess",			"n": "Development Control",			"m": "DEVELOPMENT_CONTROL",			"a": true,			"d": "User is allowed to access the Development Control module"},
 	"1125": {"v": "roadSignsModuleAccess",					"n": "Road Signs",					"m": "ROAD_SIGNS",					"a": true,			"d": "User is allowed to access the Road Signs module"},
 	"1126": {"v": "electricityRPModuleAccess",				"n": "Electricity RP",				"m": "ELECTRICITY_RP",				"a": true,			"d": "User is allowed to access the Electricity RP module"},
+	"1127": {"v": "facilitiesModuleAccess",					"n": "Facilities",					"m": "FACILITIES",					"a": true,			"d": "User is allowed to access the Facilities module"},
 
 	"1200": {"v": "newMm",												"n": "New Maintenance Management",								"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can access the MM module"},
 	"1201": {"v": "newMmIl",											"n": "IL – Incident Logger Module",								"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can access the Incident Logger module"},

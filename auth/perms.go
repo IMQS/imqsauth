@@ -200,6 +200,7 @@ const (
 	PermDevelopmentControlModuleAccess authaus.PermissionU16 = 1124 // User is allowed to access the Development Control module
 	PermRoadSignsModuleAccess authaus.PermissionU16 = 1125 // User is allowed to access the Road Signs module
 	PermElectricityRPModuleAccess authaus.PermissionU16 = 1126 // User is allowed to access the Electricity RP module
+	PermFacilitiesModuleAccess authaus.PermissionU16 = 1127 // User is allowed to access the Facilities module
 	PermNewMm authaus.PermissionU16 = 1200 // User can access the MM module
 	PermNewMmIl authaus.PermissionU16 = 1201 // User can access the Incident Logger module
 	PermNewMmIlCreateBulkIncidents authaus.PermissionU16 = 1202 // User can create bulk incidents
@@ -598,6 +599,7 @@ func init() {
 	PermissionsTable[PermDevelopmentControlModuleAccess] = "developmentcontrolmoduleaccess" // User is allowed to access the Development Control module
 	PermissionsTable[PermRoadSignsModuleAccess] = "roadsignsmoduleaccess" // User is allowed to access the Road Signs module
 	PermissionsTable[PermElectricityRPModuleAccess] = "electricityrpmoduleaccess" // User is allowed to access the Electricity RP module
+	PermissionsTable[PermFacilitiesModuleAccess] = "facilitiesmoduleaccess" // User is allowed to access the Facilities module
 	PermissionsTable[PermNewMm] = "newmm" // User can access the MM module
 	PermissionsTable[PermNewMmIl] = "newmmil" // User can access the Incident Logger module
 	PermissionsTable[PermNewMmIlCreateBulkIncidents] = "newmmilcreatebulkincidents" // User can create bulk incidents
@@ -827,6 +829,7 @@ func init() {
 	PermissionModuleMap["Development Control"] = PermDevelopmentControlModuleAccess
 	PermissionModuleMap["Road Signs"] = PermRoadSignsModuleAccess
 	PermissionModuleMap["Electricity RP"] = PermElectricityRPModuleAccess
+	PermissionModuleMap["Facilities"] = PermFacilitiesModuleAccess
 	PermissionModuleMap["Leasing"] = PermLeasingModuleAccess
 
 
