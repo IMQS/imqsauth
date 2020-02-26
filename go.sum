@@ -4,6 +4,8 @@ github.com/IMQS/authaus v0.0.0-20190717165715-cae3e46769b8 h1:KJm9fuz3Rv4/+I6qMy
 github.com/IMQS/authaus v0.0.0-20190717165715-cae3e46769b8/go.mod h1:OoWsvyqXkKYrr/bgUwi3zUexBpfHn7Jto9UPOWAe/A4=
 github.com/IMQS/authaus v1.0.0 h1:gFs+ezuElElfMt7V8UF466jQsbMzb7rR9i7Buk0kpRs=
 github.com/IMQS/authaus v1.0.0/go.mod h1:IIjS/1hs6SaW+vaDT0MFl+XvHpAoPLbZMWWtl/zZsqc=
+github.com/IMQS/authaus v1.0.1 h1:gO9Eda6nMqoYp8824UY76wNf8IP+iZ89dGEHZeVxl9A=
+github.com/IMQS/authaus v1.0.1/go.mod h1:IIjS/1hs6SaW+vaDT0MFl+XvHpAoPLbZMWWtl/zZsqc=
 github.com/IMQS/cli v0.0.0-20151022082634-156324308096 h1:VffSY+13RAsa1X+AWA7/ftPqMoW76RHL+t4Ys6q43c0=
 github.com/IMQS/cli v0.0.0-20151022082634-156324308096/go.mod h1:y2XQLPuROeqlwkjD/fieklY8cTCqFIh5OWNwsgrrwa8=
 github.com/IMQS/gowinsvc v0.0.0-20171019081213-88eed8ddfe95 h1:UFPSgk5/RyJWpCTKpuku3lrBCEI8s3ty40Y6TRocgaA=
