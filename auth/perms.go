@@ -391,16 +391,23 @@ const (
 	PermLeasingLeasedInCreate authaus.PermissionU16 = 10002 // User can create Leased In agreements
 	PermLeasingLeasedInUpdate authaus.PermissionU16 = 10003 // User can update Leased In agreements
 	PermLeasingLeasedInDelete authaus.PermissionU16 = 10004 // User can delete Leased In agreements
-	PermLeasingLeasedInStatus authaus.PermissionU16 = 10005 // User can change the status Leased In agreements
+	PermLeasingLeasedInApproval authaus.PermissionU16 = 10005 // User can change the approval Leased In agreements
 	PermLeasingOwnerCreate authaus.PermissionU16 = 10006 // User can create an Owner in the Leasing Module
 	PermLeasingFacilityCreate authaus.PermissionU16 = 10007 // User can create facilities that will appear both in Leasing and in the Asset Core database
 	PermLeasingLeasedOutView authaus.PermissionU16 = 10008 // User can view Leased Out agreements
 	PermLeasingLeasedOutCreate authaus.PermissionU16 = 10009 // User can create Leased Out agreements
 	PermLeasingLeasedOutUpdate authaus.PermissionU16 = 10010 // User can update Leased Out agreements
 	PermLeasingLeasedOutDelete authaus.PermissionU16 = 10011 // User can delete Leased Out agreements
-	PermLeasingLeasedOutStatus authaus.PermissionU16 = 10012 // User can change the status Leased Out agreements
+	PermLeasingLeasedOutApproval authaus.PermissionU16 = 10012 // User can change the approval Leased Out agreements
 	PermLeasingTenantCreate authaus.PermissionU16 = 10013 // User can create a Tenant in the Leasing Module
 	PermLeasingFacilityConfigure authaus.PermissionU16 = 10014 // User can configure the leasing configurations of facilities, subdiving these facilities into lettable units
+	PermLeasingLandlordView authaus.PermissionU16 = 10015 // User can view Maintain Landlord sub-module
+	PermLeasingLandlordCreate authaus.PermissionU16 = 10016 // User can create a new landlord
+	PermLeasingLandlordUpdate authaus.PermissionU16 = 10017 // User can edit and update landlord details
+	PermLeasingLandlordDelete authaus.PermissionU16 = 10018 // User can delete a landlord
+	PermLeasingLandlordImport authaus.PermissionU16 = 10019 // User can import supplier list file
+	PermLeasingLeasedInCancel authaus.PermissionU16 = 10020 // User can cancel a leased in agreement
+	PermLeasingLeasedOutCancel authaus.PermissionU16 = 10021 // User can cancel a leased out agreement
 
 )
 
@@ -790,16 +797,23 @@ func init() {
 	PermissionsTable[PermLeasingLeasedInCreate] = "leasingleasedincreate" // User can create Leased In agreements
 	PermissionsTable[PermLeasingLeasedInUpdate] = "leasingleasedinupdate" // User can update Leased In agreements
 	PermissionsTable[PermLeasingLeasedInDelete] = "leasingleasedindelete" // User can delete Leased In agreements
-	PermissionsTable[PermLeasingLeasedInStatus] = "leasingleasedinstatus" // User can change the status Leased In agreements
+	PermissionsTable[PermLeasingLeasedInApproval] = "leasingleasedinapproval" // User can change the approval Leased In agreements
 	PermissionsTable[PermLeasingOwnerCreate] = "leasingownercreate" // User can create an Owner in the Leasing Module
 	PermissionsTable[PermLeasingFacilityCreate] = "leasingfacilitycreate" // User can create facilities that will appear both in Leasing and in the Asset Core database
 	PermissionsTable[PermLeasingLeasedOutView] = "leasingleasedoutview" // User can view Leased Out agreements
 	PermissionsTable[PermLeasingLeasedOutCreate] = "leasingleasedoutcreate" // User can create Leased Out agreements
 	PermissionsTable[PermLeasingLeasedOutUpdate] = "leasingleasedoutupdate" // User can update Leased Out agreements
 	PermissionsTable[PermLeasingLeasedOutDelete] = "leasingleasedoutdelete" // User can delete Leased Out agreements
-	PermissionsTable[PermLeasingLeasedOutStatus] = "leasingleasedoutstatus" // User can change the status Leased Out agreements
+	PermissionsTable[PermLeasingLeasedOutApproval] = "leasingleasedoutapproval" // User can change the approval Leased Out agreements
 	PermissionsTable[PermLeasingTenantCreate] = "leasingtenantcreate" // User can create a Tenant in the Leasing Module
 	PermissionsTable[PermLeasingFacilityConfigure] = "leasingfacilityconfigure" // User can configure the leasing configurations of facilities, subdiving these facilities into lettable units
+	PermissionsTable[PermLeasingLandlordView] = "leasinglandlordview" // User can view Maintain Landlord sub-module
+	PermissionsTable[PermLeasingLandlordCreate] = "leasinglandlordcreate" // User can create a new landlord
+	PermissionsTable[PermLeasingLandlordUpdate] = "leasinglandlordupdate" // User can edit and update landlord details
+	PermissionsTable[PermLeasingLandlordDelete] = "leasinglandlorddelete" // User can delete a landlord
+	PermissionsTable[PermLeasingLandlordImport] = "leasinglandlordimport" // User can import supplier list file
+	PermissionsTable[PermLeasingLeasedInCancel] = "leasingleasedincancel" // User can cancel a leased in agreement
+	PermissionsTable[PermLeasingLeasedOutCancel] = "leasingleasedoutcancel" // User can cancel a leased out agreement
 
 
 	PermissionModuleMap["Assets"] = PermAssetsModuleAccess

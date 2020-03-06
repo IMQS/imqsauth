@@ -388,15 +388,22 @@
 	"10002": {"v": "leasingLeasedInCreate",								"n": "Leased In – Create",										"m": "LEASING"					,"a": true 			,"d": "User can create Leased In agreements"},
 	"10003": {"v": "leasingLeasedInUpdate",								"n": "Leased In – Update",										"m": "LEASING"					,"a": true 			,"d": "User can update Leased In agreements"},
 	"10004": {"v": "leasingLeasedInDelete",								"n": "Leased In – Delete",										"m": "LEASING"					,"a": true 			,"d": "User can delete Leased In agreements"},
-	"10005": {"v": "leasingLeasedInStatus",								"n": "Leased In – Status",										"m": "LEASING"					,"a": true 			,"d": "User can change the status Leased In agreements"},
+	"10005": {"v": "leasingLeasedInApproval",							"n": "Leased In – Approval",									"m": "LEASING"					,"a": true 			,"d": "User can change the approval Leased In agreements"},
 	"10006": {"v": "leasingOwnerCreate",								"n": "Owner – Create",											"m": "LEASING"					,"a": true 			,"d": "User can create an Owner in the Leasing Module"},
 	"10007": {"v": "leasingFacilityCreate",								"n": "Facility – Create",										"m": "LEASING"					,"a": true 			,"d": "User can create facilities that will appear both in Leasing and in the Asset Core database"},
 	"10008": {"v": "leasingLeasedOutView",								"n": "Leased Out – View",										"m": "LEASING"					,"a": true 			,"d": "User can view Leased Out agreements"},
 	"10009": {"v": "leasingLeasedOutCreate",							"n": "Leased Out – Create",										"m": "LEASING"					,"a": true 			,"d": "User can create Leased Out agreements"},
 	"10010": {"v": "leasingLeasedOutUpdate",							"n": "Leased Out – Update",										"m": "LEASING"					,"a": true 			,"d": "User can update Leased Out agreements"},
 	"10011": {"v": "leasingLeasedOutDelete",							"n": "Leased Out – Delete",										"m": "LEASING"					,"a": true 			,"d": "User can delete Leased Out agreements"},
-	"10012": {"v": "leasingLeasedOutStatus",							"n": "Leased Out – Status",										"m": "LEASING"					,"a": true 			,"d": "User can change the status Leased Out agreements"},
+	"10012": {"v": "leasingLeasedOutApproval",							"n": "Leased Out – Approval",									"m": "LEASING"					,"a": true 			,"d": "User can change the approval Leased Out agreements"},
 	"10013": {"v": "leasingTenantCreate",								"n": "Tenant – Create",											"m": "LEASING"					,"a": true 			,"d": "User can create a Tenant in the Leasing Module"},
-	"10014": {"v": "leasingFacilityConfigure",							"n": "Facility – Configure",									"m": "LEASING"					,"a": true 			,"d": "User can configure the leasing configurations of facilities, subdiving these facilities into lettable units"}
+	"10014": {"v": "leasingFacilityConfigure",							"n": "Facility – Configure",									"m": "LEASING"					,"a": true 			,"d": "User can configure the leasing configurations of facilities, subdiving these facilities into lettable units"},
+	"10015": {"v": "leasingLandlordView",								"n": "Landlord – View",											"m": "LEASING"					,"a": true 			,"d": "User can view Maintain Landlord sub-module"},
+	"10016": {"v": "leasingLandlordCreate",								"n": "Landlord – Create",										"m": "LEASING"					,"a": true 			,"d": "User can create a new landlord"},
+	"10017": {"v": "leasingLandlordUpdate",								"n": "Landlord – Update",										"m": "LEASING"					,"a": true 			,"d": "User can edit and update landlord details"},
+	"10018": {"v": "leasingLandlordDelete",								"n": "Landlord – Delete",										"m": "LEASING"					,"a": true 			,"d": "User can delete a landlord"},
+	"10019": {"v": "leasingLandlordImport",								"n": "Landlord – Import",										"m": "LEASING"					,"a": true 			,"d": "User can import supplier list file"},
+	"10020": {"v": "leasingLeasedInCancel",								"n": "Leased In – Cancel",										"m": "LEASING"					,"a": true 			,"d": "User can cancel a leased in agreement"},
+	"10021": {"v": "leasingLeasedOutCancel",							"n": "Leased Out – Cancel",										"m": "LEASING"					,"a": true 			,"d": "User can cancel a leased out agreement"}
 	}
 }
