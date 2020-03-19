@@ -317,7 +317,7 @@ func (x *ImqsCentral) createDefaultMailQuery(user authaus.AuthUser, token string
 	strUserId := strconv.FormatInt(int64(user.UserId), 10)
 	resetUrl, err := x.makeAbsoluteUrl("/#resetpassword=true&identity=" + url.QueryEscape(user.Email) + "&userid=" + url.QueryEscape(strUserId) + "&token=" + url.QueryEscape(token))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Failed to build absolute URL for password reset link in email: %v", err)
 	}
 	if isNewAccount {
 		resetUrl += "&welcome=true"

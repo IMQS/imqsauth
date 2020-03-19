@@ -1,10 +1,12 @@
 package imqsauth
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
 	"github.com/IMQS/authaus"
+	"github.com/IMQS/log"
 	serviceconfig "github.com/IMQS/serviceconfigsgo"
 )
 
@@ -37,10 +39,10 @@ type Config struct {
 	PasswordResetExpirySeconds float64
 	NewAccountExpirySeconds    float64
 	SendMailPassword           string // NB: When moving SendMailPassword to a standalone secrets file, change for PCS also. PCS reads imqsauth config file.
+	NotificationUrl            string
 	hostname                   string // This is read from environment variable the first time GetHostname is called
 	lastFileLoaded             string // Used for relative paths (such as HostnameFile)
 	enablePcsRename            bool   // Disabled by unit tests
-	NotificationUrl            string
 }
 
 func (x *Config) Reset() {
@@ -79,4 +81,25 @@ func (x *Config) GetHostname() string {
 		}
 	}
 	return x.hostname
+}
+
+// MakeOutsideDocker changes all of the hostnames from our common hostnames in
+// docker-compose files, to 'localhost'. This is built to allow a developer to
+// debug the Auth service, while running everything else in docker.
+func (x *Config) MakeOutsideDocker() {
+	fmt.Printf("OutsideDocker changes: db => localhost, port => 2003, IMQS_HOSTNAME_URL => http://localhost:2500\n")
+	translateDBHost := func(dbHost *string) {
+		if *dbHost == "db" {
+			*dbHost = "localhost"
+		}
+	}
+	translateDBHost(&x.Authaus.PermitDB.DB.Host)
+	translateDBHost(&x.Authaus.RoleGroupDB.DB.Host)
+	translateDBHost(&x.Authaus.UserStore.DB.Host)
+	translateDBHost(&x.Authaus.SessionDB.DB.Host)
+	if x.Authaus.HTTP.Port == "80" {
+		x.Authaus.HTTP.Port = "2003"
+	}
+	x.Authaus.Log.Filename = log.Stdout
+	x.hostname = "http://localhost:2500"
 }

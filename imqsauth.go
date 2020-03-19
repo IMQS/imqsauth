@@ -65,6 +65,8 @@ func main() {
 	app.AddValueOption("c", "configfile", "Specify the imqsauth config file. A pseudo file called "+auth.TestConfig1+" is "+
 		"used by the REST test suite to load a test configuration. This option is mandatory.")
 
+	app.AddBoolOption("outside-docker", "Run outside of docker, with the other IMQS services running inside docker")
+
 	app.AddBoolOption("nosvc", "Do not try to run as a Windows Service. Normally, the 'run' command detects whether this is an "+
 		"'interactive session', and if not interactive, runs as a Windows Service. Specifying -nosvc forces us to launch as a regular process.")
 
@@ -100,12 +102,16 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 	ic.Config = &auth.Config{}
 
 	configFile := options["c"]
+	outsideDocker := options.Has("outside-docker")
 
 	// Try test config first; otherwise load real config
 	isTestConfig := auth.LoadTestConfig(ic, configFile)
 	if !isTestConfig {
 		if err := ic.Config.LoadFile(configFile); err != nil {
 			panic(fmt.Sprintf("Error loading config file '%v': %v", configFile, err))
+		}
+		if outsideDocker {
+			ic.Config.MakeOutsideDocker()
 		}
 	}
 
