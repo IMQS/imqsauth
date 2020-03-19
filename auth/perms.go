@@ -408,6 +408,15 @@ const (
 	PermLeasingLandlordImport authaus.PermissionU16 = 10019 // User can import supplier list file
 	PermLeasingLeasedInCancel authaus.PermissionU16 = 10020 // User can cancel a leased in agreement
 	PermLeasingLeasedOutCancel authaus.PermissionU16 = 10021 // User can cancel a leased out agreement
+	PermLeasingOwnerView authaus.PermissionU16 = 10022 // User can view list of owners and content of a selected owner record
+	PermLeasingOwnerUpdate authaus.PermissionU16 = 10023 // User can update the owner record during the Manage Owner process
+	PermLeasingOwnerDelete authaus.PermissionU16 = 10024 // User can delete the owner record during the Manage Owner process
+	PermLeasingFacilityView authaus.PermissionU16 = 10025 // User can view the list of facilities and the content of a selected facility record
+	PermLeasingFacilityUpdate authaus.PermissionU16 = 10026 // User can update the leasing content of a facility record during the Manage Facility process
+	PermLeasingFacilityDelete authaus.PermissionU16 = 10027 // User can delete the leasing content of a facility record during the Manage Facility process
+	PermLeasingTenantView authaus.PermissionU16 = 10028 // User can view a list of tenants and be able to view the content of a selected tenant record
+	PermLeasingTenantUpdate authaus.PermissionU16 = 10029 // User can update a tenant record during the Manage Tenant process
+	PermLeasingTenantDelete authaus.PermissionU16 = 10030 // User can delete a tenant record during the Manage Tenant process
 
 )
 
@@ -814,6 +823,15 @@ func init() {
 	PermissionsTable[PermLeasingLandlordImport] = "leasinglandlordimport" // User can import supplier list file
 	PermissionsTable[PermLeasingLeasedInCancel] = "leasingleasedincancel" // User can cancel a leased in agreement
 	PermissionsTable[PermLeasingLeasedOutCancel] = "leasingleasedoutcancel" // User can cancel a leased out agreement
+	PermissionsTable[PermLeasingOwnerView] = "leasingownerview" // User can view list of owners and content of a selected owner record
+	PermissionsTable[PermLeasingOwnerUpdate] = "leasingownerupdate" // User can update the owner record during the Manage Owner process
+	PermissionsTable[PermLeasingOwnerDelete] = "leasingownerdelete" // User can delete the owner record during the Manage Owner process
+	PermissionsTable[PermLeasingFacilityView] = "leasingfacilityview" // User can view the list of facilities and the content of a selected facility record
+	PermissionsTable[PermLeasingFacilityUpdate] = "leasingfacilityupdate" // User can update the leasing content of a facility record during the Manage Facility process
+	PermissionsTable[PermLeasingFacilityDelete] = "leasingfacilitydelete" // User can delete the leasing content of a facility record during the Manage Facility process
+	PermissionsTable[PermLeasingTenantView] = "leasingtenantview" // User can view a list of tenants and be able to view the content of a selected tenant record
+	PermissionsTable[PermLeasingTenantUpdate] = "leasingtenantupdate" // User can update a tenant record during the Manage Tenant process
+	PermissionsTable[PermLeasingTenantDelete] = "leasingtenantdelete" // User can delete a tenant record during the Manage Tenant process
 
 
 	PermissionModuleMap["Assets"] = PermAssetsModuleAccess

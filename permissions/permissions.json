@@ -404,6 +404,15 @@
 	"10018": {"v": "leasingLandlordDelete",								"n": "Landlord – Delete",										"m": "LEASING"					,"a": true 			,"d": "User can delete a landlord"},
 	"10019": {"v": "leasingLandlordImport",								"n": "Landlord – Import",										"m": "LEASING"					,"a": true 			,"d": "User can import supplier list file"},
 	"10020": {"v": "leasingLeasedInCancel",								"n": "Leased In – Cancel",										"m": "LEASING"					,"a": true 			,"d": "User can cancel a leased in agreement"},
-	"10021": {"v": "leasingLeasedOutCancel",							"n": "Leased Out – Cancel",										"m": "LEASING"					,"a": true 			,"d": "User can cancel a leased out agreement"}
+	"10021": {"v": "leasingLeasedOutCancel",							"n": "Leased Out – Cancel",										"m": "LEASING"					,"a": true 			,"d": "User can cancel a leased out agreement"},
+	"10022": {"v": "leasingOwnerView",									"n": "Owner – View",											"m": "LEASING"					,"a": true 			,"d": "User can view list of owners and content of a selected owner record"},
+	"10023": {"v": "leasingOwnerUpdate",								"n": "Owner – Update",											"m": "LEASING"					,"a": true 			,"d": "User can update the owner record during the Manage Owner process"},
+	"10024": {"v": "leasingOwnerDelete",								"n": "Owner – Delete",											"m": "LEASING"					,"a": true 			,"d": "User can delete the owner record during the Manage Owner process"},
+	"10025": {"v": "leasingFacilityView",								"n": "Facility – View",											"m": "LEASING"					,"a": true 			,"d": "User can view the list of facilities and the content of a selected facility record"},
+	"10026": {"v": "leasingFacilityUpdate",								"n": "Facility – Update",										"m": "LEASING"					,"a": true 			,"d": "User can update the leasing content of a facility record during the Manage Facility process"},
+	"10027": {"v": "leasingFacilityDelete",								"n": "Facility – Delete",										"m": "LEASING"					,"a": true 			,"d": "User can delete the leasing content of a facility record during the Manage Facility process"},
+	"10028": {"v": "leasingTenantView",									"n": "Tenant – View",											"m": "LEASING"					,"a": true 			,"d": "User can view a list of tenants and be able to view the content of a selected tenant record"},
+	"10029": {"v": "leasingTenantUpdate",								"n": "Tenant – Update",											"m": "LEASING"					,"a": true 			,"d": "User can update a tenant record during the Manage Tenant process"},
+	"10030": {"v": "leasingTenantDelete",								"n": "Tenant – Delete",											"m": "LEASING"					,"a": true 			,"d": "User can delete a tenant record during the Manage Tenant process"}
 	}
 }
