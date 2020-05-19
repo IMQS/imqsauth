@@ -413,6 +413,10 @@
 	"10027": {"v": "leasingFacilityDelete",								"n": "Facility – Delete",										"m": "LEASING"					,"a": true 			,"d": "User can delete the leasing content of a facility record during the Manage Facility process"},
 	"10028": {"v": "leasingTenantView",									"n": "Tenant – View",											"m": "LEASING"					,"a": true 			,"d": "User can view a list of tenants and be able to view the content of a selected tenant record"},
 	"10029": {"v": "leasingTenantUpdate",								"n": "Tenant – Update",											"m": "LEASING"					,"a": true 			,"d": "User can update a tenant record during the Manage Tenant process"},
-	"10030": {"v": "leasingTenantDelete",								"n": "Tenant – Delete",											"m": "LEASING"					,"a": true 			,"d": "User can delete a tenant record during the Manage Tenant process"}
+	"10030": {"v": "leasingTenantDelete",								"n": "Tenant – Delete",											"m": "LEASING"					,"a": true 			,"d": "User can delete a tenant record during the Manage Tenant process"},
+	"10031": {"v": "leasingLookupView",									"n": "Lookup – View",											"m": "LEASING"					,"a": true 			,"d": "User can view a list of lookups and be able to view the content of a selected lookup record"},
+	"10032": {"v": "leasingLookupCreate",								"n": "Lookup – Create",											"m": "LEASING"					,"a": true 			,"d": "User can create a new lookup record"},
+	"10033": {"v": "leasingLookupUpdate",								"n": "Lookup – Update",											"m": "LEASING"					,"a": true 			,"d": "User can update a lookup record during the Manage lookup process"},
+	"10034": {"v": "leasingLookupDelete",								"n": "Lookup – Delete",											"m": "LEASING"					,"a": true 			,"d": "User can delete a lookup record during the Manage lookup process"}
 	}
 }

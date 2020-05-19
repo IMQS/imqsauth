@@ -417,6 +417,10 @@ const (
 	PermLeasingTenantView authaus.PermissionU16 = 10028 // User can view a list of tenants and be able to view the content of a selected tenant record
 	PermLeasingTenantUpdate authaus.PermissionU16 = 10029 // User can update a tenant record during the Manage Tenant process
 	PermLeasingTenantDelete authaus.PermissionU16 = 10030 // User can delete a tenant record during the Manage Tenant process
+	PermLeasingLookupView authaus.PermissionU16 = 10031 // User can view a list of lookups and be able to view the content of a selected lookup record
+	PermLeasingLookupCreate authaus.PermissionU16 = 10032 // User can create a new lookup record
+	PermLeasingLookupUpdate authaus.PermissionU16 = 10033 // User can update a lookup record during the Manage lookup process
+	PermLeasingLookupDelete authaus.PermissionU16 = 10034 // User can delete a lookup record during the Manage lookup process
 
 )
 
@@ -832,6 +836,10 @@ func init() {
 	PermissionsTable[PermLeasingTenantView] = "leasingtenantview" // User can view a list of tenants and be able to view the content of a selected tenant record
 	PermissionsTable[PermLeasingTenantUpdate] = "leasingtenantupdate" // User can update a tenant record during the Manage Tenant process
 	PermissionsTable[PermLeasingTenantDelete] = "leasingtenantdelete" // User can delete a tenant record during the Manage Tenant process
+	PermissionsTable[PermLeasingLookupView] = "leasinglookupview" // User can view a list of lookups and be able to view the content of a selected lookup record
+	PermissionsTable[PermLeasingLookupCreate] = "leasinglookupcreate" // User can create a new lookup record
+	PermissionsTable[PermLeasingLookupUpdate] = "leasinglookupupdate" // User can update a lookup record during the Manage lookup process
+	PermissionsTable[PermLeasingLookupDelete] = "leasinglookupdelete" // User can delete a lookup record during the Manage lookup process
 
 
 	PermissionModuleMap["Assets"] = PermAssetsModuleAccess
