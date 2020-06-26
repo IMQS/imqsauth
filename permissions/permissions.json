@@ -232,6 +232,7 @@
 	"1232": {"v": "newMmTcTimeExports",									"n": "TC – Exports",											"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can export Time Sheets"},
 	"1233": {"v": "newMmTcReportsView",									"n": "TC – Reports",											"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can view Time and Cost Reports"},
 	"1234": {"v": "newMmRm",											"n": "RM – Resource Manager Module",							"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can access the Resource Manager Module"},
+	"1385": {"v": "newMmRmHome",										"n": "RM – Resource Manager Home",								"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can access the Resource Manager Home Module"},
 	"1235": {"v": "newMmRmEmployeeCreateAddEmployee",					"n": "RM – Employee – Add",										"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can add a new Employee"},
 	"1236": {"v": "newMmRmEmployeeView",								"n": "RM – Employee – View",									"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can view Employees grid and Employee data"},
 	"1237": {"v": "newMmRmEmployeeEdit",								"n": "RM – Employee – Edit",									"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can edit an Employee"},
