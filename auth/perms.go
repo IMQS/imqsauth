@@ -236,7 +236,6 @@ const (
 	PermNewMmTcTimeExports authaus.PermissionU16 = 1232 // User can export Time Sheets
 	PermNewMmTcReportsView authaus.PermissionU16 = 1233 // User can view Time and Cost Reports
 	PermNewMmRm authaus.PermissionU16 = 1234 // User can access the Resource Manager Module
-	PermNewMmRmHome authaus.PermissionU16 = 1385 // User can access the Resource Manager Home Module
 	PermNewMmRmEmployeeCreateAddEmployee authaus.PermissionU16 = 1235 // User can add a new Employee
 	PermNewMmRmEmployeeView authaus.PermissionU16 = 1236 // User can view Employees grid and Employee data
 	PermNewMmRmEmployeeEdit authaus.PermissionU16 = 1237 // User can edit an Employee
@@ -387,6 +386,7 @@ const (
 	PermMmRoadsDataFilter authaus.PermissionU16 = 1382 // User can see data in grid and dropdowns for the Roads and Storm Water Department
 	PermMmSolidWasteDataFilter authaus.PermissionU16 = 1383 // User can see data in grid and dropdowns for the Solid Waste Department
 	PermMmSewerDataFilter authaus.PermissionU16 = 1384 // User can see data in grid and dropdowns for the Sewer Department
+	PermResourceManager authaus.PermissionU16 = 2000 // User can access the Resource Manager Module
 	PermLeasingModuleAccess authaus.PermissionU16 = 10000 // User can access the Leasing module
 	PermLeasingLeasedInView authaus.PermissionU16 = 10001 // User can view Leased In agreements
 	PermLeasingLeasedInCreate authaus.PermissionU16 = 10002 // User can create Leased In agreements
@@ -656,7 +656,6 @@ func init() {
 	PermissionsTable[PermNewMmTcTimeExports] = "newmmtctimeexports" // User can export Time Sheets
 	PermissionsTable[PermNewMmTcReportsView] = "newmmtcreportsview" // User can view Time and Cost Reports
 	PermissionsTable[PermNewMmRm] = "newmmrm" // User can access the Resource Manager Module
-	PermissionsTable[PermNewMmRmHome] = "newmmrmhome" // User can access the Resource Manager Home Module
 	PermissionsTable[PermNewMmRmEmployeeCreateAddEmployee] = "newmmrmemployeecreateaddemployee" // User can add a new Employee
 	PermissionsTable[PermNewMmRmEmployeeView] = "newmmrmemployeeview" // User can view Employees grid and Employee data
 	PermissionsTable[PermNewMmRmEmployeeEdit] = "newmmrmemployeeedit" // User can edit an Employee
@@ -807,6 +806,7 @@ func init() {
 	PermissionsTable[PermMmRoadsDataFilter] = "mmroadsdatafilter" // User can see data in grid and dropdowns for the Roads and Storm Water Department
 	PermissionsTable[PermMmSolidWasteDataFilter] = "mmsolidwastedatafilter" // User can see data in grid and dropdowns for the Solid Waste Department
 	PermissionsTable[PermMmSewerDataFilter] = "mmsewerdatafilter" // User can see data in grid and dropdowns for the Sewer Department
+	PermissionsTable[PermResourceManager] = "resourcemanager" // User can access the Resource Manager Module
 	PermissionsTable[PermLeasingModuleAccess] = "leasingmoduleaccess" // User can access the Leasing module
 	PermissionsTable[PermLeasingLeasedInView] = "leasingleasedinview" // User can view Leased In agreements
 	PermissionsTable[PermLeasingLeasedInCreate] = "leasingleasedincreate" // User can create Leased In agreements
