@@ -196,6 +196,7 @@
 	"1125": {"v": "roadSignsModuleAccess",					"n": "Road Signs",					"m": "ROAD_SIGNS",					"a": true,			"d": "User is allowed to access the Road Signs module"},
 	"1126": {"v": "electricityRPModuleAccess",				"n": "Electricity RP",				"m": "ELECTRICITY_RP",				"a": true,			"d": "User is allowed to access the Electricity RP module"},
 	"1127": {"v": "facilitiesModuleAccess",					"n": "Facilities",					"m": "FACILITIES",					"a": true,			"d": "User is allowed to access the Facilities module"},
+	"1128": {"v": "resourceManagerModuleAccess",			"n": "Resource Manager",			"m": "RESOURCE_MANAGER",			"a": true,			"d": "User is allowed to access the Resource Manager module"},
 
 	"1200": {"v": "newMm",												"n": "New Maintenance Management",								"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can access the MM module"},
 	"1201": {"v": "newMmIl",											"n": "IL – Incident Logger Module",								"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can access the Incident Logger module"},
@@ -382,8 +383,6 @@
 	"1382": {"v": "mmRoadsDataFilter",									"n": "Data Filter – Roads and Storm Water Department",			"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can see data in grid and dropdowns for the Roads and Storm Water Department"},
 	"1383": {"v": "mmSolidWasteDataFilter",								"n": "Data Filter – Solid Waste Department",					"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can see data in grid and dropdowns for the Solid Waste Department"},
 	"1384": {"v": "mmSewerDataFilter",									"n": "Data Filter – Sewer Department",							"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can see data in grid and dropdowns for the Sewer Department"},
-
-	"2000": {"v": "resourceManager",												"n": "RM – Resource Manager",								"m": "RESOURCE_MANAGER"	,"a": true 			,"d": "User can access the Resource Manager Module"},
 
 	"10000": {"v": "leasingModuleAccess",								"n": "Leasing",													"m": "LEASING"					,"a": true 			,"d": "User can access the Leasing module"},
 	"10001": {"v": "leasingLeasedInView",								"n": "Leased In – View",										"m": "LEASING"					,"a": true 			,"d": "User can view Leased In agreements"},
