@@ -31,7 +31,28 @@ type ConfigYellowfin struct {
 	SourceAccessFilter bool
 }
 
-// Permission holds all of the details to create the dynamic permission list
+// Permission holds all of the details to create the dynamic permission list.
+// These permissions are used for code implementations which are purely driven
+// by configuration requiring different permissions per client which the static
+// permissions cannot service. The static permissions also contain values which are
+// client specific and these additional changes will us to prevent these static
+// permissions from being shown in the User Management screen or they can be renamed
+// to match specific client requirements.
+// Client/dynamic permissions are added to the imqsauth.json file using the following
+// as an example:
+// {
+// 	"Permissions": {
+// 		"dynamic": [
+// 			{"id": "15000", "name": "MMTest", "friendly": "An MM Test Permission",
+//			"description": "MM Test permission", "module": "Maintenance Management"}
+// 		],
+//		"disable": ["newMmIlCreateAdd"],
+//		"relabel": [
+//			{"id": "1204", "name": "newMmIlArchive", "friendly": "Archive incident",
+//			"description": "MM Acrhive an incident", "module": "Maintenance Management"}
+//		]
+// 	}
+// }
 type Permission struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
