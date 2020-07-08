@@ -31,6 +31,22 @@ type ConfigYellowfin struct {
 	SourceAccessFilter bool
 }
 
+// Permission holds all of the details to create the dynamic permission list
+type Permission struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Friendly    string `json:"friendly"`
+	Description string `json:"description"`
+	Module      string `json:"module"`
+}
+
+// ManagePermissions is used to store all of the dynamic, disable and rename/relabel permission details
+type ManagePermissions struct {
+	Dynamic []*Permission `json:"dynamic,omitempty"` // List of client specific permissions
+	Disable []string      `json:"disable,omitempty"` // Disable is to prevent static permissions from being shown in User Management
+	Relabel []*Permission `json:"relabel,omitempty"` // Relabel is used to change the labels of static permissions
+}
+
 // Note: Be sure to keep doc.go up to date with the Config structure here
 
 type Config struct {
@@ -43,6 +59,7 @@ type Config struct {
 	hostname                   string // This is read from environment variable the first time GetHostname is called
 	lastFileLoaded             string // Used for relative paths (such as HostnameFile)
 	enablePcsRename            bool   // Disabled by unit tests
+	Permissions                *ManagePermissions
 }
 
 func (x *Config) Reset() {
