@@ -227,6 +227,8 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/groups", x.makeHandler(HttpMethodGet, httpHandlerGetGroups, 0))
 	smux.HandleFunc("/hasactivedirectory", x.makeHandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
 	smux.HandleFunc("/groups_perm_names", x.makeHandler(HttpMethodGet, httpHandlerGetGroupsPermNames, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/dynamic_permissions", x.makeHandler(HttpMethodGet, httpHandlerGetDynamicPermissions, 0))
+	smux.HandleFunc("/dynamic_permissions_list", x.makeHandler(HttpMethodGet, httpHanderGetDynamicPermissionsList, 0))
 
 	server := &http.Server{}
 	server.Handler = smux
@@ -1525,6 +1527,46 @@ func httpHandlerHasActiveDirectory(central *ImqsCentral, w http.ResponseWriter, 
 	} else {
 		httpSendResponse(w, []byte("0"))
 	}
+}
+
+// httpHanderGetDynamicPermissions returns all of the dynamic/client specific permissions
+// as set in the imqsauth config file.
+func httpHandlerGetDynamicPermissions(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	response := []byte("{}")
+	var err error
+	if central.Config.Permissions != nil {
+		response, err = json.Marshal(central.Config.Permissions)
+		if err != nil {
+			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+	w.Header().Add("content-type", "application/json")
+	httpSendResponse(w, response)
+}
+
+// httpHanderGetDynamicPermissionsList returns a stripped down map of the dynamic permissions mapping
+// the permissions ID to its name. This map is intended to by used by services to find the ID of a
+// permissions provided the name of the permission is known.
+func httpHanderGetDynamicPermissionsList(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	result := make(map[string]int64)
+	for _, perm := range central.Config.Permissions.Dynamic {
+		if _, ok := result[perm.Name]; !ok {
+			var err error
+			result[perm.Name], err = strconv.ParseInt(perm.ID, 10, 64)
+			if err != nil {
+				authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+		}
+	}
+	response, err := json.Marshal(result)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.Header().Add("content-type", "application/json")
+	httpSendResponse(w, response)
 }
 
 func getUserId(r *httpRequest) (authaus.UserId, error) {
