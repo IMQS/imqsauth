@@ -228,7 +228,6 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/hasactivedirectory", x.makeHandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
 	smux.HandleFunc("/groups_perm_names", x.makeHandler(HttpMethodGet, httpHandlerGetGroupsPermNames, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/dynamic_permissions", x.makeHandler(HttpMethodGet, httpHandlerGetDynamicPermissions, 0))
-	smux.HandleFunc("/dynamic_permissions_list", x.makeHandler(HttpMethodGet, httpHanderGetDynamicPermissionsList, 0))
 
 	server := &http.Server{}
 	server.Handler = smux
@@ -1089,33 +1088,7 @@ func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 // for all of the permissions. This is used to know which ID is used in the permission list for the user
 // when matched to the human readable permission names.
 func httpHandlerGetGroupsPermNames(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	type nameID struct {
-		Name  string    `json:"name"`
-		ID    int64     `json:"id"`
-		Perms []*nameID `json:"perms,omitempty"`
-	}
-	response := make([]*nameID, 0)
-	groups, err := central.Central.GetRoleGroupDB().GetGroups()
-	if err != nil {
-		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	for _, group := range groups {
-		groupResult := &nameID{
-			Name:  group.Name,
-			ID:    int64(group.ID),
-			Perms: make([]*nameID, 0),
-		}
-		for _, permID := range group.PermList {
-			groupResult.Perms = append(groupResult.Perms,
-				&nameID{
-					Name: PermissionsTable[permID],
-					ID:   int64(permID),
-				})
-		}
-		response = append(response, groupResult)
-	}
-	responseJSON, _ := json.Marshal(response)
+	responseJSON, _ := json.Marshal(PermissionsTable)
 	httpSendResponse(w, responseJSON)
 }
 
@@ -1540,30 +1513,6 @@ func httpHandlerGetDynamicPermissions(central *ImqsCentral, w http.ResponseWrite
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-	}
-	w.Header().Add("content-type", "application/json")
-	httpSendResponse(w, response)
-}
-
-// httpHanderGetDynamicPermissionsList returns a stripped down map of the dynamic permissions mapping
-// the permissions ID to its name. This map is intended to by used by services to find the ID of a
-// permissions provided the name of the permission is known.
-func httpHanderGetDynamicPermissionsList(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	result := make(map[string]int64)
-	for _, perm := range central.Config.Permissions.Dynamic {
-		if _, ok := result[perm.Name]; !ok {
-			var err error
-			result[perm.Name], err = strconv.ParseInt(perm.ID, 10, 64)
-			if err != nil {
-				authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
-				return
-			}
-		}
-	}
-	response, err := json.Marshal(result)
-	if err != nil {
-		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
-		return
 	}
 	w.Header().Add("content-type", "application/json")
 	httpSendResponse(w, response)

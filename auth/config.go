@@ -3,6 +3,7 @@ package imqsauth
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/IMQS/authaus"
@@ -104,6 +105,22 @@ func (x *Config) LoadFile(filename string) error {
 		return err
 	}
 	x.lastFileLoaded = filename
+	err = x.loadDynamicPermissions()
+	return err
+}
+
+// loadDynamicPermissions adds the dynamic permissions from config to the
+// static/coded list of permissions for transparent usage
+func (x *Config) loadDynamicPermissions() error {
+	if x.Permissions != nil && x.Permissions.Dynamic != nil {
+		for _, perm := range x.Permissions.Dynamic {
+			permID, err := strconv.ParseUint(perm.ID, 10, 16)
+			if err != nil {
+				return fmt.Errorf("Failed to parse dynamic permission ID '%s' to uint16 for permission %s: %v\n", perm.ID, perm.Name, err)
+			}
+			PermissionsTable[authaus.PermissionU16(permID)] = perm.Name
+		}
+	}
 	return nil
 }
 
