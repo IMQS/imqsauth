@@ -3,6 +3,7 @@ package imqsauth
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/IMQS/authaus"
@@ -26,6 +27,43 @@ type ConfigYellowfin struct {
 	SourceAccessFilter bool
 }
 
+// Permission holds all of the details to create the dynamic permission list.
+// These permissions are used for code implementations which are purely driven
+// by configuration requiring different permissions per client which the static
+// permissions cannot service. The static permissions also contain values which are
+// client specific and these additional changes will us to prevent these static
+// permissions from being shown in the User Management screen or they can be renamed
+// to match specific client requirements.
+// Client/dynamic permissions are added to the imqsauth.json file using the following
+// as an example:
+// {
+// 	"Permissions": {
+// 		"dynamic": [
+// 			{"id": "15000", "name": "MMTest", "friendly": "An MM Test Permission",
+//			"description": "MM Test permission", "module": "Maintenance Management"}
+// 		],
+//		"disable": ["newMmIlCreateAdd"],
+//		"relabel": [
+//			{"id": "1204", "name": "newMmIlArchive", "friendly": "Archive incident",
+//			"description": "MM Acrhive an incident", "module": "Maintenance Management"}
+//		]
+// 	}
+// }
+type Permission struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Friendly    string `json:"friendly"`
+	Description string `json:"description"`
+	Module      string `json:"module"`
+}
+
+// ManagePermissions is used to store all of the dynamic, disable and rename/relabel permission details
+type ManagePermissions struct {
+	Dynamic []*Permission `json:"dynamic,omitempty"` // List of client specific permissions
+	Disable []string      `json:"disable,omitempty"` // Disable is to prevent static permissions from being shown in User Management
+	Relabel []*Permission `json:"relabel,omitempty"` // Relabel is used to change the labels of static permissions
+}
+
 // Note: Be sure to keep doc.go up to date with the Config structure here
 
 type Config struct {
@@ -38,6 +76,7 @@ type Config struct {
 	hostname                   string // This is read from environment variable the first time GetHostname is called
 	lastFileLoaded             string // Used for relative paths (such as HostnameFile)
 	enablePcsRename            bool   // Disabled by unit tests
+	Permissions                *ManagePermissions
 }
 
 func (x *Config) Reset() {
@@ -61,6 +100,22 @@ func (x *Config) LoadFile(filename string) error {
 		return err
 	}
 	x.lastFileLoaded = filename
+	err = x.loadDynamicPermissions()
+	return err
+}
+
+// loadDynamicPermissions adds the dynamic permissions from config to the
+// static/coded list of permissions for transparent usage
+func (x *Config) loadDynamicPermissions() error {
+	if x.Permissions != nil && x.Permissions.Dynamic != nil {
+		for _, perm := range x.Permissions.Dynamic {
+			permID, err := strconv.ParseUint(perm.ID, 10, 16)
+			if err != nil {
+				return fmt.Errorf("Failed to parse dynamic permission ID '%s' to uint16 for permission %s: %v\n", perm.ID, perm.Name, err)
+			}
+			PermissionsTable[authaus.PermissionU16(permID)] = perm.Name
+		}
+	}
 	return nil
 }
 

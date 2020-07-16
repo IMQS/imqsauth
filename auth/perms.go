@@ -201,6 +201,7 @@ const (
 	PermRoadSignsModuleAccess authaus.PermissionU16 = 1125 // User is allowed to access the Road Signs module
 	PermElectricityRPModuleAccess authaus.PermissionU16 = 1126 // User is allowed to access the Electricity RP module
 	PermFacilitiesModuleAccess authaus.PermissionU16 = 1127 // User is allowed to access the Facilities module
+	PermResourceManagerModuleAccess authaus.PermissionU16 = 1128 // User is allowed to access the Resource Manager module
 	PermNewMm authaus.PermissionU16 = 1200 // User can access the MM module
 	PermNewMmIl authaus.PermissionU16 = 1201 // User can access the Incident Logger module
 	PermNewMmIlCreateBulkIncidents authaus.PermissionU16 = 1202 // User can create bulk incidents
@@ -386,7 +387,6 @@ const (
 	PermMmRoadsDataFilter authaus.PermissionU16 = 1382 // User can see data in grid and dropdowns for the Roads and Storm Water Department
 	PermMmSolidWasteDataFilter authaus.PermissionU16 = 1383 // User can see data in grid and dropdowns for the Solid Waste Department
 	PermMmSewerDataFilter authaus.PermissionU16 = 1384 // User can see data in grid and dropdowns for the Sewer Department
-	PermResourceManager authaus.PermissionU16 = 2000 // User can access the Resource Manager Module
 	PermLeasingModuleAccess authaus.PermissionU16 = 10000 // User can access the Leasing module
 	PermLeasingLeasedInView authaus.PermissionU16 = 10001 // User can view Leased In agreements
 	PermLeasingLeasedInCreate authaus.PermissionU16 = 10002 // User can create Leased In agreements
@@ -621,6 +621,7 @@ func init() {
 	PermissionsTable[PermRoadSignsModuleAccess] = "roadsignsmoduleaccess" // User is allowed to access the Road Signs module
 	PermissionsTable[PermElectricityRPModuleAccess] = "electricityrpmoduleaccess" // User is allowed to access the Electricity RP module
 	PermissionsTable[PermFacilitiesModuleAccess] = "facilitiesmoduleaccess" // User is allowed to access the Facilities module
+	PermissionsTable[PermResourceManagerModuleAccess] = "resourcemanagermoduleaccess" // User is allowed to access the Resource Manager module
 	PermissionsTable[PermNewMm] = "newmm" // User can access the MM module
 	PermissionsTable[PermNewMmIl] = "newmmil" // User can access the Incident Logger module
 	PermissionsTable[PermNewMmIlCreateBulkIncidents] = "newmmilcreatebulkincidents" // User can create bulk incidents
@@ -806,7 +807,6 @@ func init() {
 	PermissionsTable[PermMmRoadsDataFilter] = "mmroadsdatafilter" // User can see data in grid and dropdowns for the Roads and Storm Water Department
 	PermissionsTable[PermMmSolidWasteDataFilter] = "mmsolidwastedatafilter" // User can see data in grid and dropdowns for the Solid Waste Department
 	PermissionsTable[PermMmSewerDataFilter] = "mmsewerdatafilter" // User can see data in grid and dropdowns for the Sewer Department
-	PermissionsTable[PermResourceManager] = "resourcemanager" // User can access the Resource Manager Module
 	PermissionsTable[PermLeasingModuleAccess] = "leasingmoduleaccess" // User can access the Leasing module
 	PermissionsTable[PermLeasingLeasedInView] = "leasingleasedinview" // User can view Leased In agreements
 	PermissionsTable[PermLeasingLeasedInCreate] = "leasingleasedincreate" // User can create Leased In agreements
@@ -872,6 +872,7 @@ func init() {
 	PermissionModuleMap["Road Signs"] = PermRoadSignsModuleAccess
 	PermissionModuleMap["Electricity RP"] = PermElectricityRPModuleAccess
 	PermissionModuleMap["Facilities"] = PermFacilitiesModuleAccess
+	PermissionModuleMap["Resource Manager"] = PermResourceManagerModuleAccess
 	PermissionModuleMap["Leasing"] = PermLeasingModuleAccess
 
 

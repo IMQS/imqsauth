@@ -228,6 +228,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/groups", x.makeHandler(HttpMethodGet, httpHandlerGetGroups, 0))
 	smux.HandleFunc("/hasactivedirectory", x.makeHandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
 	smux.HandleFunc("/groups_perm_names", x.makeHandler(HttpMethodGet, httpHandlerGetGroupsPermNames, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/dynamic_permissions", x.makeHandler(HttpMethodGet, httpHandlerGetDynamicPermissions, 0))
 	smux.HandleFunc("/oauth/providers", x.makeHandler(HttpMethodGet, httpHandlerOAuthProviders, 0))
 	smux.HandleFunc("/oauth/start", x.makeHandler(HttpMethodAny, httpHandlerOAuthStart, 0))
 	smux.HandleFunc("/oauth/finish", x.makeHandler(HttpMethodGet, httpHandlerOAuthFinish, 0))
@@ -235,7 +236,7 @@ func (x *ImqsCentral) RunHttp() error {
 	// It's useful to uncomment this when developing new OAuth concepts,
 	// but it's obviously a bad idea to expose it in production.
 	// smux.HandleFunc("/oauth/test", x.makeHandler(HttpMethodGet, httpHandlerOAuthTest, 0))
-
+	
 	server := &http.Server{}
 	server.Handler = smux
 	server.Addr = x.Config.Authaus.HTTP.Bind + ":" + x.Config.Authaus.HTTP.Port
@@ -1082,33 +1083,7 @@ func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 // for all of the permissions. This is used to know which ID is used in the permission list for the user
 // when matched to the human readable permission names.
 func httpHandlerGetGroupsPermNames(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	type nameID struct {
-		Name  string    `json:"name"`
-		ID    int64     `json:"id"`
-		Perms []*nameID `json:"perms,omitempty"`
-	}
-	response := make([]*nameID, 0)
-	groups, err := central.Central.GetRoleGroupDB().GetGroups()
-	if err != nil {
-		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	for _, group := range groups {
-		groupResult := &nameID{
-			Name:  group.Name,
-			ID:    int64(group.ID),
-			Perms: make([]*nameID, 0),
-		}
-		for _, permID := range group.PermList {
-			groupResult.Perms = append(groupResult.Perms,
-				&nameID{
-					Name: PermissionsTable[permID],
-					ID:   int64(permID),
-				})
-		}
-		response = append(response, groupResult)
-	}
-	responseJSON, _ := json.Marshal(response)
+	responseJSON, _ := json.Marshal(PermissionsTable)
 	httpSendResponse(w, responseJSON)
 }
 
@@ -1520,6 +1495,22 @@ func httpHandlerHasActiveDirectory(central *ImqsCentral, w http.ResponseWriter, 
 	} else {
 		httpSendResponse(w, []byte("0"))
 	}
+}
+
+// httpHanderGetDynamicPermissions returns all of the dynamic/client specific permissions
+// as set in the imqsauth config file.
+func httpHandlerGetDynamicPermissions(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	response := []byte("{}")
+	var err error
+	if central.Config.Permissions != nil {
+		response, err = json.Marshal(central.Config.Permissions)
+		if err != nil {
+			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+	w.Header().Add("content-type", "application/json")
+	httpSendResponse(w, response)
 }
 
 func getUserId(r *httpRequest) (authaus.UserId, error) {
