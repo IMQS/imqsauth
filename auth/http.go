@@ -40,6 +40,7 @@ const (
 	HttpMethodGet  HttpMethod = "GET"
 	HttpMethodPost            = "POST"
 	HttpMethodPut             = "PUT"
+	HttpMethodAny             = "*"
 )
 
 type handlerFlags uint32
@@ -144,7 +145,7 @@ func (x *ImqsCentral) IsLockable(identity string) (bool, error) {
 
 func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, http.ResponseWriter, *httpRequest), flags handlerFlags) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != string(method) {
+		if string(method) != HttpMethodAny && r.Method != string(method) {
 			authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("API must be accessed using an HTTP %v method", method))
 			return
 		}
@@ -227,6 +228,13 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/groups", x.makeHandler(HttpMethodGet, httpHandlerGetGroups, 0))
 	smux.HandleFunc("/hasactivedirectory", x.makeHandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
 	smux.HandleFunc("/groups_perm_names", x.makeHandler(HttpMethodGet, httpHandlerGetGroupsPermNames, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/oauth/providers", x.makeHandler(HttpMethodGet, httpHandlerOAuthProviders, 0))
+	smux.HandleFunc("/oauth/start", x.makeHandler(HttpMethodAny, httpHandlerOAuthStart, 0))
+	smux.HandleFunc("/oauth/finish", x.makeHandler(HttpMethodGet, httpHandlerOAuthFinish, 0))
+
+	// It's useful to uncomment this when developing new OAuth concepts,
+	// but it's obviously a bad idea to expose it in production.
+	// smux.HandleFunc("/oauth/test", x.makeHandler(HttpMethodGet, httpHandlerOAuthTest, 0))
 
 	server := &http.Server{}
 	server.Handler = smux
@@ -593,40 +601,27 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 		httpSendNoIdentity(w)
 		return
 	}
-	clientIPAddress := getIPAddress(r.http)
 
-	if sessionkey, token, err := central.Central.Login(identity, password, clientIPAddress); err != nil {
+	sessionKey, token, err := central.Central.Login(identity, password, getIPAddress(r.http))
+	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 		if user, eUser := central.Central.GetUserFromIdentity(identity); eUser == nil {
 			auditUserLogAction(central, r, user.UserId, identity, "User Profile: "+identity, authaus.AuditActionFailedLogin)
 		}
-	} else {
-		r.token = token
-		auditUserLogAction(central, r, token.UserId, token.Identity, "User Profile: "+token.Identity, authaus.AuditActionAuthentication)
-		if permList, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup != nil {
-			authaus.HttpSendTxt(w, http.StatusInternalServerError, egroup.Error())
-		} else {
-			// Ensure that the user has the 'Enabled' permission
-			if !permList.Has(PermEnabled) {
-				httpSendAccountDisabled(w)
-			} else {
-				cookie := &http.Cookie{
-					Name:    central.Config.Authaus.HTTP.CookieName,
-					Value:   sessionkey,
-					Path:    "/",
-					Expires: token.Expires,
-					Secure:  central.Config.Authaus.HTTP.CookieSecure,
-				}
-				http.SetCookie(w, cookie)
-				if central.Config.Yellowfin.UseLegacyAuth {
-					if err = httpLoginYellowfin(central, w, r, identity, permList); err != nil {
-						central.Central.Log.Errorf("Yellowfin login error: %v", err)
-					}
-				}
-				httpSendCheckJson(w, token, permList)
-			}
-		}
+		return
 	}
+
+	perms, err := central.validateUserIsEnabledForNewLogin(sessionKey, token, r)
+	if err != nil {
+		if err == ErrUserDisabled {
+			httpSendAccountDisabled(w)
+		} else {
+			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+	central.setSessionCookie(sessionKey, token, w)
+	httpSendCheckJson(w, token, perms)
 }
 
 // This is a top-level HTTP API, built to allow an explicit login to Yellowfin only.

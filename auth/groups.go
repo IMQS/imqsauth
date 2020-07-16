@@ -233,3 +233,19 @@ func loadOrCreateGroup(icentral *ImqsCentral, groupName string, createIfNotExist
 	}
 	return group, nil
 }
+
+// Override the groups that a user belongs to
+func setUserPermissionGroupsByName(icentral *ImqsCentral, userid authaus.UserId, groups []string) error {
+	groupIDs := []authaus.GroupIDU32{}
+	for _, group := range groups {
+		if gid, err := icentral.Central.GetRoleGroupDB().GetByName(group); err != nil {
+			return fmt.Errorf("Group '%v' does not exist", group)
+		} else {
+			groupIDs = append(groupIDs, gid.ID)
+		}
+	}
+	perm := authaus.Permit{
+		Roles: authaus.EncodePermit(groupIDs),
+	}
+	return icentral.Central.SetPermit(userid, &perm)
+}

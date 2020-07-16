@@ -115,14 +115,6 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		}
 	}
 
-	// Because Yellowfin only allows a single session per user, we need to
-	// make our behaviour the same. Note that this is only true for the Legacy case.
-	// When using our new Router-based "transparent" yellowfin login, this
-	// restriction falls away.
-	if ic.Config.Yellowfin.Enabled && ic.Config.Yellowfin.UseLegacyAuth {
-		ic.Config.Authaus.SessionDB.MaxActiveSessions = 1
-	}
-
 	handler := func() error {
 		err := ic.RunHttp()
 		ic.Central.Close()
@@ -250,12 +242,12 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 }
 
 func createDB(config *authaus.Config) bool {
-	if err := authaus.SqlCreateDatabase(&config.UserStore.DB); err != nil {
+	if err := authaus.SqlCreateDatabase(&config.DB); err != nil {
 		fmt.Printf("Error creating database: %v", err)
 		return false
 	}
 
-	if err := authaus.RunMigrations(&config.UserStore.DB); err != nil {
+	if err := authaus.RunMigrations(&config.DB); err != nil {
 		fmt.Printf("Error running migrations: %v", err)
 		return false
 	}

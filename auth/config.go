@@ -18,11 +18,6 @@ const (
 
 type ConfigYellowfin struct {
 	Enabled bool
-	// If this is true, then we store yellowfin cookies in the user's browser.
-	// If this is false, then we transparently login to Yellowfin via the Router.
-	// We could probably get rid of this old code path, but it adds minimal
-	// complexity to the code, and might still prove useful.
-	UseLegacyAuth bool
 	// Filter YF categories according to current IMQS module, which is passed in from the front-end.
 	ContentCategoryFilter bool
 	// Map IMQS modules to Yellowfin report categories for cases where it does not match, e.g. Water Demand->Swift.
@@ -88,15 +83,13 @@ func (x *Config) GetHostname() string {
 // debug the Auth service, while running everything else in docker.
 func (x *Config) MakeOutsideDocker() {
 	fmt.Printf("OutsideDocker changes: db => localhost, port => 2003, IMQS_HOSTNAME_URL => http://localhost:2500\n")
-	translateDBHost := func(dbHost *string) {
-		if *dbHost == "db" {
-			*dbHost = "localhost"
+	translateDB := func(db *authaus.DBConnection) {
+		if db.Host == "db" {
+			db.Host = "localhost"
+			// db.Port = 6432 // DO NOT COMMIT (for testing PgBouncer)
 		}
 	}
-	translateDBHost(&x.Authaus.PermitDB.DB.Host)
-	translateDBHost(&x.Authaus.RoleGroupDB.DB.Host)
-	translateDBHost(&x.Authaus.UserStore.DB.Host)
-	translateDBHost(&x.Authaus.SessionDB.DB.Host)
+	translateDB(&x.Authaus.DB)
 	if x.Authaus.HTTP.Port == "80" {
 		x.Authaus.HTTP.Port = "2003"
 	}

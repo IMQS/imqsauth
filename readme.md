@@ -17,6 +17,8 @@ in it's own CI job.
 The following block demonstrates running all of the tests:
 
 	go test github.com/IMQS/imqsauth/auth
+	go build imqsauth.go
+	gem install rest-client
 	ruby resttest.rb
 
 ## Running
@@ -47,3 +49,9 @@ except leave out the `permgroupadd root admin` step.
 To run the server:
 
 	./imqsauth -c=example-local.conf run
+
+### Running outside docker
+
+To run imqsauth natively, with the rest of the IMQS services running inside a docker-compose stack:
+
+	go run imqsauth.go -outside-docker
