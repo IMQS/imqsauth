@@ -24,7 +24,6 @@ func httpHandlerOAuthStart(central *ImqsCentral, w http.ResponseWriter, r *httpR
 
 func httpHandlerOAuthFinish(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	err := central.oauthFinishInternal(w, r)
-	err = fmt.Errorf("Failed to assign permit foobar zang")
 
 	if err != nil {
 		http.Redirect(w, r.http, "/?oauthError="+url.QueryEscape(err.Error()), http.StatusFound)
