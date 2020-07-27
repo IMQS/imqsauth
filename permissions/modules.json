@@ -31,6 +31,7 @@
 		{ "name": "Water Demand" },
 		{ "name": "Water PRP" },
 		{ "name": "Water" },
-		{ "name": "WIP" }
+		{ "name": "WIP" },
+		{ "name": "Theme Editor" }
 	]
 }
