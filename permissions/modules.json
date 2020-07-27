@@ -21,6 +21,7 @@
 		{ "name": "Module Access" },
 		{ "name": "PCS" },
 		{ "name": "Properties and Buildings" },
+		{ "name": "Resource Manager" },
 		{ "name": "Revenue Enhancement" },
 		{ "name": "Road Signs" },
 		{ "name": "Roads" },
@@ -28,10 +29,10 @@
 		{ "name": "Sewer" },
 		{ "name": "Stormwater" },
 		{ "name": "Telcos" },
+		{ "name": "Theme Editor" },
 		{ "name": "Water Demand" },
 		{ "name": "Water PRP" },
 		{ "name": "Water" },
-		{ "name": "WIP" },
-		{ "name": "Theme Editor" }
+		{ "name": "WIP" }
 	]
 }
