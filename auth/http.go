@@ -57,11 +57,12 @@ type httpRequest struct {
 }
 
 type checkResponseJson struct {
-	UserId   authaus.UserId
-	Identity string
-	Email    string
-	Username string
-	Roles    []string
+	UserId       authaus.UserId
+	Identity     string
+	Email        string
+	Username     string
+	Roles        []string
+	InternalUUID string
 }
 
 type notificationRequestJson struct {
@@ -112,6 +113,7 @@ type userResponseJson struct {
 	AuthUserType  authaus.AuthUserType
 	Archived      bool
 	AccountLocked bool
+	InternalUUID  string
 }
 
 type ImqsCentral struct {
@@ -236,7 +238,7 @@ func (x *ImqsCentral) RunHttp() error {
 	// It's useful to uncomment this when developing new OAuth concepts,
 	// but it's obviously a bad idea to expose it in production.
 	// smux.HandleFunc("/oauth/test", x.makeHandler(HttpMethodGet, httpHandlerOAuthTest, 0))
-	
+
 	server := &http.Server{}
 	server.Handler = smux
 	server.Addr = x.Config.Authaus.HTTP.Bind + ":" + x.Config.Authaus.HTTP.Port
@@ -426,6 +428,7 @@ func httpSendCheckJson(w http.ResponseWriter, token *authaus.Token, permList aut
 	jresponse.Username = token.Username
 	jresponse.Email = token.Email
 	jresponse.SetRoles(permList)
+	jresponse.InternalUUID = token.InternalUUID
 	httpSendJson(w, jresponse)
 	//fmt.Fprintf(w, "%v", encodePermBitsToString(permList))
 	//fmt.Fprintf(w, "%v", hex.EncodeToString(token.Permit.Roles))
@@ -503,6 +506,7 @@ func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ide
 			AuthUserType:  user.Type,
 			Archived:      user.Archived,
 			AccountLocked: user.AccountLocked,
+			InternalUUID:  user.InternalUUID,
 		})
 	}
 
@@ -699,6 +703,7 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	telephonenumber := strings.TrimSpace(r.http.URL.Query().Get("telephonenumber"))
 	remarks := strings.TrimSpace(r.http.URL.Query().Get("remarks"))
 	password := strings.TrimSpace(r.http.URL.Query().Get("password"))
+	internalUUID := strings.TrimSpace(r.http.URL.Query().Get("uuid"))
 
 	var identity string
 	if len(username) > 0 {
@@ -734,6 +739,7 @@ func httpHandlerCreateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		CreatedBy:       createdby,
 		Modified:        created,
 		ModifiedBy:      createdby,
+		InternalUUID:    internalUUID,
 	}
 
 	if userId, err := central.Central.CreateUserStoreIdentity(&user, password); err != nil {
