@@ -387,6 +387,8 @@ const (
 	PermMmRoadsDataFilter authaus.PermissionU16 = 1382 // User can see data in grid and dropdowns for the Roads and Storm Water Department
 	PermMmSolidWasteDataFilter authaus.PermissionU16 = 1383 // User can see data in grid and dropdowns for the Solid Waste Department
 	PermMmSewerDataFilter authaus.PermissionU16 = 1384 // User can see data in grid and dropdowns for the Sewer Department
+	PermThemeEditorModuleAccess authaus.PermissionU16 = 2000 // User can access the theme editor module
+	PermThemeEditorPublisher authaus.PermissionU16 = 2001 // User can publish private themes to global themes, un-publish, edit, create, delete global themes
 	PermLeasingModuleAccess authaus.PermissionU16 = 10000 // User can access the Leasing module
 	PermLeasingLeasedInView authaus.PermissionU16 = 10001 // User can view Leased In agreements
 	PermLeasingLeasedInCreate authaus.PermissionU16 = 10002 // User can create Leased In agreements
@@ -807,6 +809,8 @@ func init() {
 	PermissionsTable[PermMmRoadsDataFilter] = "mmroadsdatafilter" // User can see data in grid and dropdowns for the Roads and Storm Water Department
 	PermissionsTable[PermMmSolidWasteDataFilter] = "mmsolidwastedatafilter" // User can see data in grid and dropdowns for the Solid Waste Department
 	PermissionsTable[PermMmSewerDataFilter] = "mmsewerdatafilter" // User can see data in grid and dropdowns for the Sewer Department
+	PermissionsTable[PermThemeEditorModuleAccess] = "themeeditormoduleaccess" // User can access the theme editor module
+	PermissionsTable[PermThemeEditorPublisher] = "themeeditorpublisher" // User can publish private themes to global themes, un-publish, edit, create, delete global themes
 	PermissionsTable[PermLeasingModuleAccess] = "leasingmoduleaccess" // User can access the Leasing module
 	PermissionsTable[PermLeasingLeasedInView] = "leasingleasedinview" // User can view Leased In agreements
 	PermissionsTable[PermLeasingLeasedInCreate] = "leasingleasedincreate" // User can create Leased In agreements
@@ -873,6 +877,7 @@ func init() {
 	PermissionModuleMap["Electricity RP"] = PermElectricityRPModuleAccess
 	PermissionModuleMap["Facilities"] = PermFacilitiesModuleAccess
 	PermissionModuleMap["Resource Manager"] = PermResourceManagerModuleAccess
+	PermissionModuleMap["Theme Editor"] = PermThemeEditorModuleAccess
 	PermissionModuleMap["Leasing"] = PermLeasingModuleAccess
 
 
