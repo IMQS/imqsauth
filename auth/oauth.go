@@ -1,6 +1,7 @@
 package imqsauth
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -13,9 +14,10 @@ import (
 // Microsoft Azure Active Directory
 
 type oauthProviderJSON struct {
-	Name  string // eg "emerge". Internal name that you use for example, in https://HOST/auth2/oauth/start?provider=<Name>
-	Type  string // eg "msaad". Same as in config file
-	Title string // eg "eMerge". text title that you can show the user
+	Name      string // eg "emerge". Internal name that you use for example, in https://HOST/auth2/oauth/start?provider=<Name>
+	Type      string // eg "msaad". Same as in config file
+	Title     string // eg "eMerge". text title that you can show the user
+	IsDefault bool   // If true, and the login URL doesn't instruct you otherwise, then "click" this button for the user as soon as page load finishes
 }
 
 func httpHandlerOAuthStart(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
@@ -40,6 +42,15 @@ func (icentral *ImqsCentral) oauthFinishInternal(w http.ResponseWriter, r *httpR
 	res, err := acentral.OAuth.OAuthFinish(r.http)
 	if err != nil {
 		return err
+	}
+
+	if res.UserId == authaus.UserId(0) {
+		// This situation happens when AllowCreateUser is false in the OAuth config, and
+		// a new user is trying to login. In such a case, the user is not allowed to login.
+		// The idea with AllowCreateUser=false is that user profiles need to be loaded
+		// via some other mechanism such as the MSAAD sync functionality in Authaus,
+		// or perhaps LDAP sync.
+		return errors.New("Your profile is not enabled for login")
 	}
 
 	// Ensure the user has a permit, regardless of whether it's a new user or not.
@@ -78,7 +89,7 @@ func (icentral *ImqsCentral) oauthFinishInternal(w http.ResponseWriter, r *httpR
 	}
 
 	// Log the user in
-	sessionKey, token, err := acentral.CreateSession(&user, getIPAddress(r.http))
+	sessionKey, token, err := acentral.CreateSession(&user, getIPAddress(r.http), res.OAuthSessionID)
 	if err != nil {
 		return fmt.Errorf("Failed to create session record: %w", err)
 	}
@@ -95,9 +106,10 @@ func httpHandlerOAuthProviders(central *ImqsCentral, w http.ResponseWriter, r *h
 	available := []oauthProviderJSON{}
 	for name, p := range central.Central.OAuth.Config.Providers {
 		j := oauthProviderJSON{
-			Type:  p.Type,
-			Title: p.Title,
-			Name:  name,
+			Type:      p.Type,
+			Title:     p.Title,
+			Name:      name,
+			IsDefault: name == central.Central.OAuth.Config.DefaultProvider,
 		}
 		available = append(available, j)
 	}

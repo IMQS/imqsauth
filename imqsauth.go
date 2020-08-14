@@ -13,7 +13,6 @@ import (
 	"github.com/IMQS/cli"
 	"github.com/IMQS/gowinsvc/service"
 	auth "github.com/IMQS/imqsauth/auth"
-	"github.com/IMQS/imqsauth/cros"
 )
 
 // These files are written by create-keys.rb
@@ -147,11 +146,13 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 	// Setup yellowfin
 	if ic.Central != nil {
 		ic.Yellowfin = auth.NewYellowfin(ic.Central.Log)
-		if ic.Config.Yellowfin.Enabled && !ic.Config.IsContainer() {
-			if err := ic.Yellowfin.LoadConfig(ic.Config.Yellowfin, cros.YellowfinAdminPasswordFile, cros.YellowfinUserPasswordFile); err != nil {
-				panic(fmt.Sprintf("Error loading yellowfin config: %v", err))
+		/*
+			if ic.Config.Yellowfin.Enabled && !ic.Config.IsContainer() {
+				if err := ic.Yellowfin.LoadConfig(ic.Config.Yellowfin, cros.YellowfinAdminPasswordFile, cros.YellowfinUserPasswordFile); err != nil {
+					panic(fmt.Sprintf("Error loading yellowfin config: %v", err))
+				}
 			}
-		}
+		*/
 	}
 
 	// Setup audit service
