@@ -424,6 +424,14 @@ const (
 	PermLeasingLookupCreate authaus.PermissionU16 = 10032 // User can create a new lookup record
 	PermLeasingLookupUpdate authaus.PermissionU16 = 10033 // User can update a lookup record during the Manage lookup process
 	PermLeasingLookupDelete authaus.PermissionU16 = 10034 // User can delete a lookup record during the Manage lookup process
+	PermLeasingPaymentView authaus.PermissionU16 = 10035 // User can view Payment transactions and projections.
+	PermLeasingPaymentCreate authaus.PermissionU16 = 10036 // User can create Payment transactions and projections.
+	PermLeasingPaymentUpdate authaus.PermissionU16 = 10037 // User can update Payment transactions and projections.
+	PermLeasingPaymentDelete authaus.PermissionU16 = 10038 // User can delete Payment transactions and projections.
+	PermLeasingBillingView authaus.PermissionU16 = 10039 // User can view Billing transactions and projections.
+	PermLeasingBillingCreate authaus.PermissionU16 = 10040 // User can create Billing transactions and projections.
+	PermLeasingBillingUpdate authaus.PermissionU16 = 10041 // User can update Billing transactions and projections.
+	PermLeasingBillingDelete authaus.PermissionU16 = 10042 // User can delete Billing transactions and projections.
 
 )
 
@@ -846,6 +854,14 @@ func init() {
 	PermissionsTable[PermLeasingLookupCreate] = "leasinglookupcreate" // User can create a new lookup record
 	PermissionsTable[PermLeasingLookupUpdate] = "leasinglookupupdate" // User can update a lookup record during the Manage lookup process
 	PermissionsTable[PermLeasingLookupDelete] = "leasinglookupdelete" // User can delete a lookup record during the Manage lookup process
+	PermissionsTable[PermLeasingPaymentView] = "leasingpaymentview" // User can view Payment transactions and projections.
+	PermissionsTable[PermLeasingPaymentCreate] = "leasingpaymentcreate" // User can create Payment transactions and projections.
+	PermissionsTable[PermLeasingPaymentUpdate] = "leasingpaymentupdate" // User can update Payment transactions and projections.
+	PermissionsTable[PermLeasingPaymentDelete] = "leasingpaymentdelete" // User can delete Payment transactions and projections.
+	PermissionsTable[PermLeasingBillingView] = "leasingbillingview" // User can view Billing transactions and projections.
+	PermissionsTable[PermLeasingBillingCreate] = "leasingbillingcreate" // User can create Billing transactions and projections.
+	PermissionsTable[PermLeasingBillingUpdate] = "leasingbillingupdate" // User can update Billing transactions and projections.
+	PermissionsTable[PermLeasingBillingDelete] = "leasingbillingdelete" // User can delete Billing transactions and projections.
 
 
 	PermissionModuleMap["Assets"] = PermAssetsModuleAccess

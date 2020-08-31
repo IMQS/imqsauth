@@ -421,6 +421,14 @@
 	"10031": {"v": "leasingLookupView",									"n": "Lookup – View",											"m": "LEASING"					,"a": true 			,"d": "User can view a list of lookups and be able to view the content of a selected lookup record"},
 	"10032": {"v": "leasingLookupCreate",								"n": "Lookup – Create",											"m": "LEASING"					,"a": true 			,"d": "User can create a new lookup record"},
 	"10033": {"v": "leasingLookupUpdate",								"n": "Lookup – Update",											"m": "LEASING"					,"a": true 			,"d": "User can update a lookup record during the Manage lookup process"},
-	"10034": {"v": "leasingLookupDelete",								"n": "Lookup – Delete",											"m": "LEASING"					,"a": true 			,"d": "User can delete a lookup record during the Manage lookup process"}
+	"10034": {"v": "leasingLookupDelete",								"n": "Lookup – Delete",											"m": "LEASING"					,"a": true 			,"d": "User can delete a lookup record during the Manage lookup process"},
+	"10035": {"v": "leasingPaymentView",								"n": "Payment – View",											"m": "LEASING"					,"a": true 			,"d": "User can view Payment transactions and projections."},
+	"10036": {"v": "leasingPaymentCreate",								"n": "Payment - Create",										"m": "LEASING"					,"a": true 			,"d": "User can create Payment transactions and projections."},
+	"10037": {"v": "leasingPaymentUpdate",								"n": "Payment - Update",										"m": "LEASING"					,"a": true 			,"d": "User can update Payment transactions and projections."},
+	"10038": {"v": "leasingPaymentDelete",								"n": "Payment - Delete",										"m": "LEASING"					,"a": true 			,"d": "User can delete Payment transactions and projections."},
+	"10039": {"v": "leasingBillingView",								"n": "Billing – View",											"m": "LEASING"					,"a": true 			,"d": "User can view Billing transactions and projections."},
+	"10040": {"v": "leasingBillingCreate",								"n": "Billing - Create",										"m": "LEASING"					,"a": true 			,"d": "User can create Billing transactions and projections."},
+	"10041": {"v": "leasingBillingUpdate",								"n": "Billing - Update",										"m": "LEASING"					,"a": true 			,"d": "User can update Billing transactions and projections."},
+	"10042": {"v": "leasingBillingDelete",								"n": "Billing - Delete",										"m": "LEASING"					,"a": true 			,"d": "User can delete Billing transactions and projections."}
 	}
 }
