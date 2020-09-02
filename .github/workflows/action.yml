@@ -27,10 +27,12 @@ jobs:
         id: checkout
       - name: build-push
         uses: docker/build-push-action@v1
+        env:
+          SSH_KEY: ${{ secrets.DEPLOYBOT_SSH_KEY }}
         with:
           username: ${{ secrets.DEPLOY_DOCKER_USERNAME }}
           password: ${{ secrets.DEPLOY_DOCKER_PASSWORD }}
           repository: imqs/auth
           tag_with_ref: true
-          build_args: SSH_KEY=${{ secrets.DEPLOYBOT_SSH_KEY }}
+          build_args: SSH_KEY=${{ env.SSH_KEY }}
           cache_froms: golang:1.14, imqs/ubuntu-base
