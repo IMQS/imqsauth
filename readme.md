@@ -52,6 +52,7 @@ To run the server:
 
 ### Running outside docker
 
-To run imqsauth natively, with the rest of the IMQS services running inside a docker-compose stack:
-
-	go run imqsauth.go -outside-docker
+The auth service is capable of detecting whether it is running inside or outside of Docker 
+upon startup. It leverages the service discovery mechanism in the config service to transparently
+rewrite database connection configurations, as well as other serviceconfig utils to detect whether or not
+it is inside the auth service

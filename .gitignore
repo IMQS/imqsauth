@@ -3,3 +3,4 @@ docs/build
 /imqsauth
 /test-output
 Dockerfile-gotest
+__debug_bin
