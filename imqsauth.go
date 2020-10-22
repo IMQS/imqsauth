@@ -109,7 +109,7 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		}
 
 		// Detects if service is inside Docker, rewrite HTTP configurations
-		if !serviceconfig.IsContainer() {
+		if serviceconfig.IsContainer() {
 			ic.Config.MakeOutsideDocker()
 		}
 	}
