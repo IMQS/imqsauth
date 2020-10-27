@@ -25,6 +25,10 @@ import (
 //  /var/imqs/secrets/yellowfin_admin
 //  /var/imqs/secrets/yellowfin_user
 
+func isRunningOnLinuxOutsideOfDocker() bool {
+	return !serviceconfig.IsContainer() && runtime.GOOS != "windows"
+}
+
 func main() {
 	app := cli.App{}
 
@@ -109,7 +113,8 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		}
 
 		// Detects if service is inside Docker, rewrite HTTP configurations
-		if serviceconfig.IsContainer() {
+		if isRunningOnLinuxOutsideOfDocker() {
+			ic.Central.Log.Info("ImqsAuth is running inside Docker")
 			ic.Config.MakeOutsideDocker()
 		}
 	}
@@ -180,24 +185,24 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		success = permShow(ic, 0, args[0])
 	case "resetauthgroups":
 		if err := auth.ResetAuthGroups(ic); err != nil {
-			fmt.Printf("Error: %v\n", err)
+			ic.Central.Log.Errorf("Error: %v\n", err)
 		} else {
 			success = true
 		}
 	case "rollbackgroups":
 		if err := auth.RollbackUnwantedGroups(ic); err != nil {
-			fmt.Printf("RollbackUnwantedGroups failed: %v", err)
+			ic.Central.Log.Errorf("RollbackUnwantedGroups failed: %v", err)
 		} else {
 			success = true
 		}
 	case "run":
 		// Reset auth groups, always
 		if err := auth.ResetAuthGroups(ic); err != nil {
-			fmt.Printf("ResetAuthGroups failed: %v\n", err)
+			ic.Central.Log.Errorf("ResetAuthGroups failed: %v\n", err)
 		}
 
 		if err := auth.RollbackUnwantedGroupsOnce(ic); err != nil {
-			fmt.Printf("RollbackUnwantedGroups failed: %v", err)
+			ic.Central.Log.Errorf("RollbackUnwantedGroups failed: %v", err)
 		}
 
 		// Create initial user if there is one.
@@ -207,7 +212,7 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 			// first check if the user already exists
 			_, err := ic.Central.GetUserFromIdentity(user)
 			if err != nil {
-				fmt.Printf("Creating initial admin user: %v\n", user)
+				ic.Central.Log.Errorf("Creating initial admin user: %v\n", user)
 				createUser(ic, map[string]string{}, user, pass)
 				permGroupAddOrDel(ic, user, "admin", true)
 				permGroupAddOrDel(ic, user, "enabled", true)
@@ -255,46 +260,46 @@ func createDB(config *authaus.Config) bool {
 	return true
 }
 
-func resetGroup(icentral *auth.ImqsCentral, group *authaus.AuthGroup) bool {
-	if existing, eget := icentral.Central.GetRoleGroupDB().GetByName(group.Name); eget == nil {
+func resetGroup(ic *auth.ImqsCentral, group *authaus.AuthGroup) bool {
+	if existing, eget := ic.Central.GetRoleGroupDB().GetByName(group.Name); eget == nil {
 		group.ID = existing.ID
 		existing.PermList = group.PermList
-		if eupdate := icentral.Central.GetRoleGroupDB().UpdateGroup(existing); eupdate == nil {
+		if eupdate := ic.Central.GetRoleGroupDB().UpdateGroup(existing); eupdate == nil {
 			fmt.Printf("Group %v updated\n", group.Name)
 			return true
 		} else {
 			fmt.Printf("Error updating group of %v: %v\n", group.Name, eupdate)
 		}
 	} else if strings.Index(eget.Error(), authaus.ErrGroupNotExist.Error()) == 0 {
-		if ecreate := icentral.Central.GetRoleGroupDB().InsertGroup(group); ecreate == nil {
-			fmt.Printf("Group %v created\n", group.Name)
+		if ecreate := ic.Central.GetRoleGroupDB().InsertGroup(group); ecreate == nil {
+			ic.Central.Log.Infof("Group %v created\n", group.Name)
 			return true
 		} else {
-			fmt.Printf("Error inserting group %v: %v\n", group.Name, ecreate)
+			ic.Central.Log.Errorf("Error inserting group %v: %v\n", group.Name, ecreate)
 		}
 	} else {
-		fmt.Printf("Error updating (retrieving) group %v: %v\n", group.Name, eget)
+		ic.Central.Log.Errorf("Error updating (retrieving) group %v: %v\n", group.Name, eget)
 	}
 	return false
 }
 
 //add or remove an identity (e.g. user) to or from a group
-func permGroupAddOrDel(icentral *auth.ImqsCentral, identity string, groupname string, isAdd bool) (success bool) {
-	user, eUserId := icentral.Central.GetUserFromIdentity(identity)
+func permGroupAddOrDel(ic *auth.ImqsCentral, identity string, groupname string, isAdd bool) (success bool) {
+	user, eUserId := ic.Central.GetUserFromIdentity(identity)
 	if eUserId != nil {
-		fmt.Printf("Error retrieving userid for identity: %v\n", identity)
+		ic.Central.Log.Errorf("Error retrieving userid for identity: %v\n", identity)
 		return false
 	}
-	perm, eGetPermit := icentral.Central.GetPermit(user.UserId)
+	perm, eGetPermit := ic.Central.GetPermit(user.UserId)
 	if eGetPermit != nil && strings.Index(eGetPermit.Error(), authaus.ErrIdentityPermitNotFound.Error()) == 0 {
 		// Tolerate a non-existing identity. We are going to create the permit for this identity.
 		perm = &authaus.Permit{}
 	} else if eGetPermit != nil {
-		fmt.Printf("Error retrieving permit: %v\n", eGetPermit)
+		ic.Central.Log.Errorf("Error retrieving permit: %v\n", eGetPermit)
 		return false
 	}
 
-	if group, eGetGroup := icentral.Central.GetRoleGroupDB().GetByName(groupname); eGetGroup == nil {
+	if group, eGetGroup := ic.Central.GetRoleGroupDB().GetByName(groupname); eGetGroup == nil {
 		if groups, eDecode := authaus.DecodePermit(perm.Roles); eDecode == nil {
 			haveGroup := false
 			for i, gid := range groups {
@@ -308,17 +313,17 @@ func permGroupAddOrDel(icentral *auth.ImqsCentral, identity string, groupname st
 				groups = append(groups, group.ID)
 			}
 			perm.Roles = authaus.EncodePermit(groups)
-			if eSet := icentral.Central.SetPermit(user.UserId, perm); eSet == nil {
-				fmt.Printf("Set permit for %v\n", identity)
+			if eSet := ic.Central.SetPermit(user.UserId, perm); eSet == nil {
+				ic.Central.Log.Infof("Set permit for %v\n", identity)
 				return true
 			} else {
-				fmt.Printf("Error setting permit: %v\n", eSet)
+				ic.Central.Log.Errorf("Error setting permit: %v\n", eSet)
 			}
 		} else {
-			fmt.Printf("Error decoding permit: %v\n", eDecode)
+			ic.Central.Log.Errorf("Error decoding permit: %v\n", eDecode)
 		}
 	} else {
-		fmt.Printf("Error retrieving group '%v': %v\n", groupname, eGetGroup)
+		ic.Central.Log.Errorf("Error retrieving group '%v': %v\n", groupname, eGetGroup)
 	}
 
 	return false
@@ -504,12 +509,12 @@ func setPassword(icentral *auth.ImqsCentral, identity string, password string) b
 	}
 }
 
-func renameUser(icentral *auth.ImqsCentral, oldIdent string, newIdent string) bool {
-	if e := icentral.Central.RenameIdentity(oldIdent, newIdent); e == nil {
+func renameUser(ic *auth.ImqsCentral, oldIdent string, newIdent string) bool {
+	if e := ic.Central.RenameIdentity(oldIdent, newIdent); e == nil {
 		fmt.Printf("Renamed %v to %v\n", oldIdent, newIdent)
 		return true
 	} else {
-		fmt.Printf("Error renaming: %v\n", e)
+		ic.Central.Log.Errorf("Error renaming: %v\n", e)
 		return false
 	}
 }
@@ -528,18 +533,18 @@ func setPasswordYellowfin(icentral *auth.ImqsCentral, identity string, password 
 	}
 }
 
-func resetPassword(icentral *auth.ImqsCentral, identity string) bool {
-	user, eUserId := icentral.Central.GetUserFromIdentity(identity)
+func resetPassword(ic *auth.ImqsCentral, identity string) bool {
+	user, eUserId := ic.Central.GetUserFromIdentity(identity)
 	if eUserId != nil {
-		fmt.Printf("Error retrieving userid for identity: %v\n", identity)
+		ic.Central.Log.Errorf("Error retrieving userid for identity: %v\n", identity)
 		return false
 	}
-	code, msg := icentral.ResetPasswordStart(user.UserId, false)
+	code, msg := ic.ResetPasswordStart(user.UserId, false)
 	if code == 200 {
 		fmt.Printf("Message sent\n")
 		return true
 	} else {
-		fmt.Printf("Error %v %v\n", code, msg)
+		ic.Central.Log.Errorf("Error %v %v\n", code, msg)
 		return false
 	}
 }
