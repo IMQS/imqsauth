@@ -114,7 +114,6 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 
 		// Detects if service is inside Docker, rewrite HTTP configurations
 		if isRunningOnLinuxOutsideOfDocker() {
-			ic.Central.Log.Info("ImqsAuth is running inside Docker")
 			ic.Config.MakeOutsideDocker()
 		}
 	}
