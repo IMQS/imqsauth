@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -68,7 +69,7 @@ func NewYellowfin(logger *log.Logger) *Yellowfin {
 		Url:     "http://127.0.0.1:2005/yellowfin/",
 	}
 	if y.Log == nil {
-		y.Log = log.New(log.Stdout)
+		y.Log = log.New(log.Stdout, runtime.GOOS != "windows")
 	}
 	y.Transport = &http.Transport{
 		DisableKeepAlives:  true,
