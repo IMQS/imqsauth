@@ -2,11 +2,9 @@ module github.com/IMQS/imqsauth
 
 go 1.13
 
-replace github.com/IMQS/authaus => ../authaus
-
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
-	github.com/IMQS/authaus v1.0.10
+	github.com/IMQS/authaus v1.0.11-0.20201203012447-c548a3b3ee3c
 	github.com/IMQS/cli v0.0.0-20151022082634-156324308096
 	github.com/IMQS/gowinsvc v0.0.0-20171019081213-88eed8ddfe95
 	github.com/IMQS/log v1.0.2

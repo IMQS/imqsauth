@@ -39,6 +39,6 @@ RUN mkdir -p /var/log/imqs/
 RUN mkdir -p /var/imqs/secrets
 COPY --from=builder /build/imqsauth /opt/imqsauth
 EXPOSE 80
-ENTRYPOINT ["wait-for-nc.sh", "config:80", "--", "wait-for-postgres.sh", "db", "/opt/imqsauth"]
+ENTRYPOINT ["wait-for-nc.sh", "config:80", "--", "/opt/imqsauth"]
 # This is useful for testing
 #ENTRYPOINT ["/opt/imqsauth"]
