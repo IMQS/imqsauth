@@ -9,6 +9,8 @@ on:
       - uat
       - stable
       - test
+      - dtpw-qa
+      - dtpw-preprod
   pull_request:
     branches:
       - master
