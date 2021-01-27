@@ -13,9 +13,6 @@ Example config file:
 
 {
 	"Authaus": {...},								-- See config.go in Authaus package for description of the Authaus config
-	"Yellowfin": {
-		"Enabled": true
-	},
 	"PasswordResetExpirySeconds": 3600,
 	"HostnameFile": "hostname",						-- Relative to the location of imqsauthconfig.json, or an absolute path
 	"SendMailPassword": "password123"

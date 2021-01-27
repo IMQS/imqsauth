@@ -17,16 +17,6 @@ const (
 	serviceName           = "ImqsAuth"
 )
 
-type ConfigYellowfin struct {
-	Enabled bool
-	// Filter YF categories according to current IMQS module, which is passed in from the front-end.
-	ContentCategoryFilter bool
-	// Map IMQS modules to Yellowfin report categories for cases where it does not match, e.g. Water Demand->Swift.
-	ModuleToCategoryMapping map[string]string
-	// Pass in the IMQS scenario as a field used to filter reports.
-	SourceAccessFilter bool
-}
-
 // Permission holds all of the details to create the dynamic permission list.
 // These permissions are used for code implementations which are purely driven
 // by configuration requiring different permissions per client which the static
@@ -68,7 +58,6 @@ type ManagePermissions struct {
 
 type Config struct {
 	Authaus                    authaus.Config
-	Yellowfin                  ConfigYellowfin
 	PasswordResetExpirySeconds float64
 	NewAccountExpirySeconds    float64
 	SendMailPassword           string // NB: When moving SendMailPassword to a standalone secrets file, change for PCS also. PCS reads imqsauth config file.
