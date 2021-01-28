@@ -15,7 +15,6 @@ import (
 
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/serviceauth"
-	"github.com/IMQS/yfws"
 )
 
 // On the usage of defer() and panic() inside this file, as an exception handling mechanism:
@@ -30,8 +29,7 @@ const (
 )
 
 var (
-	errYellowfinDisabled = errors.New("Yellowfin is disabled")
-	errNoUserId          = errors.New("No userid specified")
+	errNoUserId = errors.New("No userid specified")
 )
 
 type HttpMethod string
@@ -117,9 +115,8 @@ type userResponseJson struct {
 }
 
 type ImqsCentral struct {
-	Config    *Config
-	Central   *authaus.Central
-	Yellowfin *Yellowfin
+	Config  *Config
+	Central *authaus.Central
 
 	// Guards access to roleChangeSubscribers and lastSubscriberId
 	subscriberLock sync.RWMutex
@@ -207,7 +204,6 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/hello", x.makeHandler(HttpMethodGet, httpHandlerHello, 0))
 	smux.HandleFunc("/ping", x.makeHandler(HttpMethodGet, httpHandlerPing, 0))
 	smux.HandleFunc("/login", x.makeHandler(HttpMethodPost, httpHandlerLogin, 0))
-	smux.HandleFunc("/login_yellowfin", x.makeHandler(HttpMethodPost, httpHandlerLoginYellowfin, handlerFlagNeedToken))
 	smux.HandleFunc("/logout", x.makeHandler(HttpMethodPost, httpHandlerLogout, 0))
 	smux.HandleFunc("/check", x.makeHandler(HttpMethodGet, httpHandlerCheck, 0))
 	smux.HandleFunc("/create_user", x.makeHandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
@@ -383,24 +379,6 @@ func (x *ImqsCentral) buildMailRequestAndSend(mailQuery string, mailBody string)
 	}
 
 	return http.StatusOK, ""
-}
-
-func makeYellowfinGroup(permList authaus.PermissionList) YellowfinGroup {
-	table := []struct {
-		perm  authaus.PermissionU16
-		group YellowfinGroup
-	}{
-		// More permissive roles must be first in this table, because we take whatever we see first.
-		{PermAdmin, YellowfinGroupAdmin},
-		{PermReportCreator, YellowfinGroupWriter},
-		{PermReportViewer, YellowfinGroupConsumer},
-	}
-	for _, t := range table {
-		if permList.Has(t.perm) {
-			return t.group
-		}
-	}
-	return YellowfinGroupNone
 }
 
 func httpSendJson(w http.ResponseWriter, jsonObj interface{}) {
@@ -586,12 +564,6 @@ func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *httpReque
 		return
 	}
 
-	// Only attempt YF logout if its cookie (JSESSIONID) is present in the logout call
-	if _, err := r.http.Cookie("JSESSIONID"); err == nil {
-		if err := central.Yellowfin.Logout(identity, r.http); err != nil {
-			central.Central.Log.Errorf("Yellowfin logout error: %v", err)
-		}
-	}
 	authaus.HttpSendTxt(w, http.StatusOK, "")
 }
 
@@ -627,68 +599,6 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 	}
 	central.setSessionCookie(sessionKey, token, w)
 	httpSendCheckJson(w, token, perms)
-}
-
-// This is a top-level HTTP API, built to allow an explicit login to Yellowfin only.
-func httpHandlerLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	if err := httpLoginYellowfin(central, w, r, r.token.Identity, r.permList); err == nil {
-		authaus.HttpSendTxt(w, http.StatusOK, "OK")
-	} else {
-		// Possible YF request HTTP error code will be included in the error message.
-		errMsg := fmt.Sprintf("Yellowfin login error: %v", err)
-		central.Central.Log.Error(errMsg)
-		authaus.HttpSendTxt(w, http.StatusInternalServerError, errMsg)
-	}
-}
-
-// This is a sub-function, intended to be called by httpHandlerLogin
-func httpLoginYellowfin(central *ImqsCentral, w http.ResponseWriter, r *httpRequest, identity string, permList authaus.PermissionList) error {
-	if !central.Yellowfin.Enabled {
-		return errYellowfinDisabled
-	}
-	yfGroup := makeYellowfinGroup(permList)
-	if yfGroup != YellowfinGroupNone {
-		paramsBytes, err := ioutil.ReadAll(r.http.Body)
-		if err != nil {
-			return err
-		}
-
-		var yfLoginParams yellowfinLoginParameters
-		err = json.Unmarshal(paramsBytes, &yfLoginParams)
-		if err != nil {
-			return err
-		}
-
-		cookies, err := central.Yellowfin.LoginAndUpdateGroup(identity, yfGroup, yfLoginParams)
-		if err == yfws.ErrYFCouldNotAuthenticateUser || err == yfws.ErrYFCouldNotFindPerson {
-
-			// Try to create the identity in yellowfin
-			if err = central.Yellowfin.CreateUser(identity); err == nil {
-				// Try again to login
-				cookies, err = central.Yellowfin.LoginAndUpdateGroup(identity, yfGroup, yfLoginParams)
-			}
-		}
-		if err != nil {
-			return err
-		} else if cookies != nil {
-			for _, cookie := range cookies {
-				// Despite raising the tomcat session timeout in web.xml to 31 days,
-				// the cookies that yellowfin returns us have an expiry of 12 hours.
-				// That is why we simply override the cookie timeout here.
-				if cookie.Name == "JSESSIONID" || cookie.Name == "IPID" {
-					newcookie := &http.Cookie{
-						Name:    cookie.Name,
-						Value:   cookie.Value,
-						Path:    "/",
-						Expires: time.Now().Add(yellowfinCookieExpiry),
-						Secure:  cookie.Secure,
-					}
-					http.SetCookie(w, newcookie)
-				}
-			}
-		}
-	}
-	return nil
 }
 
 // Note that we do not create a permit here for the user, so he will not yet be able to login.

@@ -16,15 +16,6 @@ import (
 	serviceconfig "github.com/IMQS/serviceconfigsgo"
 )
 
-// These files are written by create-keys.rb
-// They are now in the cros package to allow for cross-platform compilation.
-// Windows
-//  c:/imqsvar/secrets/yellowfin_admin
-//  c:/imqsvar/secrets/yellowfin_user
-// Linux
-//  /var/imqs/secrets/yellowfin_admin
-//  /var/imqs/secrets/yellowfin_user
-
 func isRunningOnLinuxOutsideOfDocker() bool {
 	return !serviceconfig.IsContainer() && runtime.GOOS != "windows"
 }
@@ -39,8 +30,7 @@ func main() {
 	app.AddCommand("resetauthgroups", "Reset the [admin,enabled] groups, and few others")
 	app.AddCommand("rollbackgroups", "Roll back undesired auto-created groups from September 2019")
 
-	createUserDesc := "Create a user in the authentication system\nThis affects only the 'authentication' system - the permit database is not altered by this command. " +
-		"This has no effect on Yellowfin. Yellowfin users are created automatically during HTTP login."
+	createUserDesc := "Create a user in the authentication system\nThis affects only the 'authentication' system - the permit database is not altered by this command. "
 	createUser := app.AddCommand("createuser", createUserDesc, "identity", "password")
 	createUser.AddValueOption("mobile", "number", "Mobile number (cell phone)")
 	createUser.AddValueOption("firstname", "text", "First name")
@@ -52,7 +42,6 @@ func main() {
 	app.AddCommand("killsessions", "Erase all sessions belonging to a particular user\nWarning! The running server maintains a cache of "+
 		"sessions, so you must stop the server, run this command, and then start the server again to kill sessions correctly.", "identity")
 	app.AddCommand("setpassword", "Set a user's password in Authaus", "identity", "password")
-	app.AddCommand("setpassword-yf", "Set a user's password in Yellowfin", "identity", "password")
 	app.AddCommand("resetpassword", "Send a password reset email", "identity")
 	app.AddCommand("setgroup", "Add or modify a group\nThe list of roles specified replaces the existing roles completely.", "groupname", "...role")
 	app.AddCommand("renameuser", "Rename a user\nThe user will be logged out of any current sessions", "old", "new")
@@ -147,18 +136,6 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		createDB(&ic.Config.Authaus)
 	}
 
-	// Setup yellowfin
-	if ic.Central != nil {
-		ic.Yellowfin = auth.NewYellowfin(ic.Central.Log)
-		/*
-			if ic.Config.Yellowfin.Enabled && !ic.Config.IsContainer() {
-				if err := ic.Yellowfin.LoadConfig(ic.Config.Yellowfin, cros.YellowfinAdminPasswordFile, cros.YellowfinUserPasswordFile); err != nil {
-					panic(fmt.Sprintf("Error loading yellowfin config: %v", err))
-				}
-			}
-		*/
-	}
-
 	// Setup audit service
 	if ic.Central != nil {
 		ic.Central.Auditor = auth.NewIMQSAuditor(ic.Central.Log)
@@ -225,8 +202,6 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		success = setGroup(ic, args[0], args[1:])
 	case "setpassword":
 		success = setPassword(ic, args[0], args[1])
-	case "setpassword-yf":
-		success = setPasswordYellowfin(ic, args[0], args[1])
 	case "resetpassword":
 		success = resetPassword(ic, args[0])
 	case "renameuser":
@@ -514,20 +489,6 @@ func renameUser(ic *auth.ImqsCentral, oldIdent string, newIdent string) bool {
 		return true
 	} else {
 		ic.Central.Log.Errorf("Error renaming: %v\n", e)
-		return false
-	}
-}
-
-func setPasswordYellowfin(icentral *auth.ImqsCentral, identity string, password string) bool {
-	if !icentral.Yellowfin.Enabled {
-		fmt.Printf("Yellowfin is disabled\n")
-		return false
-	}
-	if e := icentral.Yellowfin.UpdatePassword(identity, password); e == nil {
-		fmt.Printf("Reset yellowfin password of %v\n", identity)
-		return true
-	} else {
-		fmt.Printf("Failed to set yellowfin password of %v: %v\n", identity, e)
 		return false
 	}
 }
