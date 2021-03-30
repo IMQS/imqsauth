@@ -33,6 +33,7 @@
 		{ "name": "Water Demand" },
 		{ "name": "Water PRP" },
 		{ "name": "Water" },
+		{ "name": "Wayleave" },
 		{ "name": "WIP" }
 	]
 }

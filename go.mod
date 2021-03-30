@@ -7,8 +7,8 @@ require (
 	github.com/IMQS/authaus v1.0.14
 	github.com/IMQS/cli v0.0.0-20151022082634-156324308096
 	github.com/IMQS/gowinsvc v0.0.0-20171019081213-88eed8ddfe95
-	github.com/IMQS/log v1.0.2
-	github.com/IMQS/serviceauth v1.0.3
+	github.com/IMQS/log v1.0.3
+	github.com/IMQS/serviceauth v1.0.4
 	github.com/IMQS/serviceconfigsgo v1.0.3
 	github.com/IMQS/yfws v0.0.0-20180530075311-4b6350056267
 	github.com/clbanning/mxj v1.8.4 // indirect
