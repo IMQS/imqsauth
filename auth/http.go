@@ -114,6 +114,22 @@ type userResponseJson struct {
 	InternalUUID  string
 }
 
+type userGroups struct {
+	Users           []exportGroupUser
+	Groups          []exportGroup
+	OverwriteGroups bool
+}
+
+type exportGroupUser struct {
+	Id     string
+	Groups []int
+}
+
+type exportGroup struct {
+	Id       int
+	Name     string
+	Permlist string
+}
 type ImqsCentral struct {
 	Config  *Config
 	Central *authaus.Central
@@ -224,6 +240,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/users", x.makeHandler(HttpMethodGet, httpHandlerGetEmails, handlerFlagNeedToken))
 	smux.HandleFunc("/userobjects", x.makeHandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/groups", x.makeHandler(HttpMethodGet, httpHandlerGetGroups, 0))
+	smux.HandleFunc("/exportGroups", x.makeHandler(HttpMethodGet, httpHandlerExportUserGroups, 0))
 	smux.HandleFunc("/hasactivedirectory", x.makeHandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
 	smux.HandleFunc("/groups_perm_names", x.makeHandler(HttpMethodGet, httpHandlerGetGroupsPermNames, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/dynamic_permissions", x.makeHandler(HttpMethodGet, httpHandlerGetDynamicPermissions, 0))
@@ -422,6 +439,15 @@ func httpSendGroupsJson(w http.ResponseWriter, groups []*authaus.AuthGroup) {
 }
 
 func httpSendPermitsJson(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit, w http.ResponseWriter) {
+	jresponse, err := getPermitsJSON(central, users, ident2perm)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	httpSendJson(w, jresponse)
+}
+
+func getPermitsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit) ([]*groupsResponseJson, error) {
 	emptyPermit := authaus.Permit{}
 
 	jresponse := make([]*groupsResponseJson, 0)
@@ -433,19 +459,18 @@ func httpSendPermitsJson(central *ImqsCentral, users []authaus.AuthUser, ident2p
 		}
 		groups, err := authaus.DecodePermit(permit.Roles)
 		if err != nil {
-			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
-			return
+			return nil, err
 		}
 		validUser.UserName = user.Username
 		validUser.Email = user.Email
 		validUser.Groups, err = authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB())
 		if err != nil {
-			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
-			return
+			return nil, err
 		}
 		jresponse = append(jresponse, &validUser)
 	}
-	httpSendJson(w, jresponse)
+
+	return jresponse, nil
 }
 
 func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit, w http.ResponseWriter) ([]*userResponseJson, error) {
@@ -1403,6 +1428,51 @@ func httpHandlerGetGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRe
 	} else {
 		httpSendGroupsJson(w, groups)
 	}
+}
+
+func httpHandlerExportUserGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+
+	users, err := central.Central.GetAuthenticatorIdentities(authaus.GetIdentitiesFlagNone)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ident2perm, err := central.Central.GetPermits()
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	groups, err := central.Central.GetRoleGroupDB().GetGroupsRaw()
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+	}
+
+	groupsResp, err := getPermitsJSON(central, users, ident2perm)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+	}
+
+	var exportGroups []exportGroup
+	groupNametoID := make(map[string]int)
+	for _, group := range groups {
+		exportGroups = append(exportGroups, exportGroup{Id: int(group.ID), Name: group.Name, Permlist: group.PermList})
+		groupNametoID[group.Name] = int(group.ID)
+	}
+
+	var exportGroupUsers []exportGroupUser
+
+	for _, user := range groupsResp {
+		groups := make([]int, len(user.Groups))
+		for i, group := range user.Groups {
+			groups[i] = groupNametoID[group]
+		}
+		exportGroupUsers = append(exportGroupUsers, exportGroupUser{Id: user.Email, Groups: groups})
+	}
+
+	var userGroupsJson = &userGroups{Users: exportGroupUsers, Groups: exportGroups}
+	httpSendJson(w, userGroupsJson)
 }
 
 func httpHandlerHasActiveDirectory(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
