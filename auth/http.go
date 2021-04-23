@@ -121,7 +121,7 @@ type userGroups struct {
 }
 
 type exportGroupUser struct {
-	Id     string
+	ID     string
 	Groups []int
 }
 
@@ -1447,11 +1447,13 @@ func httpHandlerExportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 	groups, err := central.Central.GetRoleGroupDB().GetGroupsRaw()
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	groupsResp, err := getPermitsJSON(central, users, ident2perm)
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	var exportGroups []exportGroup
@@ -1468,7 +1470,11 @@ func httpHandlerExportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 		for i, group := range user.Groups {
 			groups[i] = groupNametoID[group]
 		}
-		exportGroupUsers = append(exportGroupUsers, exportGroupUser{Id: user.Email, Groups: groups})
+		if user.Email != "" {
+			exportGroupUsers = append(exportGroupUsers, exportGroupUser{ID: "email: " + user.Email, Groups: groups})
+		} else if user.UserName != "" {
+			exportGroupUsers = append(exportGroupUsers, exportGroupUser{ID: "username: " + user.UserName, Groups: groups})
+		}
 	}
 
 	var userGroupsJson = &userGroups{Users: exportGroupUsers, Groups: exportGroups}
