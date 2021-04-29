@@ -1483,7 +1483,7 @@ func httpHandlerExportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 		}
 	}
 
-	httpSendJson(w, userGroups{Users: exportGroupUsers, Groups: groups)
+	httpSendJson(w, userGroups{Users: exportGroupUsers, Groups: groups})
 }
 
 func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
@@ -1511,8 +1511,6 @@ func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 	}
 	for _, group := range parsedGroups {
 		for _, permission := range group.PermList {
-			fmt.Print(PermissionsTable[permission])
-			fmt.Print("\n")
 			if PermissionsTable[permission] == "" {
 				authaus.HttpSendTxt(w, http.StatusBadRequest, "Inavlid Permission")
 				return
@@ -1529,8 +1527,9 @@ func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 				authaus.HttpSendTxt(w, http.StatusInternalServerError, eupdate.Error())
 				return
 			}
-
-		} else if strings.Index(err.Error(), authaus.ErrGroupNotExist.Error()) != -1 {
+		} else if err == nil && userGroupsJson.OverwriteGroups {
+			central.Central.Log.Infof("Group %v not updated, overwrite set to false", group.Name)
+		} else if err != nil && strings.Index(err.Error(), authaus.ErrGroupNotExist.Error()) != -1 {
 			if einsert := central.Central.GetRoleGroupDB().InsertGroup(&group); einsert != nil {
 				authaus.HttpSendTxt(w, http.StatusInternalServerError, einsert.Error())
 				return
@@ -1539,7 +1538,6 @@ func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		break
 	}
 
 	ident2perm, err := central.Central.GetPermits()
@@ -1550,7 +1548,7 @@ func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 
 	for _, importUser := range userGroupsJson.Users {
 		identity := importUser.ID
-		identity = identity[strings.Index(identity, ":")+1 : len(identity)-1]
+		identity = identity[strings.Index(identity, ":")+1 : len(identity)]
 		user, usererr := central.Central.GetUserFromIdentity(identity)
 		if usererr != nil {
 			fmt.Print("Warning: User not found, skipping")
