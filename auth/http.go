@@ -166,7 +166,7 @@ func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, h
 		needAdmin := 0 != (flags & handlerFlagNeedAdminRights)
 		needToken := 0 != (flags & handlerFlagNeedToken)
 		needInterService := 0 != (flags & handlerFlagNeedInterService)
-		if !needAdmin && !needToken && !needInterService { // && flagfalse
+		if !needAdmin && !needToken && !needInterService {
 			actual(x, w, httpReq)
 			return
 		}
@@ -175,7 +175,7 @@ func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, h
 			actual(x, w, httpReq)
 			return
 		} else if err != nil && needInterService {
-			fmt.Print("Interservice required but not supplied")
+			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
@@ -1551,7 +1551,7 @@ func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 		identity = identity[strings.Index(identity, ":")+1 : len(identity)]
 		user, usererr := central.Central.GetUserFromIdentity(identity)
 		if usererr != nil {
-			fmt.Print("Warning: User not found, skipping")
+			central.Central.Log.Infof("Warning: User not found, skipping")
 			continue
 		}
 		var groupNames []string
