@@ -44,8 +44,9 @@ const (
 type handlerFlags uint32
 
 const (
-	handlerFlagNeedAdminRights = 1 << iota // Request won't even reach your handler unless the user is an admin
-	handlerFlagNeedToken                   // Populate the httpRequest object with 'token' and 'permList'
+	handlerFlagNeedAdminRights  = 1 << iota // Request won't even reach your handler unless the user is an admin
+	handlerFlagNeedToken                    // Populate the httpRequest object with 'token' and 'permList'
+	handlerFlagNeedInterService             // Request requires interservice authorization
 )
 
 type httpRequest struct {
@@ -116,19 +117,13 @@ type userResponseJson struct {
 
 type userGroups struct {
 	Users           []exportGroupUser
-	Groups          []exportGroup
+	Groups          []authaus.RawAuthGroup
 	OverwriteGroups bool
 }
 
 type exportGroupUser struct {
 	ID     string
 	Groups []int
-}
-
-type exportGroup struct {
-	Id       int
-	Name     string
-	Permlist string
 }
 type ImqsCentral struct {
 	Config  *Config
@@ -170,13 +165,17 @@ func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, h
 
 		needAdmin := 0 != (flags & handlerFlagNeedAdminRights)
 		needToken := 0 != (flags & handlerFlagNeedToken)
-		if !needAdmin && !needToken {
+		needInterService := 0 != (flags & handlerFlagNeedInterService)
+		if !needAdmin && !needToken && !needInterService { // && flagfalse
 			actual(x, w, httpReq)
 			return
 		}
 
 		if err := serviceauth.VerifyInterServiceRequest(r); err == nil {
 			actual(x, w, httpReq)
+			return
+		} else if err != nil && needInterService {
+			fmt.Print("Interservice required but not supplied")
 			return
 		}
 
@@ -240,7 +239,8 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/users", x.makeHandler(HttpMethodGet, httpHandlerGetEmails, handlerFlagNeedToken))
 	smux.HandleFunc("/userobjects", x.makeHandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/groups", x.makeHandler(HttpMethodGet, httpHandlerGetGroups, 0))
-	smux.HandleFunc("/exportGroups", x.makeHandler(HttpMethodGet, httpHandlerExportUserGroups, 0))
+	smux.HandleFunc("/exportgroups", x.makeHandler(HttpMethodGet, httpHandlerExportUserGroups, 0))
+	smux.HandleFunc("/importgroups", x.makeHandler(HttpMethodPost, httpHandlerImportUserGroups, handlerFlagNeedInterService))
 	smux.HandleFunc("/hasactivedirectory", x.makeHandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
 	smux.HandleFunc("/groups_perm_names", x.makeHandler(HttpMethodGet, httpHandlerGetGroupsPermNames, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/dynamic_permissions", x.makeHandler(HttpMethodGet, httpHandlerGetDynamicPermissions, 0))
@@ -459,13 +459,13 @@ func getPermitsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm m
 		}
 		groups, err := authaus.DecodePermit(permit.Roles)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Could not decode permit: %v", err)
 		}
 		validUser.UserName = user.Username
 		validUser.Email = user.Email
 		validUser.Groups, err = authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB())
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Could not resolve from names from IDs: %v", err)
 		}
 		jresponse = append(jresponse, &validUser)
 	}
@@ -1107,6 +1107,15 @@ func containsElement(list []authaus.GroupIDU32, elem authaus.GroupIDU32) bool {
 	return false
 }
 
+func containsStr(list []string, str string) bool {
+	for _, v := range list {
+		if v == str {
+			return true
+		}
+	}
+	return false
+}
+
 func getIdentityGroupIDs(central *ImqsCentral, userId authaus.UserId) []authaus.GroupIDU32 {
 	if perm, e := central.Central.GetPermit(userId); e == nil {
 		if permGroups, eDecode := authaus.DecodePermit(perm.Roles); eDecode == nil {
@@ -1431,7 +1440,6 @@ func httpHandlerGetGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRe
 }
 
 func httpHandlerExportUserGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-
 	users, err := central.Central.GetAuthenticatorIdentities(authaus.GetIdentitiesFlagNone)
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
@@ -1456,10 +1464,8 @@ func httpHandlerExportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 		return
 	}
 
-	var exportGroups []exportGroup
 	groupNametoID := make(map[string]int)
 	for _, group := range groups {
-		exportGroups = append(exportGroups, exportGroup{Id: int(group.ID), Name: group.Name, Permlist: group.PermList})
 		groupNametoID[group.Name] = int(group.ID)
 	}
 
@@ -1477,8 +1483,102 @@ func httpHandlerExportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 		}
 	}
 
-	var userGroupsJson = &userGroups{Users: exportGroupUsers, Groups: exportGroups}
-	httpSendJson(w, userGroupsJson)
+	httpSendJson(w, userGroups{Users: exportGroupUsers, Groups: groups)
+}
+
+func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	body, err := ioutil.ReadAll(r.http.Body)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var userGroupsJson userGroups
+	if err := json.Unmarshal(body, &userGroupsJson); err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	importedGroupIDtoName := make(map[int]string)
+	for _, group := range userGroupsJson.Groups {
+		importedGroupIDtoName[int(group.ID)] = group.Name
+	}
+
+	parsedGroups, err := authaus.ReadRawGroups(userGroupsJson.Groups)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	for _, group := range parsedGroups {
+		for _, permission := range group.PermList {
+			fmt.Print(PermissionsTable[permission])
+			fmt.Print("\n")
+			if PermissionsTable[permission] == "" {
+				authaus.HttpSendTxt(w, http.StatusBadRequest, "Inavlid Permission")
+				return
+			}
+		}
+	}
+
+	for _, group := range parsedGroups {
+		if localGroup, err := central.Central.GetRoleGroupDB().GetByName(group.Name); err == nil && userGroupsJson.OverwriteGroups {
+			group.ID = localGroup.ID
+
+			localGroup.PermList = group.PermList
+			if eupdate := central.Central.GetRoleGroupDB().UpdateGroup(localGroup); eupdate != nil {
+				authaus.HttpSendTxt(w, http.StatusInternalServerError, eupdate.Error())
+				return
+			}
+
+		} else if strings.Index(err.Error(), authaus.ErrGroupNotExist.Error()) != -1 {
+			if einsert := central.Central.GetRoleGroupDB().InsertGroup(&group); einsert != nil {
+				authaus.HttpSendTxt(w, http.StatusInternalServerError, einsert.Error())
+				return
+			}
+		} else {
+			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		break
+	}
+
+	ident2perm, err := central.Central.GetPermits()
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	for _, importUser := range userGroupsJson.Users {
+		identity := importUser.ID
+		identity = identity[strings.Index(identity, ":")+1 : len(identity)-1]
+		user, usererr := central.Central.GetUserFromIdentity(identity)
+		if usererr != nil {
+			fmt.Print("Warning: User not found, skipping")
+			continue
+		}
+		var groupNames []string
+		for _, groupID := range importUser.Groups {
+			groupNames = append(groupNames, importedGroupIDtoName[groupID])
+		}
+
+		userSlice := []authaus.AuthUser{user}
+
+		groupsResp, err := getPermitsJSON(central, userSlice, ident2perm)
+		if err != nil {
+			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		for _, name := range groupsResp[0].Groups {
+			if !containsStr(groupNames, name) {
+				groupNames = append(groupNames, name)
+			}
+		}
+
+		setUserPermissionGroupsByName(central, user.UserId, groupNames)
+	}
+
+	authaus.HttpSendTxt(w, http.StatusOK, "")
 }
 
 func httpHandlerHasActiveDirectory(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
