@@ -174,8 +174,10 @@ func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, h
 		if err := serviceauth.VerifyInterServiceRequest(r); err == nil {
 			actual(x, w, httpReq)
 			return
-		} else if err != nil && needInterService {
-			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		}
+
+		if needInterService {
+			authaus.HttpSendTxt(w, http.StatusInternalServerError, "API requires interservice permissions")
 			return
 		}
 
@@ -239,7 +241,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/users", x.makeHandler(HttpMethodGet, httpHandlerGetEmails, handlerFlagNeedToken))
 	smux.HandleFunc("/userobjects", x.makeHandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/groups", x.makeHandler(HttpMethodGet, httpHandlerGetGroups, 0))
-	smux.HandleFunc("/exportgroups", x.makeHandler(HttpMethodGet, httpHandlerExportUserGroups, 0))
+	smux.HandleFunc("/exportgroups", x.makeHandler(HttpMethodGet, httpHandlerExportUserGroups, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/importgroups", x.makeHandler(HttpMethodPost, httpHandlerImportUserGroups, handlerFlagNeedInterService))
 	smux.HandleFunc("/hasactivedirectory", x.makeHandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
 	smux.HandleFunc("/groups_perm_names", x.makeHandler(HttpMethodGet, httpHandlerGetGroupsPermNames, handlerFlagNeedAdminRights))
@@ -1483,7 +1485,7 @@ func httpHandlerExportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 		}
 	}
 
-	httpSendJson(w, userGroups{Users: exportGroupUsers, Groups: groups})
+	httpSendJson(w, userGroups{Users: exportGroupUsers, Groups: groups, OverwriteGroups: true})
 }
 
 func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
