@@ -116,8 +116,8 @@ type userResponseJson struct {
 }
 
 type userGroups struct {
-	Users           []exportGroupUser
 	Groups          []authaus.RawAuthGroup
+	Users           []exportGroupUser
 	OverwriteGroups bool
 }
 
@@ -1514,7 +1514,7 @@ func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 	for _, group := range parsedGroups {
 		for _, permission := range group.PermList {
 			if PermissionsTable[permission] == "" {
-				authaus.HttpSendTxt(w, http.StatusBadRequest, "Inavlid Permission")
+				authaus.HttpSendTxt(w, http.StatusBadRequest, "Invalid Permission")
 				return
 			}
 		}
@@ -1553,7 +1553,7 @@ func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 		identity = identity[strings.Index(identity, ":")+1 : len(identity)]
 		user, usererr := central.Central.GetUserFromIdentity(identity)
 		if usererr != nil {
-			central.Central.Log.Infof("Warning: User not found, skipping")
+			central.Central.Log.Warnf("Warning: User not found, skipping")
 			continue
 		}
 		var groupNames []string
