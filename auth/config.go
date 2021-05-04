@@ -103,6 +103,9 @@ func (x *Config) loadDynamicPermissions() error {
 				return fmt.Errorf("Failed to parse dynamic permission ID '%s' to uint16 for permission %s: %v\n", perm.ID, perm.Name, err)
 			}
 			PermissionsTable[authaus.PermissionU16(permID)] = perm.Name
+			if strings.HasSuffix(strings.ToLower(perm.Name), "moduleaccess") {
+				PermissionModuleMap[perm.Module] = authaus.PermissionU16(permID)
+			}
 		}
 	}
 	return nil
