@@ -1514,6 +1514,7 @@ func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 	for _, group := range parsedGroups {
 		for _, permission := range group.PermList {
 			if PermissionsTable[permission] == "" {
+				central.Central.Log.Warnf("Invalid Permission from import %v in group %v", permission, group.Name)
 				authaus.HttpSendTxt(w, http.StatusBadRequest, "Invalid Permission")
 				return
 			}
@@ -1530,7 +1531,7 @@ func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 				return
 			}
 		} else if err == nil && userGroupsJson.OverwriteGroups {
-			central.Central.Log.Infof("Group %v not updated, overwrite set to false", group.Name)
+			central.Central.Log.Warnf("Group %v not updated, overwrite set to false", group.Name)
 		} else if err != nil && strings.Index(err.Error(), authaus.ErrGroupNotExist.Error()) != -1 {
 			if einsert := central.Central.GetRoleGroupDB().InsertGroup(&group); einsert != nil {
 				authaus.HttpSendTxt(w, http.StatusInternalServerError, einsert.Error())
