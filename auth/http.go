@@ -1514,8 +1514,9 @@ func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 	for _, group := range parsedGroups {
 		for _, permission := range group.PermList {
 			if PermissionsTable[permission] == "" {
-				central.Central.Log.Warnf("Invalid Permission from import %v in group %v", permission, group.Name)
-				authaus.HttpSendTxt(w, http.StatusBadRequest, "Invalid Permission")
+				invalidPerm := fmt.Sprintf("Invalid Permission from import %v in group %v", permission, group.Name)
+				central.Central.Log.Warnf(invalidPerm)
+				authaus.HttpSendTxt(w, http.StatusBadRequest, invalidPerm)
 				return
 			}
 		}
