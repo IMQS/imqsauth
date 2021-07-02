@@ -8,9 +8,7 @@ on:
       - rc
       - uat
       - stable
-      - dtpw-qa
-      - dtpw-preprod
-      - dtpw-prod
+      - dtpw-*
   pull_request:
     branches:
       - master
