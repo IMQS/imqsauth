@@ -452,6 +452,7 @@ func httpSendPermitsJson(central *ImqsCentral, users []authaus.AuthUser, ident2p
 func getPermitsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit) ([]*groupsResponseJson, error) {
 	emptyPermit := authaus.Permit{}
 
+	groupCache := map[authaus.GroupIDU32]string{}
 	jresponse := make([]*groupsResponseJson, 0)
 	for _, user := range users {
 		var validUser groupsResponseJson
@@ -465,7 +466,7 @@ func getPermitsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm m
 		}
 		validUser.UserName = user.Username
 		validUser.Email = user.Email
-		validUser.Groups, err = authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB())
+		validUser.Groups, err = authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB(), groupCache)
 		if err != nil {
 			return nil, fmt.Errorf("Could not resolve from names from IDs: %v", err)
 		}
@@ -478,8 +479,32 @@ func getPermitsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm m
 func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit, w http.ResponseWriter) ([]*userResponseJson, error) {
 	emptyPermit := authaus.Permit{}
 
-	//jresponse := make(map[string]*userResponseJson)
+	groupCache := map[authaus.GroupIDU32]string{}
 	jresponse := make([]*userResponseJson, 0)
+
+	//'users' is an array of AuthUser, which already contains the name and surname of the user
+	// we can re-map it to serve as a lookup later in the jresponse code
+	// The only caveat is that we need the special system user names
+	// This should move to authaus, see caching mechanism implemented for group name mapping in authaus commit
+	// 		65f544ed Ben Harper <rogojin@gmail.com> on 2021/07/27 at 9:54 PM
+	usermap := make(map[authaus.UserId]string)
+	name := ""
+	for _, user := range users {
+		switch user.UserId {
+		case authaus.UserIdAdministrator:
+			name = "Administrator"
+		case authaus.UserIdLDAPMerge:
+			name = "LDAP Merge"
+		case authaus.UserIdOAuthImplicitCreate:
+			name = "OAuth Sign-in"
+		case authaus.UserIdMSAADMerge:
+			name = "MSAAD Merge"
+		default:
+			name = user.Firstname + " " + user.Lastname
+		}
+		usermap[user.UserId] = name
+	}
+
 	for _, user := range users {
 		permit := ident2perm[user.UserId]
 		if permit == nil || user.Archived { // Do not include permits of archived users
@@ -489,7 +514,7 @@ func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ide
 		if err != nil {
 			return nil, err
 		}
-		groupnames, err := authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB())
+		groupnames, err := authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB(), groupCache)
 		if err != nil {
 			return nil, err
 		}
@@ -504,9 +529,9 @@ func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ide
 			Telephone:     user.Telephonenumber,
 			Remarks:       user.Remarks,
 			Created:       user.Created,
-			CreatedBy:     central.Central.GetUserNameFromUserId(user.CreatedBy),
+			CreatedBy:     usermap[user.CreatedBy],
 			Modified:      user.Modified,
-			ModifiedBy:    central.Central.GetUserNameFromUserId(user.ModifiedBy),
+			ModifiedBy:    usermap[user.ModifiedBy],
 			Groups:        groupnames,
 			AuthUserType:  user.Type,
 			Archived:      user.Archived,

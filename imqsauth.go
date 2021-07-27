@@ -311,9 +311,10 @@ func permShow(icentral *auth.ImqsCentral, identityColumnWidth int, identity stri
 		fmt.Printf("Error retrieving userid for identity: %v\n", identity)
 		return false
 	}
+	groupCache := map[authaus.GroupIDU32]string{}
 	if perm, e := icentral.Central.GetPermit(user.UserId); e == nil {
 		if groups, eDecode := authaus.DecodePermit(perm.Roles); eDecode == nil {
-			if groupNames, eGetNames := authaus.GroupIDsToNames(groups, icentral.Central.GetRoleGroupDB()); eGetNames == nil {
+			if groupNames, eGetNames := authaus.GroupIDsToNames(groups, icentral.Central.GetRoleGroupDB(), groupCache); eGetNames == nil {
 				sort.Strings(groupNames)
 				permStr = strings.Join(groupNames, " ")
 				success = true
