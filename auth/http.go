@@ -92,6 +92,8 @@ func (x *groupResponseJson) SetGroup(group *authaus.AuthGroup) {
 type groupsResponseJson struct {
 	Email    string
 	UserName string
+	Name     string
+	Surname  string
 	Groups   []string
 }
 
@@ -466,6 +468,8 @@ func getPermitsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm m
 		}
 		validUser.UserName = user.Username
 		validUser.Email = user.Email
+		validUser.Name = user.Firstname
+		validUser.Surname = user.Lastname
 		validUser.Groups, err = authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB(), groupCache)
 		if err != nil {
 			return nil, fmt.Errorf("Could not resolve from names from IDs: %v", err)
