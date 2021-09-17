@@ -58,6 +58,7 @@ type ManagePermissions struct {
 
 type Config struct {
 	Authaus                    authaus.Config
+	ForbiddenPassword          []string
 	PasswordResetExpirySeconds float64
 	NewAccountExpirySeconds    float64
 	SendMailPassword           string // NB: When moving SendMailPassword to a standalone secrets file, change for PCS also. PCS reads imqsauth config file.
