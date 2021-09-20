@@ -1362,9 +1362,9 @@ func httpHandlerResetPasswordFinish(central *ImqsCentral, w http.ResponseWriter,
 	token := r.http.Header.Get("X-ResetToken")
 	password := strings.TrimSpace(r.http.Header.Get("X-NewPassword"))
 
-	//Authenticate password against forbidden list in auth config
-	for _, i := range central.Config.ForbiddenPassword {
-		if i == password {
+	// Authenticate password against forbidden list in auth config
+	for _, forbiddenPassword := range central.Config.ForbiddenPasswords {
+		if forbiddenPassword == password {
 			authaus.HttpSendTxt(w, http.StatusBadRequest, "Password you attempted to set is forbidden by your company policy")
 			return
 		}
