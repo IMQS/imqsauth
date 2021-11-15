@@ -1,4 +1,4 @@
-# docker build -t imqs/auth:master --build-arg SSH_KEY="`cat ~/.ssh/id_rsa`" .
+# docker build -t imqs/auth:latest --build-arg SSH_KEY="`cat ~/.ssh/id_rsa`" .
 
 ##################################
 # Builder image
@@ -33,12 +33,17 @@ RUN go build imqsauth.go
 ##################################
 # Deployed image
 ##################################
-FROM imqs/ubuntu-base
+FROM imqs/ubuntu-base:20.04
+
 RUN mkdir -p /etc/imqsbin
 RUN mkdir -p /var/log/imqs/
 RUN mkdir -p /var/imqs/secrets
 COPY --from=builder /build/imqsauth /opt/imqsauth
+
 EXPOSE 80
+
+HEALTHCHECK CMD curl --fail http://localhost/ping || exit 1
+
 ENTRYPOINT ["wait-for-nc.sh", "config:80", "--", "/opt/imqsauth"]
 # This is useful for testing
 #ENTRYPOINT ["/opt/imqsauth"]

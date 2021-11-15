@@ -2,3 +2,14 @@
 run-go-tests
 Dockerfile
 Dockerfile-*
+imqsauth
+.gitignore
+.github
+.vscode
+examples
+permissions
+docs
+imqs-build.rb
+readme.md
+resttest.rb
+LICENSE

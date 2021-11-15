@@ -1,6 +1,6 @@
 docs/build
 .idea/
-/imqsauth
-/test-output
+imqsauth
+test-output
 Dockerfile-gotest
 __debug_bin
