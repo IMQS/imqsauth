@@ -251,6 +251,8 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/oauth/providers", x.makeHandler(HttpMethodGet, httpHandlerOAuthProviders, 0))
 	smux.HandleFunc("/oauth/start", x.makeHandler(HttpMethodAny, httpHandlerOAuthStart, 0))
 	smux.HandleFunc("/oauth/finish", x.makeHandler(HttpMethodGet, httpHandlerOAuthFinish, 0))
+	smux.HandleFunc("/check_admin", x.makeHandler(HttpMethodGet, httpHandlerIsAdmin, 0))
+	smux.HandleFunc("/get_user_uuid", x.makeHandler(HttpMethodGet, httpHandlerGetUserUUID, 0))
 
 	// It's useful to uncomment this when developing new OAuth concepts,
 	// but it's obviously a bad idea to expose it in production.
@@ -269,15 +271,17 @@ func (x *ImqsCentral) RunHttp() error {
 	return nil
 }
 
-func (x *ImqsCentral) IsAdmin(r *http.Request) (bool, error) {
-	if token, err := authaus.HttpHandlerPrelude(&x.Config.Authaus.HTTP, x.Central, r); err == nil {
-		if pbits, egroup := authaus.PermitResolveToList(token.Permit.Roles, x.Central.GetRoleGroupDB()); egroup == nil {
-			return pbits.Has(PermAdmin), nil
-		} else {
-			return false, egroup
+func httpHandlerIsAdmin(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	if token, err := authaus.HttpHandlerPrelude(&central.Config.Authaus.HTTP, central.Central, r.http); err == nil {
+		if pbits, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup == nil {
+			resultJSON, err := json.Marshal(pbits.Has(PermAdmin))
+			if err != nil {
+				authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+			}
+			httpSendResponse(w, resultJSON)
 		}
 	} else {
-		return false, err
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 	}
 }
 
@@ -1670,6 +1674,18 @@ func getUserIdOrIdentity(r *httpRequest) (string, authaus.UserId, error) {
 		return "", authaus.UserId(iUserId), nil
 	} else {
 		return "", authaus.NullUserId, fmt.Errorf("Invalid userid '%v': %v", uidStr, err)
+	}
+}
+
+func httpHandlerGetUserUUID(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	if token, err := authaus.HttpHandlerPrelude(&central.Config.Authaus.HTTP, central.Central, r.http); err == nil {
+		resultJSON, err := json.Marshal(token.InternalUUID)
+		if err != nil {
+			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		}
+		httpSendResponse(w, resultJSON)
+	} else {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 	}
 }
 
