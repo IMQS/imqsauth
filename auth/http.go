@@ -279,6 +279,8 @@ func httpHandlerIsAdmin(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 				authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 			}
 			httpSendResponse(w, resultJSON)
+		} else {
+			authaus.HttpSendTxt(w, http.StatusInternalServerError, egroup.Error())
 		}
 	} else {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
