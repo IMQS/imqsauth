@@ -1064,26 +1064,45 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 	groupname := strings.TrimSpace(r.http.URL.Query().Get("groupname"))
 	rolesstring := strings.TrimSpace(r.http.URL.Query().Get("roles"))
 
-	perms := authaus.PermissionList{}
-
+	newPerms := authaus.PermissionList{}
 	if len(rolesstring) > 0 {
 		for _, pname := range strings.Split(rolesstring, ",") {
 			perm, _ := strconv.ParseInt(pname, 10, 16)
-			perms = append(perms, authaus.PermissionU16(perm))
+			newPerms = append(newPerms, authaus.PermissionU16(perm))
 		}
 	}
 
 	if group, e := authaus.LoadOrCreateGroup(central.Central.GetRoleGroupDB(), groupname, false); e == nil {
+		// we have the stored group here as 'group', as well as
 		central.Central.Log.Infof("Roles %v set for group %v", rolesstring, groupname)
-		group.PermList = perms
+		existingPerms := group.PermList
+
+		removed := Diff(existingPerms, newPerms)
+		added := Diff(newPerms, existingPerms)
+
+		// Convert to real names
+		changednames := "Added:"
+		for _, e := range added {
+			changednames += " " + PermissionsTable[e]
+		}
+		changednames += " Removed:"
+		for _, e := range removed {
+			changednames += " " + PermissionsTable[e]
+		}
+		description := ""
+		//set the new perms
+		group.PermList = newPerms
 		if err := central.Central.GetRoleGroupDB().UpdateGroup(group); err == nil {
 			central.Central.Log.Infof("Set group roles for %v", groupname)
 			if r.token != nil {
 				if user, err := central.Central.GetUserFromUserId(authaus.UserId(r.token.UserId)); err == nil {
-					auditUserLogAction(central, r, user.UserId, user.Username, "Group: "+groupname+" roles updated", authaus.AuditActionUpdated)
+					description = "Group: " + groupname + " roles updated: " + changednames
+					auditUserLogAction(central, r, user.UserId, user.Username,
+						description,
+						authaus.AuditActionUpdated)
 				}
 			}
-			authaus.HttpSendTxt(w, http.StatusOK, "")
+			authaus.HttpSendTxt(w, http.StatusOK, description)
 		} else {
 			central.Central.Log.Warnf("Could not set group roles for %v: %v", groupname, err)
 			authaus.HttpSendTxt(w, http.StatusNotAcceptable, fmt.Sprintf("Could not set group roles for %v: %v", groupname, err))
@@ -1096,6 +1115,23 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	broadcastGroupChange(central, r, groupname)
+}
+
+func Diff(a authaus.PermissionList, b authaus.PermissionList) authaus.PermissionList {
+	d := authaus.PermissionList{}
+	for _, ep := range a {
+		found := false
+		for _, np := range b {
+			if ep == np {
+				found = true
+				break
+			}
+		}
+		if !found {
+			d = append(d, ep)
+		}
+	}
+	return d
 }
 
 func broadcastGroupChange(central *ImqsCentral, r *httpRequest, groupname string) {

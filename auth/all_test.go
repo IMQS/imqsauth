@@ -88,6 +88,10 @@ func TestDistributerPost(t *testing.T) {
 	// Change a group, which sends a POST to the distributor service
 	doRequestExpectOK(t, "PUT", originHttpUrl+"/create_group?groupname=socketusergroup", cookie)
 	doRequestExpectOK(t, "POST", fmt.Sprintf("%v/set_user_groups?userid=%v&groups=enabled,socketusergroup", originHttpUrl, joeUserId), cookie)
+	doRequestExpectResponse(t, "PUT", originHttpUrl+"/set_group_roles?groupname=socketusergroup&roles=1", cookie,
+		"Group: socketusergroup roles updated: Added: admin Removed:")
+	doRequestExpectResponse(t, "PUT", originHttpUrl+"/set_group_roles?groupname=socketusergroup&roles=2,3", cookie,
+		"Group: socketusergroup roles updated: Added: enabled pcsmoduleaccess Removed: admin")
 }
 
 func doRequest(verb, url, cookie string) (*http.Response, error) {
@@ -105,6 +109,20 @@ func doRequestExpectOK(t *testing.T, verb, url, cookie string) *http.Response {
 	response, err := doRequest(verb, url, cookie)
 	if err != nil || response.StatusCode != 200 {
 		t.Fatalf("Unexpected response from %v %v: %v %v", verb, url, response.Status, err)
+	}
+	return response
+}
+
+func doRequestExpectResponse(t *testing.T, verb, url, cookie string, responseText string) *http.Response {
+	response, err := doRequest(verb, url, cookie)
+	if err != nil || response.StatusCode != 200 {
+		t.Fatalf("Expected OK")
+	} else {
+		body, err := ioutil.ReadAll(response.Body)
+		txt := string(body[:])
+		if txt != responseText {
+			t.Fatalf("Unexpected response from %v %v: %v %v %v", verb, url, response.Status, err, txt)
+		}
 	}
 	return response
 }
