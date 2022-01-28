@@ -1077,16 +1077,16 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 		central.Central.Log.Infof("Roles %v set for group %v", rolesstring, groupname)
 		existingPerms := group.PermList
 
-		removed := Diff(existingPerms, newPerms)
-		added := Diff(newPerms, existingPerms)
+		removed := existingPerms.Diff(&newPerms)
+		added := newPerms.Diff(&existingPerms)
 
 		// Convert to real names
 		changednames := "Added:"
-		for _, e := range added {
+		for _, e := range *added {
 			changednames += " " + PermissionsTable[e]
 		}
 		changednames += " Removed:"
-		for _, e := range removed {
+		for _, e := range *removed {
 			changednames += " " + PermissionsTable[e]
 		}
 		description := ""
@@ -1115,23 +1115,6 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	broadcastGroupChange(central, r, groupname)
-}
-
-func Diff(a authaus.PermissionList, b authaus.PermissionList) authaus.PermissionList {
-	d := authaus.PermissionList{}
-	for _, ep := range a {
-		found := false
-		for _, np := range b {
-			if ep == np {
-				found = true
-				break
-			}
-		}
-		if !found {
-			d = append(d, ep)
-		}
-	}
-	return d
 }
 
 func broadcastGroupChange(central *ImqsCentral, r *httpRequest, groupname string) {
