@@ -15,3 +15,7 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
+
+replace (
+	github.com/IMQS/authaus v1.0.20 => "../authaus/"
+)
