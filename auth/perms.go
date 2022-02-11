@@ -387,6 +387,8 @@ const (
 	PermMmRoadsDataFilter authaus.PermissionU16 = 1382 // User can see data in grid and dropdowns for the Roads and Storm Water Department
 	PermMmSolidWasteDataFilter authaus.PermissionU16 = 1383 // User can see data in grid and dropdowns for the Solid Waste Department
 	PermMmSewerDataFilter authaus.PermissionU16 = 1384 // User can see data in grid and dropdowns for the Sewer Department
+	PermNewMmIlDocumentsCreate authaus.PermissionU16 = 1385 // User can create a Document
+	PermNewMmIlDocumentsDelete authaus.PermissionU16 = 1386 // User can delete a Document
 	PermThemeEditorModuleAccess authaus.PermissionU16 = 2000 // User can access the theme editor module
 	PermThemeEditorPublisher authaus.PermissionU16 = 2001 // User can publish private themes to global themes, un-publish, edit, create, delete global themes
 	PermWayleaveModuleAccess authaus.PermissionU16 = 3000 // User can access the wayleave module
@@ -818,6 +820,8 @@ func init() {
 	PermissionsTable[PermMmRoadsDataFilter] = "mmroadsdatafilter" // User can see data in grid and dropdowns for the Roads and Storm Water Department
 	PermissionsTable[PermMmSolidWasteDataFilter] = "mmsolidwastedatafilter" // User can see data in grid and dropdowns for the Solid Waste Department
 	PermissionsTable[PermMmSewerDataFilter] = "mmsewerdatafilter" // User can see data in grid and dropdowns for the Sewer Department
+	PermissionsTable[PermNewMmIlDocumentsCreate] = "newmmildocumentscreate" // User can create a Document
+	PermissionsTable[PermNewMmIlDocumentsDelete] = "newmmildocumentsdelete" // User can delete a Document
 	PermissionsTable[PermThemeEditorModuleAccess] = "themeeditormoduleaccess" // User can access the theme editor module
 	PermissionsTable[PermThemeEditorPublisher] = "themeeditorpublisher" // User can publish private themes to global themes, un-publish, edit, create, delete global themes
 	PermissionsTable[PermWayleaveModuleAccess] = "wayleavemoduleaccess" // User can access the wayleave module
