@@ -34,6 +34,11 @@ var (
 
 type HttpMethod string
 
+type LoginType struct {
+	LoginType string `json:"login_type"`
+	ClientId  string `json:"client_id"`
+}
+
 const (
 	HttpMethodGet  HttpMethod = "GET"
 	HttpMethodPost            = "POST"
@@ -624,24 +629,71 @@ func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *httpReque
 }
 
 // Handle the 'login' request, sending back a session token (via Set-Cookie),
+// Headers may contain additional login details pertaining to pass-through, which
+// Auth will try and authenticate against msaad if normal login fails (session may be invalid)
 func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	identity, password, basicOK := r.http.BasicAuth()
 	if !basicOK {
 		authaus.HttpSendTxt(w, http.StatusBadRequest, authaus.ErrHttpBasicAuth.Error())
 		return
 	}
+
 	if identity == "" {
 		httpSendNoIdentity(w)
 		return
 	}
 
-	sessionKey, token, err := central.Central.Login(identity, password, getIPAddress(r.http))
+	loginType, err := getLoginType(r)
+	central.Central.Log.Infof("loginType: %+v", loginType)
 	if err != nil {
-		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
-		if user, eUser := central.Central.GetUserFromIdentity(identity); eUser == nil {
-			auditUserLogAction(central, r, user.UserId, identity, "User Profile: "+identity, authaus.AuditActionFailedLogin)
-		}
+		central.Central.Log.Warn(err.Error())
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
 		return
+	}
+
+	// both client_id and login_type are either set or blank/not present
+	var sessionKey string
+	var token *authaus.Token
+	if loginType.LoginType == "" {
+		central.Central.Log.Debug("Normal IMQS login...")
+		sessionKey, token, err = central.Central.Login(identity, password, getIPAddress(r.http))
+		if err != nil {
+			user, eUser := central.Central.GetUserFromIdentity(identity)
+			authaus.HttpSendTxt(w, http.StatusUnauthorized, err.Error())
+			if eUser == nil {
+				auditUserLogAction(central, r, user.UserId, identity, "User Profile: "+identity, authaus.AuditActionFailedLogin)
+			}
+			return
+		}
+	} else {
+		central.Central.Log.Debug("MSAAD passthrough login...")
+		user, eUser := central.Central.GetUserFromIdentity(identity)
+		if eUser != nil {
+			// User does not exist (not synchronized from e.g. msaad)
+			// We specifically log this, since want to know who is trying to use this trusted login incorrectly.
+			central.Central.Log.Warnf("MSAAD passthrough for %s failed, user does not exist.")
+			authaus.HttpSendTxt(w, http.StatusUnauthorized, authaus.ErrIdentityAuthNotFound.Error())
+			return
+		}
+
+		code, err := msaadLogin(central, r, identity, user, password)
+		if err != nil {
+			authaus.HttpSendTxt(w, code, err.Error())
+			auditUserLogAction(central, r, user.UserId, identity, "User Profile: "+identity, authaus.AuditActionFailedLogin)
+			return
+		}
+
+		// At this point the user may not have an IMQS Auth session, since MSAAD sync only populates the authusergroup table.
+		// It will, however, eventually have a permit, which would have come from the MSAAD background sync if permissions have been assigned.
+		// So we try to create a session.
+		// Authaus requires an oauthSession as a primary key, but we don't get one back from using username password
+		// authentication, so we just use the user email for now
+		sessionKey, token, err = central.Central.CreateSession(&user, r.http.RemoteAddr, user.Email)
+		if err != nil {
+			authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
+			return
+		}
+		central.Central.Log.Debug("MSAAD Passthrough user successfully logged in.\n")
 	}
 
 	perms, err := central.validateUserIsEnabledForNewLogin(sessionKey, token, r)
@@ -655,6 +707,63 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 	}
 	central.setSessionCookie(sessionKey, token, w)
 	httpSendCheckJson(w, token, perms)
+}
+
+//getLoginType
+// This function determines the type of login requested based on the form fields populated.
+// If none are present, assume normal (IMQS) login.
+// Required form fields if msaad: client_id, login_type
+func getLoginType(r *httpRequest) (ltype *LoginType, err error) {
+	err = r.http.ParseForm()
+	if err != nil {
+		return nil, err
+	}
+	l1 := &LoginType{}
+	l1.LoginType = r.http.Form.Get("login_type")
+	l1.ClientId = r.http.Form.Get("client_id")
+	central.Central.Log.Warnf("login_type: %v", l1.LoginType)
+	central.Central.Log.Warnf("client_id: %v", l1.ClientId)
+
+	if (l1.LoginType == "" && l1.ClientId == "") || (l1.LoginType != "" && l1.ClientId != "") {
+		return l1, nil
+	}
+	return nil, fmt.Errorf("Malformed login form data.")
+}
+
+//Perform checks and log user into MSAAD.
+//Only client (app) id's white-listed in the config can utilise this method of login.
+//Returns an http code and/or error as appropriate.
+func msaadLogin(central *ImqsCentral, r *httpRequest, identity string, user authaus.AuthUser, password string) (httpCode int, err error) {
+	whiteListed := false
+
+	// validate against whitelist
+	clientId := r.http.Form.Get("client_id")
+	for _, cid := range central.Config.Authaus.MSAAD.PassthroughClientIDs {
+		if clientId == cid {
+			whiteListed = true
+			break
+		}
+	}
+
+	if !whiteListed {
+		whiteListFailedMsg := fmt.Sprintf("Passthrough auth: client_id specified [%v] is not whitelisted. \n", clientId)
+		central.Central.Log.Warn(whiteListFailedMsg)
+		return http.StatusForbidden, fmt.Errorf(whiteListFailedMsg)
+	}
+
+	if user.Type != authaus.UserTypeMSAAD {
+		notMSAADUserMsg := "Not an MSAAD user."
+		central.Central.Log.Warn(notMSAADUserMsg)
+		return http.StatusUnauthorized, fmt.Errorf(notMSAADUserMsg)
+	}
+
+	// MSAAD call
+	if e2 := central.Central.OAuth.OAuthLoginUsernamePassword(identity, password); e2 != nil {
+		central.Central.Log.Warn("Login call to MSAAD failed")
+		return http.StatusUnauthorized, e2
+	}
+
+	return http.StatusOK, nil
 }
 
 // Note that we do not create a permit here for the user, so he will not yet be able to login.
