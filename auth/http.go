@@ -227,6 +227,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux := http.NewServeMux()
 	smux.HandleFunc("/hello", x.makeHandler(HttpMethodGet, httpHandlerHello, 0))
 	smux.HandleFunc("/ping", x.makeHandler(HttpMethodGet, httpHandlerPing, 0))
+	smux.HandleFunc("/hostname", x.makeHandler(HttpMethodGet, httpHanderHostname, 0))
 	smux.HandleFunc("/login", x.makeHandler(HttpMethodPost, httpHandlerLogin, 0))
 	smux.HandleFunc("/logout", x.makeHandler(HttpMethodPost, httpHandlerLogout, 0))
 	smux.HandleFunc("/check", x.makeHandler(HttpMethodGet, httpHandlerCheck, 0))
@@ -1519,6 +1520,10 @@ func httpHandlerHello(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 
 func httpHandlerPing(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("{\"Timestamp\": %v}", time.Now().Unix()))
+}
+
+func httpHanderHostname(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("{\"Hostname\": \"%v\"}", central.Config.GetHostname()))
 }
 
 func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
