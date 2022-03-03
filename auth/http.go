@@ -721,8 +721,6 @@ func getLoginType(r *httpRequest) (ltype *LoginType, err error) {
 	l1 := &LoginType{}
 	l1.LoginType = r.http.Form.Get("login_type")
 	l1.ClientId = r.http.Form.Get("client_id")
-	central.Central.Log.Warnf("login_type: %v", l1.LoginType)
-	central.Central.Log.Warnf("client_id: %v", l1.ClientId)
 
 	if (l1.LoginType == "" && l1.ClientId == "") || (l1.LoginType != "" && l1.ClientId != "") {
 		return l1, nil
