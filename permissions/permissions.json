@@ -383,6 +383,8 @@
 	"1382": {"v": "mmRoadsDataFilter",									"n": "Data Filter – Roads and Storm Water Department",			"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can see data in grid and dropdowns for the Roads and Storm Water Department"},
 	"1383": {"v": "mmSolidWasteDataFilter",								"n": "Data Filter – Solid Waste Department",					"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can see data in grid and dropdowns for the Solid Waste Department"},
 	"1384": {"v": "mmSewerDataFilter",									"n": "Data Filter – Sewer Department",							"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can see data in grid and dropdowns for the Sewer Department"},
+	"1385": {"v": "newMmIlDocumentsCreate",								"n": "IL – Documents Create",									"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can create a Document"},
+	"1386": {"v": "newMmIlDocumentsDelete",								"n": "IL – Documents Delete",									"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can delete a Document"},
 
 	"2000": {"v": "themeEditorModuleAccess",							"n": "Theme Editor",											"m": "THEME_EDITOR"				,"a": true 			,"d": "User can access the theme editor module"},
 	"2001": {"v": "themeEditorPublisher",								"n": "Theme Editor – Publisher",								"m": "THEME_EDITOR"				,"a": true 			,"d": "User can publish private themes to global themes, un-publish, edit, create, delete global themes"},
