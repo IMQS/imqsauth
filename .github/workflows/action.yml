@@ -8,6 +8,7 @@ on:
       - uat
       - stable
       - dtpw-*
+      - v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}
   pull_request:
     branches:
       - master
