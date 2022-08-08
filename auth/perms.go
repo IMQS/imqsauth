@@ -276,7 +276,7 @@ const (
 	PermNewMmRmPayDaysCreateAdd authaus.PermissionU16 = 1271 // User can create a new Pay Day entry
 	PermNewMmRmPayDaysEdit authaus.PermissionU16 = 1272 // User can edit a Pay Day
 	PermNewMmRmPayDaysView authaus.PermissionU16 = 1273 // User can view a Pay Day
-	PermNewMmRmPayDaysArchive authaus.PermissionU16 = 1274 // User can edit a Pay Day
+	PermNewMmRmPayDaysArchive authaus.PermissionU16 = 1274 // User can archive a Pay Day
 	PermNewMmRmPublicHolidaysCreateAdd authaus.PermissionU16 = 1275 // User can create a new Public Holiday
 	PermNewMmRmPublicHolidaysEdit authaus.PermissionU16 = 1276 // User can edit a Public Holiday
 	PermNewMmRmPublicHolidaysView authaus.PermissionU16 = 1277 // User can view a Public Holiday
@@ -709,7 +709,7 @@ func init() {
 	PermissionsTable[PermNewMmRmPayDaysCreateAdd] = "newmmrmpaydayscreateadd" // User can create a new Pay Day entry
 	PermissionsTable[PermNewMmRmPayDaysEdit] = "newmmrmpaydaysedit" // User can edit a Pay Day
 	PermissionsTable[PermNewMmRmPayDaysView] = "newmmrmpaydaysview" // User can view a Pay Day
-	PermissionsTable[PermNewMmRmPayDaysArchive] = "newmmrmpaydaysarchive" // User can edit a Pay Day
+	PermissionsTable[PermNewMmRmPayDaysArchive] = "newmmrmpaydaysarchive" // User can archive a Pay Day
 	PermissionsTable[PermNewMmRmPublicHolidaysCreateAdd] = "newmmrmpublicholidayscreateadd" // User can create a new Public Holiday
 	PermissionsTable[PermNewMmRmPublicHolidaysEdit] = "newmmrmpublicholidaysedit" // User can edit a Public Holiday
 	PermissionsTable[PermNewMmRmPublicHolidaysView] = "newmmrmpublicholidaysview" // User can view a Public Holiday

@@ -272,7 +272,7 @@
 	"1271": {"v": "newMmRmPayDaysCreateAdd",							"n": "RM – Pay Days – Create",									"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can create a new Pay Day entry"},
 	"1272": {"v": "newMmRmPayDaysEdit",									"n": "RM – Pay Days – Edit",									"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can edit a Pay Day"},
 	"1273": {"v": "newMmRmPayDaysView",									"n": "RM – Pay Days – View",									"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can view a Pay Day"},
-	"1274": {"v": "newMmRmPayDaysArchive",								"n": "RM – Pay Days – Edit",									"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can edit a Pay Day"},
+	"1274": {"v": "newMmRmPayDaysArchive",								"n": "RM – Pay Days – Archive",									"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can archive a Pay Day"},
 	"1275": {"v": "newMmRmPublicHolidaysCreateAdd",						"n": "RM – Public Holidays – Create",							"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can create a new Public Holiday"},
 	"1276": {"v": "newMmRmPublicHolidaysEdit",							"n": "RM – Public Holidays – Edit",								"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can edit a Public Holiday"},
 	"1277": {"v": "newMmRmPublicHolidaysView",							"n": "RM – Public Holidays – View",								"m": "MAINTENANCE_MANAGEMENT"	,"a": true 			,"d": "User can view a Public Holiday"},
