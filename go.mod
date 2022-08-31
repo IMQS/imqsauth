@@ -21,3 +21,5 @@ require (
 	golang.org/x/crypto v0.0.0-20211215165025-cf75a172585e // indirect
 	golang.org/x/sys v0.0.0-20211111213525-f221eed1c01e // indirect
 )
+
+replace github.com/IMQS/authaus v1.0.25 => "../authaus"

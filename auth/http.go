@@ -677,7 +677,7 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 			return
 		}
 
-		code, err := msaadLogin(central, r, identity, user, password)
+		code, err, key := msaadLogin(central, r, identity, user, password)
 		if err != nil {
 			authaus.HttpSendTxt(w, code, err.Error())
 			auditUserLogAction(central, r, user.UserId, identity, "User Profile: "+identity, authaus.AuditActionFailedLogin)
@@ -689,7 +689,9 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 		// So we try to create a session.
 		// Authaus requires an oauthSession as a primary key, but we don't get one back from using username password
 		// authentication, so we just use the user email for now
-		sessionKey, token, err = central.Central.CreateSession(&user, r.http.RemoteAddr, user.Email)
+
+		// we create a temporary session here, because we need it for the oauth session
+		sessionKey, token, err = central.Central.CreateSession(&user, r.http.RemoteAddr, key)
 		if err != nil {
 			authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 			return
@@ -732,7 +734,7 @@ func getLoginType(r *httpRequest) (ltype *LoginType, err error) {
 //Perform checks and log user into MSAAD.
 //Only client (app) id's white-listed in the config can utilise this method of login.
 //Returns an http code and/or error as appropriate.
-func msaadLogin(central *ImqsCentral, r *httpRequest, identity string, user authaus.AuthUser, password string) (httpCode int, err error) {
+func msaadLogin(central *ImqsCentral, r *httpRequest, identity string, user authaus.AuthUser, password string) (httpCode int, err error, key string) {
 	whiteListed := false
 
 	// validate against whitelist
@@ -747,22 +749,23 @@ func msaadLogin(central *ImqsCentral, r *httpRequest, identity string, user auth
 	if !whiteListed {
 		whiteListFailedMsg := fmt.Sprintf("Passthrough auth: client_id specified [%v] is not whitelisted. \n", clientId)
 		central.Central.Log.Warn(whiteListFailedMsg)
-		return http.StatusForbidden, fmt.Errorf(whiteListFailedMsg)
+		return http.StatusForbidden, fmt.Errorf(whiteListFailedMsg), ""
 	}
 
 	if user.Type != authaus.UserTypeMSAAD {
 		notMSAADUserMsg := "Not an MSAAD user."
 		central.Central.Log.Warn(notMSAADUserMsg)
-		return http.StatusUnauthorized, fmt.Errorf(notMSAADUserMsg)
+		return http.StatusUnauthorized, fmt.Errorf(notMSAADUserMsg), ""
 	}
 
 	// MSAAD call
-	if e2 := central.Central.OAuth.OAuthLoginUsernamePassword(identity, password); e2 != nil {
+	e2, key := central.Central.OAuth.OAuthLoginUsernamePassword(identity, password)
+	if e2 != nil {
 		central.Central.Log.Warn("Login call to MSAAD failed")
-		return http.StatusUnauthorized, e2
+		return http.StatusUnauthorized, e2, ""
 	}
 
-	return http.StatusOK, nil
+	return http.StatusOK, nil, key
 }
 
 // Note that we do not create a permit here for the user, so he will not yet be able to login.
