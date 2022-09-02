@@ -684,13 +684,7 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 			return
 		}
 
-		// At this point the user may not have an IMQS Auth session, since MSAAD sync only populates the authusergroup table.
-		// It will, however, eventually have a permit, which would have come from the MSAAD background sync if permissions have been assigned.
-		// So we try to create a session.
-		// Authaus requires an oauthSession as a primary key, but we don't get one back from using username password
-		// authentication, so we just use the user email for now
-
-		// we create a temporary session here, because we need it for the oauth session
+		// we create a new Auth session here, because we need it for the OAuth session link
 		sessionKey, token, err = central.Central.CreateSession(&user, r.http.RemoteAddr, key)
 		if err != nil {
 			authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
