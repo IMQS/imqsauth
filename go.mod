@@ -3,7 +3,7 @@ module github.com/IMQS/imqsauth
 go 1.17
 
 require (
-	github.com/IMQS/authaus v1.0.25
+	github.com/IMQS/authaus v1.0.26
 	github.com/IMQS/cli v0.0.0-20151022082634-156324308096
 	github.com/IMQS/gowinsvc v0.0.0-20220601052852-62ce07b0ae0b
 	github.com/IMQS/log v1.0.3
@@ -21,3 +21,5 @@ require (
 	golang.org/x/crypto v0.0.0-20211215165025-cf75a172585e // indirect
 	golang.org/x/sys v0.0.0-20211111213525-f221eed1c01e // indirect
 )
+
+replace github.com/IMQS/authaus v1.0.25 => "../authaus"

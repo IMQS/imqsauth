@@ -4,3 +4,4 @@ imqsauth
 test-output
 Dockerfile-gotest
 __debug_bin
+/imqsauth.exe
