@@ -1,0 +1,324 @@
+{
+	"$schema": "http://json-schema.org/draft/2020-12/schema#",
+	"type": "object",
+	"properties": {
+		"Authaus": {
+			"type": "object",
+			"properties": {
+				"Log": {
+					"type": "object",
+					"properties": {
+						"Filename": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"Filename"
+					]
+				},
+				"HTTP": {
+					"type": "object",
+					"properties": {
+						"Bind": {
+							"type": "string"
+						},
+						"Port": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"Bind",
+						"Port"
+					]
+				},
+				"DB": {
+					"type": "object",
+					"properties": {
+						"Driver": {
+							"type": "string"
+						},
+						"Host": {
+							"type": "string"
+						},
+						"Database": {
+							"type": "string"
+						},
+						"User": {
+							"type": "string"
+						},
+						"Password": {
+							"type": "string"
+						},
+						"SSL": {
+							"type": "boolean"
+						},
+						"Port": {
+							"type": "integer"
+						}
+					},
+					"required": [
+						"Driver",
+						"Host",
+						"Database",
+						"User",
+						"Password",
+						"SSL",
+						"Port"
+					]
+				},
+				"OAuth": {
+					"type": "object",
+					"properties": {
+						"Verbose": {
+							"type": "boolean"
+						},
+						"DefaultProvider": {
+							"type": "string"
+						},
+						"Providers": {
+							"type": "object",
+							"properties": {
+								"eMerge": {
+									"type": "object",
+									"properties": {
+										"Type": {
+											"type": "string"
+										},
+										"Title": {
+											"type": "string"
+										},
+										"LoginURL": {
+											"type": "string"
+										},
+										"TokenURL": {
+											"type": "string"
+										},
+										"RedirectURL": {
+											"type": "string"
+										},
+										"ClientID": {
+											"type": "string"
+										},
+										"Scope": {
+											"type": "string"
+										},
+										"ClientSecret": {
+											"type": "string"
+										},
+										"AllowCreateUser": {
+											"type": "boolean"
+										}
+									},
+									"required": [
+										"Type",
+										"Title",
+										"LoginURL",
+										"TokenURL",
+										"RedirectURL",
+										"ClientID",
+										"Scope",
+										"ClientSecret",
+										"AllowCreateUser"
+									]
+								}
+							},
+							"required": [
+								"eMerge"
+							]
+						}
+					},
+					"required": [
+						"Verbose",
+						"DefaultProvider",
+						"Providers"
+					]
+				},
+				"MSAAD": {
+					"type": "object",
+					"properties": {
+						"Verbose": {
+							"type": "boolean"
+						},
+						"DryRun": {
+							"type": "boolean"
+						},
+						"TenantID": {
+							"type": "string"
+						},
+						"ClientID": {
+							"type": "string"
+						},
+						"ClientSecret": {
+							"type": "string"
+						},
+						"EssentialRoles": {
+							"type": "array",
+							"items": {}
+						},
+						"DefaultRoles": {
+							"type": "array",
+							"items": [
+								{
+									"type": "string"
+								}
+							]
+						},
+						"RoleToGroup": {},
+						"PassthroughClientIDs": {
+							"type": "array",
+							"items": [
+								{
+									"type": "string"
+								}
+							]
+						},
+						"AllowArchiveUser": {
+							"type": "boolean"
+						}
+					},
+					"required": [
+						"Verbose",
+						"DryRun",
+						"TenantID",
+						"ClientID",
+						"ClientSecret",
+						"EssentialRoles",
+						"DefaultRoles",
+						"RoleToGroup",
+						"PassthroughClientIDs",
+						"AllowArchiveUser"
+					]
+				},
+				"SessionDB": {
+					"type": "object",
+					"properties": {
+						"SessionExpirySeconds": {
+							"type": "integer"
+						}
+					},
+					"required": [
+						"SessionExpirySeconds"
+					]
+				},
+				"LDAP": {
+					"type": "object",
+					"properties": {
+						"LdapHost": {
+							"type": "string"
+						},
+						"LdapPort": {
+							"type": "integer"
+						},
+						"Encryption": {
+							"type": "string"
+						},
+						"LdapUsername": {
+							"type": "string"
+						},
+						"LdapPassword": {
+							"type": "string"
+						},
+						"LdapDomain": {
+							"type": "string"
+						},
+						"LdapTickerTime": {
+							"type": "integer"
+						},
+						"BaseDN": {
+							"type": "string"
+						},
+						"SysAdminEmail": {
+							"type": "string"
+						},
+						"LdapSearchFilter": {
+							"type": "string"
+						},
+						"Description": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"LdapHost",
+						"LdapPort",
+						"Encryption",
+						"LdapUsername",
+						"LdapPassword",
+						"LdapDomain",
+						"LdapTickerTime",
+						"BaseDN",
+						"SysAdminEmail",
+						"LdapSearchFilter",
+						"Description"
+					]
+				}
+			},
+			"required": [
+				"Log",
+				"HTTP",
+				"DB"
+			]
+		},
+		"Permissions": {
+			"type": "object",
+			"properties": {
+				"dynamic": {
+					"type": "array",
+					"items": [
+						{
+							"type": "object",
+							"properties": {
+								"id": {
+									"type": "string"
+								},
+								"name": {
+									"type": "string"
+								},
+								"friendly": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"module": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"id",
+								"name",
+								"friendly",
+								"description",
+								"module"
+							]
+						}
+					]
+				},
+				"disable": {
+					"type": "array",
+					"items": [
+						{
+							"type": "string"
+						}
+					]
+				}
+			},
+			"required": [
+				"dynamic",
+				"disable"
+			]
+		},
+		"SendMailPassword": {
+			"type": "string"
+		},
+		"NotificationUrl": {
+			"type": "string"
+		},
+		"AuditServiceUrl": {
+			"type": "string"
+		}
+	},
+	"required": [
+		"Authaus",
+		"Permissions"
+	]
+}

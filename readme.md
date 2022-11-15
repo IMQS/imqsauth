@@ -1,6 +1,12 @@
 IMQS Authentication System
 ==========================
 
+Other references
+1. [Overview](./docs/Overview.md)
+2. [API](./docs/API.md)
+3. [Config schema](./docs/config/imqsauth.json)
+
+
 ## Building
 
 To build imqsauth:
@@ -55,4 +61,4 @@ To run the server:
 The auth service is capable of detecting whether it is running inside or outside of Docker 
 upon startup. It leverages the service discovery mechanism in the config service to transparently
 rewrite database connection configurations, as well as other serviceconfig utils to detect whether or not
-it is inside the auth service
+it is inside the auth service.
