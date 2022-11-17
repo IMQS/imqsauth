@@ -1,13 +1,10 @@
-## API
+API
+===
 
 The API is implemented as a set of REST calls. Where applicable, default values are in **bold.**
 
-### POST /auth2/hello
+## POST /auth2/hello
 Responds with "Hello!"
-
-
-| **Specification** | GET                  | /auth2/hello/   |
-|-------------------|----------------------|-----------------|
 
 | **Parameters** | **Name** | **In** | **Description** | **Required** | **Type** |
 |----------------|----------|--------|-----------------|--------------|----------|
@@ -18,12 +15,8 @@ Responds with "Hello!"
 || 200           | Successful           | Hello!          |
 || 404           | Not Found            |
 
-### GET/auth2/ping
+## GET /auth2/ping
 Returns a timestamp
-
-
-| **Specification** | GET      | /auth2/ping |
-|-------------------|----------|-------------|
 
 | **Parameters** | **Name** | **In** | **Description** | **Required** | **Type** |
 |----------------|----------|--------|-----------------|--------------|----------|
@@ -34,12 +27,8 @@ Returns a timestamp
 || 200           | Successful           ||| `{"Timestamp": 1464949824}` |     |     |     |
 || 404           | Not Found            ||||     |     |     |     |
 
-### POST /auth2/login
+## POST /auth2/login
 Returns a json object containing authorization information
-
-
-| **Specification** | POST | /auth2/login |
-|-------------------|------|--------------|
 
 | **Parameters** | **Name**      | **In** | **Description**                                                                                                                                                                                                                                                                                                                | **Required** | **Type**       |
 |----------------|---------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------|----------------|
@@ -68,13 +57,9 @@ curl --location --request POST 'https://qa1.assetworld.co.za/auth2/login' \
 --data-urlencode 'login_type=msaad'
 ```
 
-### POST /auth2/logout
+## POST /auth2/logout
 
 Sets expiry to past date and updates cookie.
-
-| **Specification** | GET | /auth2/logout |
-|-------------------|-----|---------------|
-
 
 | **Parameters** | **Name** | **In** | **Description** | **Required** | **Type** |
 |----------------|----------|--------|-----------------|--------------|----------|
@@ -85,13 +70,8 @@ Sets expiry to past date and updates cookie.
 || 200           | Successful           | Sets cookie expiry to past date |||
 || 404           | Not Found            ||||
 
-### POST /auth2/login\_yellowfin (DEPRECATED)
+## POST /auth2/login\_yellowfin (DEPRECATED)
 Returns a list of all nodes of the specified type at (or below - depending on flags) the specified level
-
-
-| **Specification** | POST | `/auth2/login\_yellowfin` |
-|-------------------|------|---------------------------|
-
 
 | **Parameters** | **Name** | **In** | **Description** | **Required** | **Type** |
 |----------------|----------|--------|-----------------|--------------|----------|
@@ -102,12 +82,8 @@ Returns a list of all nodes of the specified type at (or below - depending on fl
 || 200           | Successful           ||||
 || 404           | Not Found            ||||
 
-### GET /auth2/check
+## GET /auth2/check
 Returns a json object containing authorization information
-
-
-| **Specification** | GET | /auth2/check |
-|-------------------|-----|--------------|
 
 
 | **Parameters** | **Name** | **In**                             | **Description** | **Required** | **Type** |
@@ -122,12 +98,7 @@ Returns a json object containing authorization information
 || 404           | Not Found            ||||
 
 
-### PUT /auth2/create\_user
-
-
-| **Specification** | PUT | /auth2/create\_user |
-|-------------------|-----|---------------------|
-
+## PUT /auth2/create\_user
 
 | **Parameters**  | **Name** | **In**                                                                              | **Description** | **Required** | **Type** |
 |-----------------|----------|-------------------------------------------------------------------------------------|-----------------|--------------|----------|
@@ -150,12 +121,7 @@ Returns a json object containing authorization information
 || 404           | Not Found            ||||
 
 
-### POST /auth2/update\_user
-
-
-| **Specification** | POST | /auth2/update\_user |
-|-------------------|------|---------------------|
-
+## POST /auth2/update\_user
 
 | **Parameters** | **Name** | **In**                                                                              | **Description** | **Required** | **Type** |
 |----------------|----------|-------------------------------------------------------------------------------------|-----------------|--------------|----------|
@@ -174,12 +140,7 @@ Returns a json object containing authorization information
 || 403           | Forbidden            ||||
 || 404           | Not Found            ||||
 
-### POST /auth2/archive\_user
-
-
-| **Specification** | POST | /auth2/archive\_user |
-|-------------------|------|----------------------|
-
+## POST /auth2/archive\_user
 
 | **Parameters** | **Name** | **In**                                   | **Description** | **Required** | **Type** |
 |----------------|----------|------------------------------------------|-----------------|--------------|----------|
@@ -193,12 +154,7 @@ Returns a json object containing authorization information
 || 403           | Forbidden            ||||
 || 404           | Not Found            ||||
 
-### PUT /auth2/create\_group
-
-
-| **Specification** | PUT | /auth2/create\_group |
-|-------------------|-----|----------------------|
-
+## PUT /auth2/create\_group
 
 | **Parameters** | **Name** | **In**                | **Description** | **Required** | **Type** |
 |----------------|----------|-----------------------|-----------------|--------------|----------|
@@ -212,12 +168,7 @@ Returns a json object containing authorization information
 || 403           | Forbidden            ||||
 || 404           | Not Found            ||||
 
-### POST /auth2/rename\_user
-
-
-| **Specification** | POST | /auth2/rename\_user |
-|-------------------|------|---------------------|
-
+## POST /auth2/rename\_user
 
 | **Parameters** | **Name** | **In**           | **Description** | **Required** | **Type** |
 |----------------|----------|------------------|-----------------|--------------|----------|
@@ -232,12 +183,7 @@ Returns a json object containing authorization information
 || 403           | Forbidden            ||||
 || 404           | Not Found            ||||
 
-### PUT /auth2/set\_group\_roles
-
-
-| **Specification** | PUT | /auth2/set\_group\_roles |
-|-------------------|-----|--------------------------|
-
+## PUT /auth2/set\_group\_roles
 
 | **Parameters** | **Name** | **In**                                        | **Description** | **Required** | **Type** |
 |----------------|----------|-----------------------------------------------|-----------------|--------------|----------|
@@ -252,12 +198,7 @@ Returns a json object containing authorization information
 || 406           | Not Acceptable       ||||
 || 404           | Not Found            ||| <p>/auth2/set\_group\_roles</p><p>"Group '' not found: Group does not exist:"</p> |
 
-### POST /auth2/set\_user\_groups
-
-
-| **Specification** | POST | /auth2/set\_user\_groups |
-|-------------------|------|--------------------------|
-
+## POST /auth2/set\_user\_groups
 
 | **Parameters** | **Name** | **In**                                          | **Description** | **Required** | **Type** |
 |----------------|----------|-------------------------------------------------|-----------------|--------------|----------|
@@ -271,12 +212,7 @@ Returns a json object containing authorization information
 || 403           | Forbidden            ||||     |     |     |     |
 || 404           | Not Found            ||||     |     |     |     |
 
-### POST /auth2/set\_password
-
-
-| **Specification** | POST | /auth2/set\_password |
-|-------------------|------|----------------------|
-
+## POST /auth2/set\_password
 
 | **Parameters** | **Name** | **In**                                                | **Description** | **Required** | **Type** |
 |----------------|----------|-------------------------------------------------------|-----------------|--------------|----------|
@@ -290,12 +226,7 @@ Returns a json object containing authorization information
 || 403           | Forbidden            ||||     |     |     |     |
 || 404           | Not Found            ||||     |     |     |     |
 
-### POST /auth2/reset\_password\_start
-
-
-| **Specification** | POST | /auth2/reset\_password\_start |
-|-------------------|------|-------------------------------|
-
+## POST /auth2/reset\_password\_start
 
 | **Parameters** | **Name** | **In**                                                   | **Description** | **Required** | **Type** |
 |----------------|----------|----------------------------------------------------------|-----------------|--------------|----------|
@@ -307,12 +238,7 @@ Returns a json object containing authorization information
 || 400           | Bad Request          ||||     |     |     |     |
 || 404           | Not Found            ||||     |     |     |     |
 
-### POST /auth2/reset\_password\_finish
-
-
-| **Specification** | POST | /auth2/reset\_password\_finish |
-|-------------------|------|--------------------------------|
-
+## POST /auth2/reset\_password\_finish
 
 | **Parameters** | **Name** | **In**                                                 | **Description** | **Required** | **Type** |
 |----------------|----------|--------------------------------------------------------|-----------------|--------------|----------|
@@ -326,13 +252,8 @@ Returns a json object containing authorization information
 || 400           | Bad Request          ||||     |     |     |     |
 || 404           | Not Found            ||||     |     |     |     |
 
-### GET /auth2/users
+## GET /auth2/users
 Returns a list of users just containing the users' identity and authorization, i.e. groups they belong to
-
-
-| **Specification** | GET | /auth2/users |
-|-------------------|-----|--------------|
-
 
 | **Parameters** | **Name** | **In** | **Description** | **Required** | **Type** |
 |----------------|----------|--------|-----------------|--------------|----------|
@@ -345,13 +266,8 @@ Returns a list of users just containing the users' identity and authorization, i
 || 500           | Internal Server Error ||||     |     |     |     |
 || 404           | Not Found             ||||     |     |     |     |
 
-### GET /auth2/userobjects
-Returns a list of user objects containing all the user's data and authorization
-
-
-| **Specification** | GET | /auth2/userobjects |
-|-------------------|-----|--------------------|
-
+## GET /auth2/userobjects
+Returns a list of user objects containing all the user's data and authorization.
 
 | **Parameters** | **Name** | **In** | **Description** | **Required** | **Type** |
 |----------------|----------|--------|-----------------|--------------|----------|
@@ -364,13 +280,8 @@ Returns a list of user objects containing all the user's data and authorization
 || 500           | Internal Server Error ||||     |     |     |     |
 || 404           | Not Found             ||||     |     |     |     |
 
-### GET /auth2/groups
+## GET /auth2/groups
 Returns a list of groups and the roles they contain
-
-
-| **Specification** | GET | /auth2/groups |
-|-------------------|-----|---------------|
-
 
 | **Parameters** | **Name** | **In** | **Description** | **Required** | **Type** |
 |----------------|----------|--------|-----------------|--------------|----------|
@@ -383,13 +294,8 @@ Returns a list of groups and the roles they contain
 || 500           | Internal Server Error ||||     |     |     |     |
 || 404           | Not Found             ||||     |     |     |     |
 
-### GET /auth2/hasactivedirectory
+## GET /auth2/hasactivedirectory
 Indicates if we're using active directory.
-
-
-| **Specification** | GET | /auth2/hasactivedirectory |
-|-------------------|-----|---------------------------|
-
 
 | **Parameters** | **Name** | **In** | **Description** | **Required** | **Type** |
 |----------------|----------|--------|-----------------|--------------|----------|

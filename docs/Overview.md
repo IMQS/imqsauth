@@ -1,4 +1,4 @@
-﻿IMQSAuth Service
+﻿Overview
 ===
 
 ## Overview and system context

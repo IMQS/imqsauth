@@ -6,6 +6,7 @@ Other references
 2. [API](./docs/API.md)
 3. [Config schema](./docs/config/imqsauth.json)
 
+More information can be found in Confluence: [Imqs Auth](https://imqssoftware.atlassian.net/wiki/spaces/ASC/pages/94568575/ImqsAuth).
 
 ## Building
 
