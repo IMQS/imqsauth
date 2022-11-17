@@ -1,6 +1,7 @@
-﻿# **IMQSAuth Service**
+﻿IMQSAuth Service
+===
 
-## **Overview and system context**
+## Overview and system context
 The Auth service is an authentication and authorization service, that consists of 2 parts; Authaus and ImqsAuth.
 
 **Authaus** consists of multiple components, namely: LDAP, MSAAD, OAuth, UserStore, SessionDB, PermitDB and RoleGroupsDB.
@@ -17,7 +18,7 @@ The Auth service is an authentication and authorization service, that consists o
 
 **Identity** - This refers to the Login Name of the user. It may be an email address e.g. joe@email.com or a username e.g. joey08. Typically, when using the Auth system without LDAP, we will use an email address. With LDAP/AD we would use an LDAP username. MSAAD would try and use email but can also support username only in some circumstances.
 
-### **AuthUserType**
+### AuthUserType
 **AuthUserType** was introduced to the auth system, when we started integrating with LDAP. We needed to distinguish between IMQS managed users and users managed elsewhere. It is not limited to these 2 types, we can add more if need be in the future (IMQS, LDAP, MSAAD)
 
 **LDAP and MSAAD Users:**
@@ -26,10 +27,10 @@ The Auth service is an authentication and authorization service, that consists o
 - Authentication for these users will be delegated to the LDAP or MSAAD system specified in config.
 - If a user uses the Forgot Password functionality, the auth system would simply email them, telling them to contact their system administrator, and also give their sysadmin's email address IF specified in config (SysAdminEmail).
 
-## **Installation Instructions**
+## Installation Instructions
 The Auth Service is installed as part of the standard v8 deployment bundle.
 
-### **Required configuration files**
+### Required configuration files
 `imqsbin/static-conf/imqsauth.json` merged with `imqsbin/conf/imqsauth.json`
 Even though the configuration primarily concerns the `authaus` module which **ImqsAuth** makes use of, we present the configuration here for easy reference.
 
