@@ -4,7 +4,8 @@ IMQS Authentication System
 Other references
 1. [Overview](./docs/Overview.md)
 2. [API](./docs/API.md)
-3. [Config schema](./docs/config/imqsauth.json)
+3. [Config schema](docs/config-schema/imqsauth.json)
+4. [Static conf](docs/static-conf/imqsauth.json)
 
 More information can be found in Confluence: [Imqs Auth](https://imqssoftware.atlassian.net/wiki/spaces/ASC/pages/94568575/ImqsAuth).
 

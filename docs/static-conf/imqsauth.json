@@ -1,0 +1,30 @@
+{
+	"Authaus": {
+		"Log": {
+			"Filename": "[/var/log/imqs/|c:\\imqsvar\\logs\\]imqsauth.log"
+		},
+		"HTTP": {
+			"Bind": "[0.0.0.0|127.0.0.1]",
+			"Port": "[80|2003]"
+		},
+		"DB": {
+			"Driver": "postgres",
+			"Host": "[db|127.0.0.1]",
+			"Database": "auth",
+			"User": "auth",
+			"Password": "auth"
+		}
+	},
+	"Yellowfin": {
+		"Enabled": true,
+		"Url": "http://localhost/yellowfin/",
+		"ContentCategoryFilter": true,
+		"SourceAccessFilter": true,
+		"ModuleToCategoryMapping": {
+			"WATERDEMAND": "SWIFT"
+		}
+	},
+	"SendMailPassword": "VKjpJuMJWx7P9Ff4",
+	"NotificationUrl": "http://[distributer|localhost:8081]/notify/",
+	"AuditServiceUrl": "http://[audit-user|localhost:2016]/auth-logaction"
+}
