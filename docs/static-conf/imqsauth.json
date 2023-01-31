@@ -24,7 +24,7 @@
 			"WATERDEMAND": "SWIFT"
 		}
 	},
-	"SendMailPassword": "VKjpJuMJWx7P9Ff4",
+	"SendMailPassword": "{{SEND_MAIL_PASSWORD}}",
 	"NotificationUrl": "http://[distributer|localhost:8081]/notify/",
 	"AuditServiceUrl": "http://[audit-user|localhost:2016]/auth-logaction"
 }
