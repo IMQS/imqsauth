@@ -497,23 +497,17 @@ func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ide
 	// The only caveat is that we need the special system user names
 	// This should move to authaus, see caching mechanism implemented for group name mapping in authaus commit
 	// 		65f544ed Ben Harper <rogojin@gmail.com> on 2021/07/27 at 9:54 PM
-	usermap := make(map[authaus.UserId]string)
-	name := ""
+
+	// Build username lookup for modifiedby and createdby
+	usernamemap := make(map[authaus.UserId]string)
 	for _, user := range users {
-		switch user.UserId {
-		case authaus.UserIdAdministrator:
-			name = "Administrator"
-		case authaus.UserIdLDAPMerge:
-			name = "LDAP Merge"
-		case authaus.UserIdOAuthImplicitCreate:
-			name = "OAuth Sign-in"
-		case authaus.UserIdMSAADMerge:
-			name = "MSAAD Merge"
-		default:
-			name = user.Firstname + " " + user.Lastname
-		}
-		usermap[user.UserId] = name
+		usernamemap[user.UserId] = user.Firstname + " " + user.Lastname
 	}
+
+	usernamemap[authaus.UserIdAdministrator] = "Administrator"
+	usernamemap[authaus.UserIdLDAPMerge] = "LDAP Merge"
+	usernamemap[authaus.UserIdOAuthImplicitCreate] = "OAuth Sign-in"
+	usernamemap[authaus.UserIdMSAADMerge] = "MSAAD Merge"
 
 	for _, user := range users {
 		permit := ident2perm[user.UserId]
@@ -539,9 +533,9 @@ func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ide
 			Telephone:     user.Telephonenumber,
 			Remarks:       user.Remarks,
 			Created:       user.Created,
-			CreatedBy:     usermap[user.CreatedBy],
+			CreatedBy:     usernamemap[user.CreatedBy],
 			Modified:      user.Modified,
-			ModifiedBy:    usermap[user.ModifiedBy],
+			ModifiedBy:    usernamemap[user.ModifiedBy],
 			Groups:        groupnames,
 			AuthUserType:  user.Type,
 			Archived:      user.Archived,
@@ -706,7 +700,7 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 	httpSendCheckJson(w, token, perms)
 }
 
-//getLoginType
+// getLoginType
 // This function determines the type of login requested based on the form fields populated.
 // If none are present, assume normal (IMQS) login.
 // Required form fields if msaad: client_id, login_type
@@ -725,9 +719,9 @@ func getLoginType(r *httpRequest) (ltype *LoginType, err error) {
 	return nil, fmt.Errorf("Malformed login form data.")
 }
 
-//Perform checks and log user into MSAAD.
-//Only client (app) id's white-listed in the config can utilise this method of login.
-//Returns an http code and/or error as appropriate.
+// Perform checks and log user into MSAAD.
+// Only client (app) id's white-listed in the config can utilize this method of login.
+// Returns an http code and/or error as appropriate.
 func msaadLogin(central *ImqsCentral, r *httpRequest, identity string, user authaus.AuthUser, password string) (httpCode int, err error, key string) {
 	whiteListed := false
 
