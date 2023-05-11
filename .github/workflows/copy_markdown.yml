@@ -4,7 +4,7 @@
 # After the first successful action run, you'll want to check
 # on the read-us repository to ensure everything went smoothly
 #
-# Note 1: If your repository does not have an access token secret, 
+# Note 1: If your repository does not have an access token secret,
 # you'll need to create one. This is necessary to pull/push from/to
 # the private read-us repo. Call it GH_READ_US_PAT
 #
@@ -48,6 +48,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: this_repo
+          lfs: true
       # We now check out the second repository
       # - Is checked out at the given path
       # - Checks out the repo at the given ref
@@ -57,6 +58,7 @@ jobs:
           repository: ${{ env.DOCS_REPO }}
           path: read-us
           token: ${{ secrets.GH_READ_US_PAT }}
+          lfs: true
 
       - name: create_dummy_folder
         run: |
