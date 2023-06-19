@@ -1,6 +1,6 @@
 # Changelog
 
-## current
+## v1.1.1
 
 * fix: Updated authus version. (ASG-2452) 
 
