@@ -650,7 +650,7 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 	var sessionKey string
 	var token *authaus.Token
 	if loginType.LoginType == "" {
-		central.Central.Log.Debug("Normal IMQS login...")
+		central.Central.Log.Info("Normal IMQS login...")
 		sessionKey, token, err = central.Central.Login(identity, password, getIPAddress(r.http))
 		if err != nil {
 			user, eUser := central.Central.GetUserFromIdentity(identity)
@@ -661,7 +661,7 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 			return
 		}
 	} else {
-		central.Central.Log.Debug("MSAAD passthrough login...")
+		central.Central.Log.Info("MSAAD passthrough login...")
 		user, eUser := central.Central.GetUserFromIdentity(identity)
 		if eUser != nil {
 			// User does not exist (not synchronized from e.g. msaad)
@@ -684,7 +684,7 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 			authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 			return
 		}
-		central.Central.Log.Debug("MSAAD Passthrough user successfully logged in.\n")
+		central.Central.Log.Info("MSAAD Passthrough user successfully logged in.\n")
 	}
 
 	perms, err := central.validateUserIsEnabledForNewLogin(sessionKey, token, r)
