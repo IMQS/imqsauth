@@ -21,17 +21,17 @@ const (
 type MailParameters struct {
 	// Name of the template that the mail server should use when generating the
 	// email body. Optional.
-	TemplateName *string `json:"template_name,omitempty"`
+	TemplateName *string `json:"TemplateName,omitempty"`
 	// Custom from variable to be used by mailer service. Optional
 	// eg: IMQS Password Reset <noreply@imqs.co.za>
-	From *string `json:"from,omitempty"`
+	From *string `json:"From,omitempty"`
 }
 
 type SendMailDetails struct {
 	// URL of mail server. Optional.
-	URL           *string         `json:"url,omitempty"`
-	PasswordReset *MailParameters `json:"password_reset,omitempty"`
-	NewAccount    *MailParameters `json:"new_account,omitempty"`
+	URL           *string         `json:"URL,omitempty"`
+	PasswordReset *MailParameters `json:"PasswordReset,omitempty"`
+	NewAccount    *MailParameters `json:"NewAccount,omitempty"`
 }
 
 // Permission holds all of the details to create the dynamic permission list.
