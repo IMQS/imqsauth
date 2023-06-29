@@ -15,7 +15,24 @@ const (
 	serviceConfigFileName = "imqsauth.json"
 	serviceConfigVersion  = 1
 	serviceName           = "ImqsAuth"
+	defaultMailerURL      = "https://imqs-mailer.appspot.com"
 )
+
+type MailParameters struct {
+	// Name of the template that the mail server should use when generating the
+	// email body. Optional.
+	TemplateName *string `json:"TemplateName,omitempty"`
+	// Custom from variable to be used by mailer service. Optional
+	// eg: IMQS Password Reset <noreply@imqs.co.za>
+	From *string `json:"From,omitempty"`
+}
+
+type SendMailDetails struct {
+	// URL of mail server. Optional.
+	URL           *string         `json:"URL,omitempty"`
+	PasswordReset *MailParameters `json:"PasswordReset,omitempty"`
+	NewAccount    *MailParameters `json:"NewAccount,omitempty"`
+}
 
 // Permission holds all of the details to create the dynamic permission list.
 // These permissions are used for code implementations which are purely driven
@@ -26,19 +43,20 @@ const (
 // to match specific client requirements.
 // Client/dynamic permissions are added to the imqsauth.json file using the following
 // as an example:
-// {
-// 	"Permissions": {
-// 		"dynamic": [
-// 			{"id": "15000", "name": "MMTest", "friendly": "An MM Test Permission",
-//			"description": "MM Test permission", "module": "Maintenance Management"}
-// 		],
-//		"disable": ["newMmIlCreateAdd"],
-//		"relabel": [
-//			{"id": "1204", "name": "newMmIlArchive", "friendly": "Archive incident",
-//			"description": "MM Acrhive an incident", "module": "Maintenance Management"}
-//		]
-// 	}
-// }
+//
+//	{
+//		"Permissions": {
+//			"dynamic": [
+//				{"id": "15000", "name": "MMTest", "friendly": "An MM Test Permission",
+//				"description": "MM Test permission", "module": "Maintenance Management"}
+//			],
+//			"disable": ["newMmIlCreateAdd"],
+//			"relabel": [
+//				{"id": "1204", "name": "newMmIlArchive", "friendly": "Archive incident",
+//				"description": "MM Acrhive an incident", "module": "Maintenance Management"}
+//			]
+//		}
+//	}
 type Permission struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
@@ -62,6 +80,7 @@ type Config struct {
 	PasswordResetExpirySeconds float64
 	NewAccountExpirySeconds    float64
 	SendMailPassword           string // NB: When moving SendMailPassword to a standalone secrets file, change for PCS also. PCS reads imqsauth config file.
+	SendMailDetails            SendMailDetails
 	NotificationUrl            string
 	hostname                   string // This is read from environment variable the first time GetHostname is called
 	lastFileLoaded             string // Used for relative paths (such as HostnameFile)
@@ -69,8 +88,20 @@ type Config struct {
 	Permissions                *ManagePermissions
 }
 
+func (x *SendMailDetails) SetDefaults() {
+	if x.URL == nil {
+		u := defaultMailerURL
+		x.URL = &u
+	}
+}
+
+func (x *Config) SetDefaults() {
+	x.SendMailDetails.SetDefaults()
+}
+
 func (x *Config) Reset() {
 	*x = Config{}
+	x.SetDefaults()
 	x.PasswordResetExpirySeconds = 24 * 3600
 	x.NewAccountExpirySeconds = 5 * 365 * 24 * 3600
 	x.enablePcsRename = true
@@ -89,9 +120,11 @@ func (x *Config) LoadFile(filename string) error {
 	if err != nil {
 		return err
 	}
+
+	x.SetDefaults()
+
 	x.lastFileLoaded = filename
-	err = x.loadDynamicPermissions()
-	return err
+	return x.loadDynamicPermissions()
 }
 
 // loadDynamicPermissions adds the dynamic permissions from config to the
