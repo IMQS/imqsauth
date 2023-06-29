@@ -344,7 +344,11 @@ func (x *ImqsCentral) ResetPasswordStart(userId authaus.UserId, isNewAccount boo
 		mailQuery, mailBody = x.createLDAPMailQueryAndBody(user)
 	}
 
-	return x.buildMailRequestAndSend(mailQuery, mailBody)
+	code, strErr := x.buildMailRequestAndSend(mailQuery, mailBody)
+	if strErr != "" {
+		return code, fmt.Sprintf("Error sending email: %v", strErr)
+	}
+	return code, ""
 }
 
 func (x *ImqsCentral) createDefaultMailQuery(user authaus.AuthUser, token string, isNewAccount bool, expireSeconds float64) (string, error) {
@@ -359,10 +363,30 @@ func (x *ImqsCentral) createDefaultMailQuery(user authaus.AuthUser, token string
 
 	mailQuery := "passwordReset?"
 	mailQuery += fmt.Sprintf("email=%v&resetUrl=%v&expireTime=%.0f", url.QueryEscape(user.Email), url.QueryEscape(resetUrl), expireSeconds)
+
+	var params *MailParameters
 	if isNewAccount {
 		mailQuery += "&newAccount=true"
+
+		if x.Config.SendMailDetails.NewAccount != nil {
+			params = x.Config.SendMailDetails.NewAccount
+		}
 	} else {
 		mailQuery += "&newAccount=false"
+
+		if x.Config.SendMailDetails.PasswordReset != nil {
+			params = x.Config.SendMailDetails.PasswordReset
+		}
+	}
+
+	if params != nil {
+		if params.TemplateName != nil {
+			mailQuery += "&templateName=" + url.QueryEscape(*params.TemplateName)
+		}
+
+		if params.From != nil {
+			mailQuery += "&from=" + url.QueryEscape(*params.From)
+		}
 	}
 
 	return mailQuery, nil
@@ -385,24 +409,29 @@ func (x *ImqsCentral) createLDAPMailQueryAndBody(user authaus.AuthUser) (string,
 func (x *ImqsCentral) buildMailRequestAndSend(mailQuery string, mailBody string) (int, string) {
 	var sendMailReq *http.Request
 	var err error
+
+	if x.Config.SendMailDetails.URL == nil {
+		return http.StatusInternalServerError, "Mail URL not specified"
+	}
+
 	if len(mailBody) > 0 {
-		sendMailReq, err = http.NewRequest("POST", "https://imqs-mailer.appspot.com/"+mailQuery, strings.NewReader(mailBody))
+		sendMailReq, err = http.NewRequest("POST", *x.Config.SendMailDetails.URL+"/"+mailQuery, strings.NewReader(mailBody))
 	} else {
-		sendMailReq, err = http.NewRequest("POST", "https://imqs-mailer.appspot.com/"+mailQuery, nil)
+		sendMailReq, err = http.NewRequest("POST", *x.Config.SendMailDetails.URL+"/"+mailQuery, nil)
 	}
 	if err != nil {
-		return http.StatusServiceUnavailable, "Error sending mail: " + err.Error()
+		return http.StatusServiceUnavailable, err.Error()
 	}
 	sendMailReq.SetBasicAuth("imqs", x.Config.SendMailPassword)
 
 	mailResp, err := http.DefaultClient.Do(sendMailReq)
 	if err != nil {
-		return http.StatusServiceUnavailable, "Error sending email: " + err.Error()
+		return http.StatusServiceUnavailable, err.Error()
 	}
 	defer mailResp.Body.Close()
 	respBody, _ := ioutil.ReadAll(mailResp.Body)
 	if mailResp.StatusCode != http.StatusOK {
-		return http.StatusServiceUnavailable, fmt.Sprintf("Error sending email: %v\n%v", mailResp.Status, string(respBody))
+		return http.StatusServiceUnavailable, mailResp.Status + "\n" + string(respBody)
 	}
 
 	return http.StatusOK, ""

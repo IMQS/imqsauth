@@ -11,11 +11,22 @@ system to accomodate that kind of thing.
 
 Example config file:
 
-{
-	"Authaus": {...},								-- See config.go in Authaus package for description of the Authaus config
-	"PasswordResetExpirySeconds": 3600,
-	"HostnameFile": "hostname",						-- Relative to the location of imqsauthconfig.json, or an absolute path
-	"SendMailPassword": "password123"
-}
+	{
+		"Authaus": {...},								-- See config.go in Authaus package for description of the Authaus config
+		"PasswordResetExpirySeconds": 3600,
+		"HostnameFile": "hostname",						-- Relative to the location of imqsauthconfig.json, or an absolute path
+		"SendMailPassword": "password123",
+		"SendMailDetails": {
+			"URL": "https://imqs-mailer.appspot.com",
+			"PasswordReset": {
+				"TemplateName": "skypipe-inc-reset-password",							-- See https://github.com/IMQS/imqs-mailer#api for more info on valid templates
+				"From": "SkyPipe Inc. Password Reset <noreply@skypipeinc.com>"
+			},
+			"NewAccount": {
+				"TemplateName": "skypipe-inc-new-account-confirm",						-- See https://github.com/IMQS/imqs-mailer#api for more info on valid templates
+				"From": "SkyPipe Inc. Account Confirmation <noreply@skypipeinc.com>"
+			}
+		}
+	}
 */
 package imqsauth
