@@ -25,6 +25,9 @@ type MailParameters struct {
 	// Custom from variable to be used by mailer service. Optional
 	// eg: IMQS Password Reset <noreply@imqs.co.za>
 	From *string `json:"From,omitempty"`
+	// Custom subject variable to be used by mailer service. Optional
+	// eg: IMQS Reset Password
+	Subject *string `json:"Subject,omitempty"`
 }
 
 type SendMailDetails struct {
@@ -32,6 +35,8 @@ type SendMailDetails struct {
 	URL           *string         `json:"URL,omitempty"`
 	PasswordReset *MailParameters `json:"PasswordReset,omitempty"`
 	NewAccount    *MailParameters `json:"NewAccount,omitempty"`
+	// Currently does not make use of `TemplateName`
+	LDAPPasswordReset *MailParameters `json:"LDAPPasswordReset,omitempty"`
 }
 
 // Permission holds all of the details to create the dynamic permission list.

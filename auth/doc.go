@@ -25,6 +25,10 @@ Example config file:
 			"NewAccount": {
 				"TemplateName": "skypipe-inc-new-account-confirm",						-- See https://github.com/IMQS/imqs-mailer#api for more info on valid templates
 				"From": "SkyPipe Inc. Account Confirmation <noreply@skypipeinc.com>"
+			},
+			"LDAPPasswordReset": {
+				"From": "SkyPipe Inc. Password Reset <noreply@skypipeinc.com>",
+				"Subject": "SkyPipe Inc. Reset Password"
 			}
 		}
 	}
