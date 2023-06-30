@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.2.0
+## Current
 
 * feat(mail): Adds new config to send custom `from` and specify a template to be
 used as an email body when resetting a password, or confirming a new account.
