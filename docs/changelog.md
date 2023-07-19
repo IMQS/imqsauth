@@ -2,6 +2,10 @@
 
 ## Current
 
+## v1.2.1
+
+* fix: update authaus to v1.0.30 (enhance oauth logging)
+
 ## v1.2.0
 
 * feat(mail): Adds new config to send custom `from` and specify a template to be
