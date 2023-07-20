@@ -2,6 +2,8 @@
 
 ## Current
 
+* fix: Invalid check on group import for pre-existing groups
+
 ## v1.2.1
 
 * fix: update authaus to v1.0.30 (enhance oauth logging)

@@ -1720,7 +1720,7 @@ func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 				authaus.HttpSendTxt(w, http.StatusInternalServerError, eupdate.Error())
 				return
 			}
-		} else if err == nil && userGroupsJson.OverwriteGroups {
+		} else if err == nil && !userGroupsJson.OverwriteGroups {
 			central.Central.Log.Warnf("Group %v not updated, overwrite set to false", group.Name)
 		} else if err != nil && strings.Index(err.Error(), authaus.ErrGroupNotExist.Error()) != -1 {
 			if einsert := central.Central.GetRoleGroupDB().InsertGroup(&group); einsert != nil {
