@@ -1,6 +1,6 @@
 # Changelog
 
-## Current
+## v1.2.2
 
 * fix: Invalid check on group import for pre-existing groups
 
