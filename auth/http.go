@@ -395,8 +395,27 @@ func (x *ImqsCentral) createDefaultMailQuery(user authaus.AuthUser, token string
 func (x *ImqsCentral) createLDAPMailQueryAndBody(user authaus.AuthUser) (string, string) {
 	var mailQuery string
 	var mailBody string
+
 	mailQuery += "sendEmail?"
-	mailQuery += fmt.Sprintf("emailTo=%v&subject=%v&ishtml=True", url.QueryEscape(user.Email), url.QueryEscape("IMQS Reset Password"))
+	mailQuery += fmt.Sprintf("emailTo=%v&ishtml=True", url.QueryEscape(user.Email))
+
+	subject := "IMQS Reset Password"
+
+	// Handle optional overrides
+	if x.Config.SendMailDetails.LDAPPasswordReset != nil {
+		params := x.Config.SendMailDetails.LDAPPasswordReset
+
+		if params.Subject != nil {
+			subject = *params.Subject
+		}
+
+		if params.From != nil {
+			mailQuery += "&from=" + url.QueryEscape(*params.From)
+		}
+	}
+
+	mailQuery += "&subject=" + url.QueryEscape(subject)
+
 	if len(x.Config.Authaus.LDAP.SysAdminEmail) > 0 {
 		mailBody += fmt.Sprintf("This is an automated response.<br><br>To reset your password, please contact your System Administrator (%v).", x.Config.Authaus.LDAP.SysAdminEmail)
 	} else {
