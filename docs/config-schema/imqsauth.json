@@ -310,6 +310,21 @@
 		"SendMailPassword": {
 			"type": "string"
 		},
+		"SendMailDetails": {
+			"type": "object",
+			"properties": {
+				"URL": {
+					"type": "string",
+					"description": "URL of mail server."
+				},
+				"PasswordReset": {
+					"$ref": "#/defs/MailParameters"
+				},
+				"NewAccount": {
+					"$ref": "#/defs/MailParameters"
+				}
+			}
+		},
 		"NotificationUrl": {
 			"type": "string"
 		},
@@ -320,5 +335,20 @@
 	"required": [
 		"Authaus",
 		"Permissions"
-	]
+	],
+	"defs": {
+		"MailParameters": {
+			"type": "object",
+			"properties": {
+				"TemplateName": {
+					"type": "string",
+					"description": "Name of the template that the mail server should use when generating the email body."
+				},
+				"From": {
+					"type": "string",
+					"description": "Custom from variable to be used by mailer service."
+				}
+			}
+		}
+	}
 }
