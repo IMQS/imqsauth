@@ -5,9 +5,9 @@ TODO: Summary
 ## Query Parameters
 
 | Param  | Description                                       |
-| ------ | ------------------------------------------------- |
+|--------|---------------------------------------------------|
 | userid | id of the user that needs their password reset    |
-| email  | email of the user that needs thier password reset |
+| email  | email of the user that needs their password reset |
 
 ## Authaus
 
