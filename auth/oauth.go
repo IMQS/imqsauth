@@ -28,6 +28,7 @@ func httpHandlerOAuthFinish(central *ImqsCentral, w http.ResponseWriter, r *http
 	err := central.oauthFinishInternal(w, r)
 
 	if err != nil {
+		central.Central.Log.Errorf("OAuth finish error : %v", err)
 		http.Redirect(w, r.http, "/?oauthError="+url.QueryEscape(err.Error()), http.StatusFound)
 		return
 	}

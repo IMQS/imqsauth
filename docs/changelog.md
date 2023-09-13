@@ -1,5 +1,9 @@
 # Changelog
 
+## Current
+
+* fix: update authaus to v1.0.31 (group names and permit enumeration fix)
+
 ## v1.2.2
 
 * fix: Invalid check on group import for pre-existing groups

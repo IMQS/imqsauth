@@ -190,9 +190,14 @@ func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, h
 
 		permOK := false
 		if token, err := authaus.HttpHandlerPreludeWithError(&x.Config.Authaus.HTTP, x.Central, w, r); err == nil {
-			if permList, errDecodePerms := authaus.PermitResolveToList(token.Permit.Roles, x.Central.GetRoleGroupDB()); errDecodePerms != nil {
+			permList, errDecodePerms := authaus.PermitResolveToList(token.Permit.Roles, x.Central.GetRoleGroupDB())
+			if errDecodePerms != nil && permList == nil {
+				x.Central.Log.Errorf("%v: could not resolve permits: %v", r.URL.Path, errDecodePerms)
 				authaus.HttpSendTxt(w, http.StatusInternalServerError, errDecodePerms.Error())
 			} else {
+				if errDecodePerms != nil {
+					x.Central.Log.Warnf("%v: could not resolve permits: %v", r.URL.Path, errDecodePerms)
+				}
 				httpReq.token = token
 				httpReq.permList = permList
 				if needAdmin {
@@ -273,18 +278,6 @@ func (x *ImqsCentral) RunHttp() error {
 	}
 
 	return nil
-}
-
-func (x *ImqsCentral) IsAdmin(r *http.Request) (bool, error) {
-	if token, err := authaus.HttpHandlerPrelude(&x.Config.Authaus.HTTP, x.Central, r); err == nil {
-		if pbits, egroup := authaus.PermitResolveToList(token.Permit.Roles, x.Central.GetRoleGroupDB()); egroup == nil {
-			return pbits.Has(PermAdmin), nil
-		} else {
-			return false, egroup
-		}
-	} else {
-		return false, err
-	}
 }
 
 // Returns an error if 'hostname' is not configured on this server
@@ -525,8 +518,11 @@ func getPermitsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm m
 		validUser.Name = user.Firstname
 		validUser.Surname = user.Lastname
 		validUser.Groups, err = authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB(), groupCache)
-		if err != nil {
-			return nil, fmt.Errorf("Could not resolve from names from IDs: %v", err)
+		if err != nil && validUser.Groups == nil {
+			err2 := fmt.Errorf("error fetching group names for user %v : %v", user.UserId, err)
+			return nil, err2
+		} else if err != nil {
+			central.Central.Log.Warnf("issue fetching group names for user %v : %v", user.UserId, err)
 		}
 		jresponse = append(jresponse, &validUser)
 	}
@@ -567,8 +563,11 @@ func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ide
 			return nil, err
 		}
 		groupnames, err := authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB(), groupCache)
-		if err != nil {
-			return nil, err
+		if err != nil && groupnames == nil {
+			e := fmt.Errorf("error fetching group names for user %v : %v", user.UserId, err)
+			return nil, e
+		} else if err != nil {
+			central.Central.Log.Warnf("issue fetching group names for user %v : %v", user.UserId, err)
 		}
 
 		jresponse = append(jresponse, &userResponseJson{
@@ -737,9 +736,10 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 
 	perms, err := central.validateUserIsEnabledForNewLogin(sessionKey, token, r)
 	if err != nil {
-		if err == ErrUserDisabled {
+		if errors.Is(err, ErrUserDisabled) {
 			httpSendAccountDisabled(w)
 		} else {
+			central.Central.Log.Errorf("error validating if user is enabled : %v", err)
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 		}
 		return
@@ -1567,9 +1567,14 @@ func httpHanderHostname(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 
 func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	if token, err := authaus.HttpHandlerPreludeWithError(&central.Config.Authaus.HTTP, central.Central, w, r.http); err == nil {
-		if permList, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB()); egroup != nil {
+		permList, egroup := authaus.PermitResolveToList(token.Permit.Roles, central.Central.GetRoleGroupDB())
+		if egroup != nil && permList == nil {
+			central.Central.Log.Errorf("%v : failed to resolve permit : %v", r.http.URL, egroup)
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, egroup.Error())
 		} else {
+			if egroup != nil {
+				central.Central.Log.Warnf("%v : failed to resolve permit : %v", r.http.URL, egroup)
+			}
 			// Ensure that the user has the 'Enabled' permission
 			if !permList.Has(PermEnabled) {
 				httpSendAccountDisabled(w)

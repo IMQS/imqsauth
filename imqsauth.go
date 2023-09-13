@@ -257,7 +257,7 @@ func resetGroup(ic *auth.ImqsCentral, group *authaus.AuthGroup) bool {
 	return false
 }
 
-//add or remove an identity (e.g. user) to or from a group
+// add or remove an identity (e.g. user) to or from a group
 func permGroupAddOrDel(ic *auth.ImqsCentral, identity string, groupname string, isAdd bool) (success bool) {
 	user, eUserId := ic.Central.GetUserFromIdentity(identity)
 	if eUserId != nil {
@@ -314,12 +314,17 @@ func permShow(icentral *auth.ImqsCentral, identityColumnWidth int, identity stri
 	groupCache := map[authaus.GroupIDU32]string{}
 	if perm, e := icentral.Central.GetPermit(user.UserId); e == nil {
 		if groups, eDecode := authaus.DecodePermit(perm.Roles); eDecode == nil {
-			if groupNames, eGetNames := authaus.GroupIDsToNames(groups, icentral.Central.GetRoleGroupDB(), groupCache); eGetNames == nil {
-				sort.Strings(groupNames)
-				permStr = strings.Join(groupNames, " ")
-				success = true
-			} else {
+			groupNames, eGetNames := authaus.GroupIDsToNames(groups, icentral.Central.GetRoleGroupDB(), groupCache)
+			if eGetNames != nil && groupNames == nil {
 				permStr = fmt.Sprintf("Error converting group IDs to names: %v\n", eGetNames)
+			} else {
+				errStr := ""
+				if eGetNames != nil {
+					errStr = fmt.Sprintf("\nWarning: issue converting group IDs to names : %v\n", eGetNames)
+				}
+				sort.Strings(groupNames)
+				permStr = errStr + strings.Join(groupNames, ",")
+				success = true
 			}
 		} else {
 			permStr = fmt.Sprintf("Error decoding permit: %v\n", eDecode)
