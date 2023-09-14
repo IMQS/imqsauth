@@ -1,6 +1,10 @@
 # Changelog
 
 ## Current
+* feat: New "health" package for maintenance and health related actions
+* feat: New "healthcheck" CLI function - stats re. users, missing groups and 
+orphaned tokens (ASG-2921)
+* feat: New "fixdb" CLI function - to remove missing groups from permits (ASG-2921)
 
 * fix: Update authaus to v1.0.34
 

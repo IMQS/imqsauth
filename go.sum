@@ -1,8 +1,8 @@
 github.com/BurntSushi/migration v0.0.0-20140125045755-c45b897f1335 h1:n8o916boOorBHMGywZ+ucvUZRLIvjt2CaY/694CgMfU=
 github.com/BurntSushi/migration v0.0.0-20140125045755-c45b897f1335/go.mod h1:eVEKGm5N/F2XPdHocE3gP//Ab+rb/54WJ7XXtFGxwaQ=
 github.com/BurntSushi/toml v1.0.0 h1:dtDWrepsVPfW9H/4y7dDgFc2MBUSeJhlaDtK13CxFlU=
-github.com/IMQS/authaus v1.0.34 h1:QToxw0ZPvoaKd/9EuA1xK99JW9E7bdpEqU20zRqvUXE=
-github.com/IMQS/authaus v1.0.34/go.mod h1:Y8OTve3XI+DEagXTis8SwlgjQ4EIzd8iC+thTnWVITc=
+github.com/IMQS/authaus v1.0.35 h1:TQQTOrAW8w3dsihuv6yxk6fYkEep8/DdCdEj6iz7MhU=
+github.com/IMQS/authaus v1.0.35/go.mod h1:Y8OTve3XI+DEagXTis8SwlgjQ4EIzd8iC+thTnWVITc=
 github.com/IMQS/cli v0.0.0-20151022082634-156324308096 h1:VffSY+13RAsa1X+AWA7/ftPqMoW76RHL+t4Ys6q43c0=
 github.com/IMQS/cli v0.0.0-20151022082634-156324308096/go.mod h1:y2XQLPuROeqlwkjD/fieklY8cTCqFIh5OWNwsgrrwa8=
 github.com/IMQS/gowinsvc v0.0.0-20220601052852-62ce07b0ae0b h1:UoYC6fmg+eG8QgfYiXEvzrAjXzqnvX4rOo50O7CXeZM=
@@ -15,8 +15,8 @@ github.com/IMQS/serviceconfigsgo v1.0.0/go.mod h1:Sal40iFTM7BqULDKrOwKuAV4swyPeC
 github.com/IMQS/serviceconfigsgo v1.0.3 h1:dYxGGfNWdDxg8P/cUjbJmY8MtqbK6q/8dFLQC0C2dLM=
 github.com/IMQS/serviceconfigsgo v1.0.3/go.mod h1:jszIaBr45YlF7p9TjCV86wrhQ742T0IjoEAEiBRhk4Q=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
-github.com/google/go-cmp v0.3.1 h1:Xye71clBPdm5HgqGwUkwhbynsUJZhDbS20FvLhQ2izg=
 github.com/google/go-cmp v0.3.1/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
+github.com/google/go-cmp v0.5.8 h1:e6P7q2lk1O+qJJb4BtCQXlK8vWEO8V1ZeuEdJNOqZyg=
 github.com/google/uuid v1.1.1 h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=
 github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/lib/pq v1.2.0 h1:LXpIM/LZ5xGFhOpXAQUIMM1HdyqzVYM13zNdjCEEcA0=
@@ -33,8 +33,10 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKsk=
 golang.org/x/crypto v0.0.0-20220314234716-a5774263c1e0 h1:VX5DDcOISmzJbt7ej5lyL1TxQc9dHTtNcTABzu1UsTw=
 golang.org/x/crypto v0.0.0-20220314234716-a5774263c1e0/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
-golang.org/x/sys v0.0.0-20211111213525-f221eed1c01e h1:zeJt6jBtVDK23XK9QXcmG0FvO0elikp0dYZQZOeL1y0=
-golang.org/x/sys v0.0.0-20211111213525-f221eed1c01e/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/exp v0.0.0-20230905200255-921286631fa9 h1:GoHiUyI/Tp2nVkLI2mCxVkOjsbSXD66ic0XW0js0R9g=
+golang.org/x/exp v0.0.0-20230905200255-921286631fa9/go.mod h1:S2oDrQGGwySpoQPVqRShND87VCbxmc6bL1Yd2oYrm6k=
+golang.org/x/sys v0.12.0 h1:CM0HF96J0hcLAwsHPJZjfdNzs0gftsLfgKt57wWHJ0o=
+golang.org/x/sys v0.12.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 gopkg.in/natefinch/lumberjack.v2 v2.0.0 h1:1Lc07Kr7qY4U2YPouBjpCLxpiyxIVoxqXgkXLknAOE8=
 gopkg.in/yaml.v2 v2.4.0 h1:D8xgwECY7CYvx+Y2n4sBz93Jn9JRvxdiyyo8CTfuKaY=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
