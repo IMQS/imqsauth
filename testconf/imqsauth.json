@@ -1,0 +1,18 @@
+{
+	"Authaus": {
+		"Log": {
+			"Filename": "./log/imqsauth.log"
+		},
+		"HTTP": {
+			"Bind": "0.0.0.0",
+			"Port": "2003"
+		},
+		"DB": {
+			"Driver": "postgres",
+			"Host": "127.0.0.1",
+			"Database": "unittest_auth",
+			"User": "unittest_user",
+			"Password": "unittest_password"
+		}
+	}
+}

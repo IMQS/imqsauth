@@ -193,6 +193,31 @@ Any accounts created prior to the LDAP switch, that have a username that ALSO ex
 
 The fully documented API can be found [here](API.md).
 
+## CLI
+
+The auth system has a CLI that can be used to perform various tasks. The CLI is 
+included in the `imqsauth` binary. It is recommended that the service itself be 
+shut down when the CLI is used, but not strictly required for all commands.
+
+The CLI is invoked as follows:
+
+``` imqsauth [options] command [args] ```
+
+A list of commands and their usage is displayed by running `imqsauth help`.
+
+Of note are two commands not included in the REST API: `healthcheck` and `fixdb`.
+
+### healthcheck
+
+Provides detailed system statistics, including unhealthy objects like orphaned
+groups.
+
+### fixdb
+
+Can clean up and fix some of the anomalies reported from healthcheck, including
+removing references to groups that don't exist. 
+
+
 ## **Internal and design details**
 Peer review:
 

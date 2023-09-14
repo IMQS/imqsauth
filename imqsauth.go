@@ -13,6 +13,7 @@ import (
 	"github.com/IMQS/cli"
 	"github.com/IMQS/gowinsvc/service"
 	auth "github.com/IMQS/imqsauth/auth"
+	"github.com/IMQS/imqsauth/health"
 	serviceconfig "github.com/IMQS/serviceconfigsgo"
 )
 
@@ -27,6 +28,7 @@ func main() {
 	app.DefaultExec = exec
 
 	app.AddCommand("createdb", "Create the postgres database")
+	app.AddCommand("healthcheck", "Run a consistency check against the database")
 	app.AddCommand("resetauthgroups", "Reset the [admin,enabled] groups, and few others")
 	app.AddCommand("rollbackgroups", "Roll back undesired auto-created groups from September 2019")
 
@@ -39,6 +41,7 @@ func main() {
 	createUser.AddValueOption("telephone", "text", "Telephone number")
 	createUser.AddValueOption("remarks", "text", "Remarks")
 
+	app.AddCommand("fixdb", "Fix db inconsistencies. Only remove missing groups from permits")
 	app.AddCommand("killsessions", "Erase all sessions belonging to a particular user\nWarning! The running server maintains a cache of "+
 		"sessions, so you must stop the server, run this command, and then start the server again to kill sessions correctly.", "identity")
 	app.AddCommand("setpassword", "Set a user's password in Authaus", "identity", "password")
@@ -151,6 +154,10 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		success = createDB(&ic.Config.Authaus)
 	case "createuser":
 		success = createUser(ic, options, args[0], args[1])
+	case "healthcheck":
+		success = health.Check(ic)
+	case "fixdb":
+		success = health.FixDB(ic)
 	case "killsessions":
 		success = killSessions(ic, args[0])
 	case "permgroupadd":
