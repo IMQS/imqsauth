@@ -2,7 +2,10 @@
 
 ## Current
 
-* fix: update authaus to v1.0.31 (group names and permit enumeration fix)
+## v1.2.3
+
+* fix: User management endpoints fail on missing groups
+* fix: Update authaus to v1.0.31
 
 ## v1.2.2
 
