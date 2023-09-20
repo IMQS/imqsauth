@@ -4,7 +4,7 @@
 
 ## v1.2.3
 
-* fix: User management endpoints fail on missing groups
+* fix: User management endpoints fail on missing groups (ASG-1990)
 * fix: Update authaus to v1.0.31
 
 ## v1.2.2
