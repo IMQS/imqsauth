@@ -2,6 +2,12 @@
 
 ## Current
 
+# * fix: Update to Go 1.18
+
+Our builder image was set to Go 1.16, imqsauth to 1.17 and the previous version
+of authaus to 1.17. All 3 has now been aligned to Go 1.18 in preparation for
+upgrading to 1.20.
+
 ## v1.2.3
 
 * fix: User management endpoints fail on missing groups (ASG-1990)
