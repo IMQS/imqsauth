@@ -40,27 +40,41 @@ func getIPAddress(r *http.Request) string {
 	return r.RemoteAddr
 }
 
-func auditUserLogAction(central *ImqsCentral, req *httpRequest, userId authaus.UserId, username, description string, actionType authaus.AuditActionType) {
+func firstNonBlank(a string, b string) string {
+	if a != "" {
+		return a
+	}
+	return b
+}
+
+func auditUserLogAction(central *ImqsCentral, req *httpRequest, contextUserId authaus.UserId, contextUsername, description string, actionType authaus.AuditActionType) {
 	var actorUserId authaus.UserId
 
-	var email string
-	user, eUser := central.Central.GetUserFromIdentity(username)
+	var contextEmail string
+	var contextUser authaus.AuthUser
+	var eUser error
+	if contextUsername != "" {
+		contextUser, eUser = central.Central.GetUserFromIdentity(contextUsername)
+	} else {
+		contextUser, eUser = central.Central.GetUserFromUserId(contextUserId)
+	}
+
 	if eUser == nil {
-		email = user.Email
+		contextEmail = contextUser.Email
 	}
 
 	contextDetails := ContextDetails{
 		Service:  "auth",
 		Origin:   getIPAddress(req.http),
-		Username: username,
-		UserId:   int64(userId),
-		Email:    email,
+		Username: contextUsername,
+		UserId:   int64(contextUserId),
+		Email:    contextEmail,
 	}
 
 	if req.token != nil {
 		actorUserId = req.token.UserId
 	} else {
-		actorUserId = userId
+		actorUserId = contextUserId
 	}
 
 	contextData, err := json.Marshal(contextDetails)
@@ -70,9 +84,9 @@ func auditUserLogAction(central *ImqsCentral, req *httpRequest, userId authaus.U
 
 	if central.Central.Auditor != nil {
 		if user, err := central.Central.GetUserFromUserId(authaus.UserId(actorUserId)); err == nil {
-			central.Central.Auditor.AuditUserAction(user.Username, description, string(contextData), actionType)
+			central.Central.Auditor.AuditUserAction(firstNonBlank(user.Username, user.Email), description, string(contextData), actionType)
 		} else {
-			central.Central.Auditor.AuditUserAction(username, description, string(contextData), actionType)
+			central.Central.Auditor.AuditUserAction(firstNonBlank(contextUsername, contextEmail), description, string(contextData), actionType)
 		}
 	}
 }
