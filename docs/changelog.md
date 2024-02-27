@@ -1,8 +1,11 @@
 # Changelog
 
 ## Current
+
+## v1.3.0
+
 * fix: Auth Audit records wrong email if username is blank (ASG-3270) 
-* fix: Update authaus to v1.0.34
+* feat: Update authaus to v1.0.34
 * fix: Update to Go 1.18  
 Our builder image was set to Go 1.16, imqsauth to 1.17 and the previous version
 of authaus to 1.17. All 3 has now been aligned to Go 1.18 in preparation for
