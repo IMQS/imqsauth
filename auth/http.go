@@ -84,6 +84,7 @@ func (x *checkResponseJson) SetRoles(roles authaus.PermissionList) {
 type groupResponseJson struct {
 	Name  string
 	Roles []string
+	ID    string
 }
 
 func (x *groupResponseJson) SetGroup(group *authaus.AuthGroup) {
@@ -92,6 +93,7 @@ func (x *groupResponseJson) SetGroup(group *authaus.AuthGroup) {
 	for i, role := range group.PermList {
 		x.Roles[i] = fmt.Sprintf("%d", role)
 	}
+	x.ID = fmt.Sprintf("%d", group.ID)
 }
 
 type groupsResponseJson struct {

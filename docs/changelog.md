@@ -2,6 +2,8 @@
 
 ## Current
 
+* feat: Add group id to /groups endpoint (ASG-3348)
+
 ## v1.4.0
 
 * feat: New "health" package for maintenance and health related actions (ASG-2921)
