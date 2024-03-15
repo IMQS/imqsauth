@@ -290,7 +290,7 @@ Returns a list of groups and the roles they contain
 
 | **Responses** | **HTTP Status Code**  | **Description**                                                                         | **Schema** | **Headers** | **Example** |
 |---------------|-----------------------|-----------------------------------------------------------------------------------------|------------|-------------|-------------|
-|| 200           | Successful            ||| [{"Name":"reportviewer","Roles":["600"]},{"Name":"reportcreator","Roles":["500","501"]} |     |     |     |
+|| 200           | Successful            ||| [ { "Name": "PCS_Global", "Roles": [ "3" ], "ID": "13" }, { "Name": "DevelopmentControl", "Roles": [ "1124" ], "ID": "16" } ] |     |     |     |
 || 500           | Internal Server Error ||||     |     |     |     |
 || 404           | Not Found             ||||     |     |     |     |
 
