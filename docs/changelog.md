@@ -1,7 +1,10 @@
 # Changelog
 
 ## Current
-* feat: New "health" package for maintenance and health related actions
+
+## v1.4.0
+
+* feat: New "health" package for maintenance and health related actions (ASG-2921)
 * feat: New "healthcheck" CLI function - stats re. users, missing groups and 
 orphaned tokens (ASG-2921)
 * feat: New "fixdb" CLI function - to remove missing groups from permits (ASG-2921)
