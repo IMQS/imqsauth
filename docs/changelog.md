@@ -2,6 +2,9 @@
 
 ## Current
 
+## v1.5.0
+
+* feat: Update authaus to v1.0.36
 * feat: Add group id to /groups endpoint (ASG-3348)
 
 ## v1.4.0
