@@ -715,7 +715,7 @@ func httpHandlerLogin(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 		if eUser != nil {
 			// User does not exist (not synchronized from e.g. msaad)
 			// We specifically log this, since want to know who is trying to use this trusted login incorrectly.
-			central.Central.Log.Warnf("MSAAD passthrough for %s failed, user does not exist.")
+			central.Central.Log.Warnf("MSAAD passthrough for %s failed, user does not exist.", identity)
 			authaus.HttpSendTxt(w, http.StatusUnauthorized, authaus.ErrIdentityAuthNotFound.Error())
 			return
 		}
@@ -1230,14 +1230,11 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 		added := newPerms.Diff(&existingPerms)
 
 		// Convert to real names
-		changednames := "Added:"
-		for _, e := range *added {
-			changednames += " " + PermissionsTable[e]
-		}
-		changednames += " Removed:"
-		for _, e := range *removed {
-			changednames += " " + PermissionsTable[e]
-		}
+		changednames := "Added: "
+		changednames += permListToText(central, added)
+		changednames += " Removed: "
+		changednames += permListToText(central, removed)
+
 		description := ""
 		//set the new perms
 		group.PermList = newPerms
@@ -1264,6 +1261,22 @@ func httpHandlerSetGroupRoles(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	broadcastGroupChange(central, r, groupname)
+}
+
+func permListToText(central *ImqsCentral, permList *authaus.PermissionList) string {
+	s := ""
+	if permList == nil {
+		central.Central.Log.Warnf("permListToText: 'permList' is nil")
+		return "<error>"
+	}
+	if len(*permList) > 0 {
+		for _, e := range *permList {
+			s += " " + PermissionsTable[e]
+		}
+	} else {
+		return "<none>"
+	}
+	return strings.TrimSpace(s)
 }
 
 func broadcastGroupChange(central *ImqsCentral, r *httpRequest, groupname string) {

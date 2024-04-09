@@ -89,9 +89,11 @@ func TestDistributerPost(t *testing.T) {
 	doRequestExpectOK(t, "PUT", originHttpUrl+"/create_group?groupname=socketusergroup", cookie)
 	doRequestExpectOK(t, "POST", fmt.Sprintf("%v/set_user_groups?userid=%v&groups=enabled,socketusergroup", originHttpUrl, joeUserId), cookie)
 	doRequestExpectResponse(t, "PUT", originHttpUrl+"/set_group_roles?groupname=socketusergroup&roles=1", cookie,
-		"Group: socketusergroup roles updated: Added: admin Removed:")
+		"Group: socketusergroup roles updated: Added: admin Removed: <none>")
 	doRequestExpectResponse(t, "PUT", originHttpUrl+"/set_group_roles?groupname=socketusergroup&roles=2,3", cookie,
 		"Group: socketusergroup roles updated: Added: enabled pcsmoduleaccess Removed: admin")
+	doRequestExpectResponse(t, "PUT", originHttpUrl+"/set_group_roles?groupname=socketusergroup&roles=2,3", cookie,
+		"Group: socketusergroup roles updated: Added: <none> Removed: <none>")
 }
 
 func doRequest(verb, url, cookie string) (*http.Response, error) {
