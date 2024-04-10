@@ -2,6 +2,8 @@
 
 ## Current
 
+## v1.5.1
+
 * feat: Write empty permission list as <none> for Group Perm updates (ASG-3387)
 * fix: Fix missing variable in MSAAD log
 
