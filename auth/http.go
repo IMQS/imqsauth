@@ -255,7 +255,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/reset_password_finish", x.makeHandler(HttpMethodPost, httpHandlerResetPasswordFinish, 0))
 	smux.HandleFunc("/users", x.makeHandler(HttpMethodGet, httpHandlerGetEmails, handlerFlagNeedToken))
 	smux.HandleFunc("/userobjects", x.makeHandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/userobject", x.makeHandler(HttpMethodGet, httpHandlerGetUser, 0))
+	smux.HandleFunc("/userobject", x.makeHandler(HttpMethodGet, httpHandlerGetUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/groups", x.makeHandler(HttpMethodGet, httpHandlerGetGroups, 0))
 	smux.HandleFunc("/exportgroups", x.makeHandler(HttpMethodGet, httpHandlerExportUserGroups, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/importgroups", x.makeHandler(HttpMethodPost, httpHandlerImportUserGroups, handlerFlagNeedInterService))
@@ -533,10 +533,9 @@ func getPermitsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm m
 	return jresponse, nil
 }
 
-func getUserObjectJSON(central *ImqsCentral, user authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit) (*userResponseJson, error) {
+func getUserObjectJSON(central *ImqsCentral, user authaus.AuthUser, permit *authaus.Permit) (*userResponseJson, error) {
 	emptyPermit := authaus.Permit{}
 
-	permit := ident2perm[user.UserId]
 	if permit == nil {
 		permit = &emptyPermit
 	}
@@ -1696,13 +1695,13 @@ func httpHandlerGetUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 		}
 	}
 
-	ident2perm, err := central.Central.GetPermits()
+	permit, err := central.Central.GetPermit(user.UserId)
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	jresponse, err := getUserObjectJSON(central, user, ident2perm)
+	jresponse, err := getUserObjectJSON(central, user, permit)
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 		return
