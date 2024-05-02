@@ -104,26 +104,6 @@ type groupsResponseJson struct {
 	Groups   []string
 }
 
-type userResponseJson struct {
-	UserId        authaus.UserId
-	Email         string
-	Username      string
-	Name          string
-	Surname       string
-	Mobile        string
-	Telephone     string
-	Remarks       string
-	Created       time.Time
-	CreatedBy     string
-	Modified      time.Time
-	ModifiedBy    string
-	Groups        []string
-	AuthUserType  authaus.AuthUserType
-	Archived      bool
-	AccountLocked bool
-	InternalUUID  string
-}
-
 type userGroups struct {
 	Groups          []authaus.RawAuthGroup
 	Users           []exportGroupUser
@@ -533,7 +513,7 @@ func getPermitsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm m
 	return jresponse, nil
 }
 
-func getUserObjectJSON(central *ImqsCentral, user authaus.AuthUser, permit *authaus.Permit) (*userResponseJson, error) {
+func getUserObjectJSON(central *ImqsCentral, user authaus.AuthUser, permit *authaus.Permit) (*serviceauth.UserObject, error) {
 	emptyPermit := authaus.Permit{}
 
 	if permit == nil {
@@ -553,9 +533,9 @@ func getUserObjectJSON(central *ImqsCentral, user authaus.AuthUser, permit *auth
 		central.Central.Log.Warnf("issue fetching group names for user %v : %v", user.UserId, err)
 	}
 
-	jresponse := &userResponseJson{
+	jresponse := &serviceauth.UserObject{
 		Email:         user.Email,
-		UserId:        user.UserId,
+		UserId:        int64(user.UserId),
 		Username:      user.Username,
 		Name:          user.Firstname,
 		Surname:       user.Lastname,
@@ -567,7 +547,7 @@ func getUserObjectJSON(central *ImqsCentral, user authaus.AuthUser, permit *auth
 		Modified:      user.Modified,
 		ModifiedBy:    central.Central.GetUserNameFromUserId(user.ModifiedBy),
 		Groups:        groupnames,
-		AuthUserType:  user.Type,
+		AuthUserType:  int(user.Type),
 		Archived:      user.Archived,
 		AccountLocked: user.AccountLocked,
 		InternalUUID:  user.InternalUUID,
@@ -578,11 +558,11 @@ func getUserObjectJSON(central *ImqsCentral, user authaus.AuthUser, permit *auth
 
 // getUserObjectsJSON is specifically used for large list of users
 // due to its caching capabilities
-func getUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit) ([]*userResponseJson, error) {
+func getUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit) ([]*serviceauth.UserObject, error) {
 	emptyPermit := authaus.Permit{}
 
 	groupCache := map[authaus.GroupIDU32]string{}
-	jresponse := make([]*userResponseJson, 0)
+	jresponse := make([]*serviceauth.UserObject, 0)
 
 	//'users' is an array of AuthUser, which already contains the name and surname of the user
 	// we can re-map it to serve as a lookup later in the jresponse code
@@ -618,9 +598,9 @@ func getUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2pe
 			central.Central.Log.Warnf("issue fetching group names for user %v : %v", user.UserId, err)
 		}
 
-		jresponse = append(jresponse, &userResponseJson{
+		jresponse = append(jresponse, &serviceauth.UserObject{
 			Email:         user.Email,
-			UserId:        user.UserId,
+			UserId:        int64(user.UserId),
 			Username:      user.Username,
 			Name:          user.Firstname,
 			Surname:       user.Lastname,
@@ -632,7 +612,7 @@ func getUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2pe
 			Modified:      user.Modified,
 			ModifiedBy:    usernamemap[user.ModifiedBy],
 			Groups:        groupnames,
-			AuthUserType:  user.Type,
+			AuthUserType:  int(user.Type),
 			Archived:      user.Archived,
 			AccountLocked: user.AccountLocked,
 			InternalUUID:  user.InternalUUID,
@@ -643,9 +623,9 @@ func getUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2pe
 }
 
 // To filter users with withPerm permission,
-func filterUserObjectsByPermission(users []*userResponseJson, central *ImqsCentral, ident2perm map[authaus.UserId]*authaus.Permit, perm authaus.PermissionU16) ([]*userResponseJson, error) {
+func filterUserObjectsByPermission(users []*serviceauth.UserObject, central *ImqsCentral, ident2perm map[authaus.UserId]*authaus.Permit, perm authaus.PermissionU16) ([]*serviceauth.UserObject, error) {
 	emptyPermit := authaus.Permit{}
-	jFiltered := make([]*userResponseJson, 0)
+	jFiltered := make([]*serviceauth.UserObject, 0)
 
 	if perm == 0 {
 		return append(jFiltered, users...), nil
@@ -664,7 +644,7 @@ func filterUserObjectsByPermission(users []*userResponseJson, central *ImqsCentr
 	}
 
 	for _, user := range users {
-		permit := ident2perm[user.UserId]
+		permit := ident2perm[authaus.UserId(user.UserId)]
 		if permit == nil { // here we INCLUDE permits for archived users
 			permit = &emptyPermit
 		}
@@ -1676,7 +1656,7 @@ func httpHandlerGetUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequ
 	var err error
 
 	if strUserId != "" {
-		userId, err := strconv.Atoi(strUserId)
+		userId, err := strconv.ParseInt(strUserId, 10, 64)
 		if err != nil {
 			authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Invalid parameter: %v", strUserId))
 			return
