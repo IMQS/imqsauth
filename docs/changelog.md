@@ -2,6 +2,10 @@
 
 ## Current
 
+## v1.6.0
+
+* feat: Adds userobject GET endpoint (#95) (ASG-3308)
+
 ## v1.5.1
 
 * feat: Write empty permission list as <none> for Group Perm updates (ASG-3387)
