@@ -104,26 +104,6 @@ type groupsResponseJson struct {
 	Groups   []string
 }
 
-type userResponseJson struct {
-	UserId        authaus.UserId
-	Email         string
-	Username      string
-	Name          string
-	Surname       string
-	Mobile        string
-	Telephone     string
-	Remarks       string
-	Created       time.Time
-	CreatedBy     string
-	Modified      time.Time
-	ModifiedBy    string
-	Groups        []string
-	AuthUserType  authaus.AuthUserType
-	Archived      bool
-	AccountLocked bool
-	InternalUUID  string
-}
-
 type userGroups struct {
 	Groups          []authaus.RawAuthGroup
 	Users           []exportGroupUser
@@ -255,6 +235,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/reset_password_finish", x.makeHandler(HttpMethodPost, httpHandlerResetPasswordFinish, 0))
 	smux.HandleFunc("/users", x.makeHandler(HttpMethodGet, httpHandlerGetEmails, handlerFlagNeedToken))
 	smux.HandleFunc("/userobjects", x.makeHandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
+	smux.HandleFunc("/userobject", x.makeHandler(HttpMethodGet, httpHandlerGetUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/groups", x.makeHandler(HttpMethodGet, httpHandlerGetGroups, 0))
 	smux.HandleFunc("/exportgroups", x.makeHandler(HttpMethodGet, httpHandlerExportUserGroups, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/importgroups", x.makeHandler(HttpMethodPost, httpHandlerImportUserGroups, handlerFlagNeedInterService))
@@ -532,11 +513,56 @@ func getPermitsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm m
 	return jresponse, nil
 }
 
-func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit, w http.ResponseWriter) ([]*userResponseJson, error) {
+func getUserObjectJSON(central *ImqsCentral, user authaus.AuthUser, permit *authaus.Permit) (*serviceauth.UserObject, error) {
+	emptyPermit := authaus.Permit{}
+
+	if permit == nil {
+		permit = &emptyPermit
+	}
+
+	groups, err := authaus.DecodePermit(permit.Roles)
+	if err != nil {
+		return nil, err
+	}
+	groupCache := map[authaus.GroupIDU32]string{}
+	groupnames, err := authaus.GroupIDsToNames(groups, central.Central.GetRoleGroupDB(), groupCache)
+	if err != nil && groupnames == nil {
+		e := fmt.Errorf("error fetching group names for user %v : %v", user.UserId, err)
+		return nil, e
+	} else if err != nil {
+		central.Central.Log.Warnf("issue fetching group names for user %v : %v", user.UserId, err)
+	}
+
+	jresponse := &serviceauth.UserObject{
+		Email:         user.Email,
+		UserId:        int64(user.UserId),
+		Username:      user.Username,
+		Name:          user.Firstname,
+		Surname:       user.Lastname,
+		Mobile:        user.Mobilenumber,
+		Telephone:     user.Telephonenumber,
+		Remarks:       user.Remarks,
+		Created:       user.Created,
+		CreatedBy:     central.Central.GetUserNameFromUserId(user.CreatedBy),
+		Modified:      user.Modified,
+		ModifiedBy:    central.Central.GetUserNameFromUserId(user.ModifiedBy),
+		Groups:        groupnames,
+		AuthUserType:  int(user.Type),
+		Archived:      user.Archived,
+		AccountLocked: user.AccountLocked,
+		InternalUUID:  user.InternalUUID,
+	}
+
+	return jresponse, nil
+}
+
+// getUserObjectsJSON is specifically used for large list of users
+// due to its caching capabilities
+func getUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2perm map[authaus.UserId]*authaus.Permit) ([]*serviceauth.UserObject, error) {
 	emptyPermit := authaus.Permit{}
 
 	groupCache := map[authaus.GroupIDU32]string{}
-	jresponse := make([]*userResponseJson, 0)
+	jresponse := make([]*serviceauth.UserObject, 0)
 
 	//'users' is an array of AuthUser, which already contains the name and surname of the user
 	// we can re-map it to serve as a lookup later in the jresponse code
@@ -572,9 +598,9 @@ func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ide
 			central.Central.Log.Warnf("issue fetching group names for user %v : %v", user.UserId, err)
 		}
 
-		jresponse = append(jresponse, &userResponseJson{
+		jresponse = append(jresponse, &serviceauth.UserObject{
 			Email:         user.Email,
-			UserId:        user.UserId,
+			UserId:        int64(user.UserId),
 			Username:      user.Username,
 			Name:          user.Firstname,
 			Surname:       user.Lastname,
@@ -586,7 +612,7 @@ func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ide
 			Modified:      user.Modified,
 			ModifiedBy:    usernamemap[user.ModifiedBy],
 			Groups:        groupnames,
-			AuthUserType:  user.Type,
+			AuthUserType:  int(user.Type),
 			Archived:      user.Archived,
 			AccountLocked: user.AccountLocked,
 			InternalUUID:  user.InternalUUID,
@@ -597,9 +623,9 @@ func httpSendUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ide
 }
 
 // To filter users with withPerm permission,
-func filterUserObjectsByPermission(users []*userResponseJson, central *ImqsCentral, ident2perm map[authaus.UserId]*authaus.Permit, perm authaus.PermissionU16) ([]*userResponseJson, error) {
+func filterUserObjectsByPermission(users []*serviceauth.UserObject, central *ImqsCentral, ident2perm map[authaus.UserId]*authaus.Permit, perm authaus.PermissionU16) ([]*serviceauth.UserObject, error) {
 	emptyPermit := authaus.Permit{}
-	jFiltered := make([]*userResponseJson, 0)
+	jFiltered := make([]*serviceauth.UserObject, 0)
 
 	if perm == 0 {
 		return append(jFiltered, users...), nil
@@ -618,7 +644,7 @@ func filterUserObjectsByPermission(users []*userResponseJson, central *ImqsCentr
 	}
 
 	for _, user := range users {
-		permit := ident2perm[user.UserId]
+		permit := ident2perm[authaus.UserId(user.UserId)]
 		if permit == nil { // here we INCLUDE permits for archived users
 			permit = &emptyPermit
 		}
@@ -1616,6 +1642,54 @@ func httpHandlerGetEmails(central *ImqsCentral, w http.ResponseWriter, r *httpRe
 	httpSendPermitsJson(central, users, ident2perm, w)
 }
 
+func httpHandlerGetUser(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+
+	strUserId := strings.TrimSpace(r.http.URL.Query().Get("userid"))
+	identity := strings.TrimSpace(r.http.URL.Query().Get("identity"))
+
+	if strUserId == "" && identity == "" {
+		authaus.HttpSendTxt(w, http.StatusBadRequest, "No parameter given")
+		return
+	}
+
+	var user authaus.AuthUser
+	var err error
+
+	if strUserId != "" {
+		userId, err := strconv.ParseInt(strUserId, 10, 64)
+		if err != nil {
+			authaus.HttpSendTxt(w, http.StatusBadRequest, fmt.Sprintf("Invalid parameter: %v", strUserId))
+			return
+		}
+
+		user, err = central.Central.GetUserFromUserId(authaus.UserId(userId))
+		if err != nil {
+			authaus.HttpSendTxt(w, http.StatusNotFound, err.Error())
+			return
+		}
+	} else if identity != "" {
+		user, err = central.Central.GetUserFromIdentity(identity)
+		if err != nil {
+			authaus.HttpSendTxt(w, http.StatusNotFound, err.Error())
+			return
+		}
+	}
+
+	permit, err := central.Central.GetPermit(user.UserId)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	jresponse, err := getUserObjectJSON(central, user, permit)
+	if err != nil {
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	httpSendJson(w, jresponse)
+}
+
 func httpHandlerGetUsers(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	includeArchived := strings.TrimSpace(r.http.URL.Query().Get("archived"))
 	var getIdentitiesFlag authaus.GetIdentitiesFlag
@@ -1639,7 +1713,7 @@ func httpHandlerGetUsers(central *ImqsCentral, w http.ResponseWriter, r *httpReq
 		return
 	}
 
-	jresponse, err := httpSendUserObjectsJSON(central, users, ident2perm, w)
+	jresponse, err := getUserObjectsJSON(central, users, ident2perm)
 	if err != nil {
 		authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 		return
