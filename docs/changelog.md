@@ -2,6 +2,10 @@
 
 ## Current
 
+## v1.6.1
+
+* fix: Add missing log statements to align normal login logs with OAuth logs 
+
 ## v1.6.0
 
 * feat: Adds userobject GET endpoint (#95) (ASG-3308)
