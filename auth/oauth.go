@@ -100,6 +100,9 @@ func (icentral *ImqsCentral) oauthFinishInternal(w http.ResponseWriter, r *httpR
 		return err
 	}
 	icentral.setSessionCookie(sessionKey, token, w)
+
+	// User successfully logged in
+	icentral.Central.Log.Infof("OAuth login successful (%v)", user.UserId)
 	return nil
 }
 
