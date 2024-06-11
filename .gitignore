@@ -9,3 +9,15 @@ __debug_bin
 /imqsauth.log
 /tools/listanddiff/--.--.--.--_AuthGroups PreProd.zip
 /tools/listanddiff/--.--.--.--_AuthGroups PROD.zip
+/tools/listanddiff/AuthGroupsPreProd.csv
+/tools/listanddiff/AuthGroupsPreProd.json
+/tools/listanddiff/AuthGroupsProd.csv
+/tools/listanddiff/AuthGroupsProd.json
+/tools/listanddiff/go_build_listanddiff_go.exe
+/tools/listanddiff/imqsauth.json
+/tools/listanddiff/imqsauth2.json
+/tools/listanddiff/listanddiff.exe
+/tools/listanddiff/output.csv
+/tools/listanddiff/output.xlsx
+/tools/listanddiff/AuthGroups PreProd/
+/tools/listanddiff/AuthGroups PROD/
