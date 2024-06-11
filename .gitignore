@@ -1,9 +1,32 @@
-docs/build
 .idea/
-imqsauth
-test-output
+/imqsauth.exe
+/imqsauth.log
+/log/
+/tools/Data/Working/
+/tools/Data/Working/AuthGroups_2023_12_21/AuthGroups_2023_12_21.json
+/tools/listanddiff/*.xlsx
+/tools/listanddiff/*.zip
+/tools/listanddiff/AuthGroups PROD/
+/tools/listanddiff/AuthGroups PreProd/
+/tools/listanddiff/AuthGroups QA/
+/tools/listanddiff/AuthGroupsPreProd.csv
+/tools/listanddiff/AuthGroupsPreProd.json
+/tools/listanddiff/AuthGroupsProd.csv
+/tools/listanddiff/AuthGroupsProd.json
+/tools/listanddiff/AuthGroupsQA.csv
+/tools/listanddiff/AuthGroupsQA.json
+/tools/listanddiff/AuthGroupsTRN.json
+/tools/listanddiff/AuthGroups_2023_12_21.csv
+/tools/listanddiff/AuthGroups_2023_12_21.json
+/tools/listanddiff/authmap.json
+/tools/listanddiff/authmap2.json
+/tools/listanddiff/go_build_listanddiff_go.exe
+/tools/listanddiff/imqsauth.json
+/tools/listanddiff/imqsauth2.json
+/tools/listanddiff/listanddiff.exe
+/tools/listanddiff/output.csv
 Dockerfile-gotest
 __debug_bin
-/imqsauth.exe
-/log/
-/imqsauth.log
+docs/build
+imqsauth
+test-output
