@@ -144,18 +144,18 @@ func compareGroups(w *strings.Builder, sourceAuth *AuthClean, targetAuth *AuthCl
 		for _, g2 := range targetAuth.Groups {
 			if g.Name == g2.Name {
 				found = true
-				e := comparePermissions(w, targetAuth.Source, g.Name, g.PermList, g2.PermList, permsMap)
+				e := comparePermissions(w, targetAuth.Source, sourceAuth.Source, g.Name, g.PermList, g2.PermList, permsMap)
 				if e != nil {
 					return e
 				}
-				e = comparePermissions(w, sourceAuth.Source, g2.Name, g2.PermList, g.PermList, permsMap)
+				e = comparePermissions(w, sourceAuth.Source, targetAuth.Source, g2.Name, g2.PermList, g.PermList, permsMap)
 				if e != nil {
 					return e
 				}
 			}
 		}
 		if !found {
-			e := printDiffLine(w, g.Name, 0, "", fmt.Sprintf("Group \"%s\" not found in %s\n", g.Name, targetAuth.Source))
+			e := printDiffLine(w, g.Name, 0, "", fmt.Sprintf("Group not found in %s (from %s)\n", targetAuth.Source, sourceAuth.Source))
 			if e != nil {
 				return e
 			}
@@ -172,7 +172,7 @@ func compareGroups(w *strings.Builder, sourceAuth *AuthClean, targetAuth *AuthCl
 			}
 		}
 		if !found {
-			e := printDiffLine(w, g.Name, 0, "", fmt.Sprintf("Group \"%s\" not found in %s\n", g.Name, sourceAuth.Source))
+			e := printDiffLine(w, g.Name, 0, "", fmt.Sprintf("Group not found in %s (from %s)\n", sourceAuth.Source, targetAuth.Source))
 			if e != nil {
 				return e
 			}
@@ -181,7 +181,7 @@ func compareGroups(w *strings.Builder, sourceAuth *AuthClean, targetAuth *AuthCl
 	return nil
 }
 
-func comparePermissions(w *strings.Builder, targetName string, groupName string, sourceList PermissionList, targetList PermissionList, permsMap map[int]string) error {
+func comparePermissions(w *strings.Builder, targetName string, sourceName string, groupName string, sourceList PermissionList, targetList PermissionList, permsMap map[int]string) error {
 	for _, p := range sourceList {
 		found := false
 		for j := 0; j < len(targetList); j++ {
@@ -192,7 +192,7 @@ func comparePermissions(w *strings.Builder, targetName string, groupName string,
 
 		}
 		if !found {
-			e := printDiffLine(w, groupName, int(p), permsMap[int(p)], fmt.Sprintf("Not found in %s\n", targetName))
+			e := printDiffLine(w, groupName, int(p), permsMap[int(p)], fmt.Sprintf("Not found in %s (from %s)\n", targetName, sourceName))
 			if e != nil {
 				return e
 			}
