@@ -7,8 +7,6 @@ __debug_bin
 /imqsauth.exe
 /log/
 /imqsauth.log
-/tools/listanddiff/--.--.--.--_AuthGroups PreProd.zip
-/tools/listanddiff/--.--.--.--_AuthGroups PROD.zip
 /tools/listanddiff/AuthGroupsPreProd.csv
 /tools/listanddiff/AuthGroupsPreProd.json
 /tools/listanddiff/AuthGroupsProd.csv
@@ -18,6 +16,13 @@ __debug_bin
 /tools/listanddiff/imqsauth2.json
 /tools/listanddiff/listanddiff.exe
 /tools/listanddiff/output.csv
-/tools/listanddiff/output.xlsx
 /tools/listanddiff/AuthGroups PreProd/
 /tools/listanddiff/AuthGroups PROD/
+/tools/listanddiff/AuthGroups QA/
+/tools/listanddiff/AuthGroupsQA.json
+/tools/listanddiff/AuthGroupsQA.csv
+/tools/listanddiff/AuthGroups_2023_12_21.csv
+/tools/Data/Working/AuthGroups_2023_12_21/AuthGroups_2023_12_21.json
+/tools/listanddiff/AuthGroups_2023_12_21.json
+/tools/listanddiff/*.zip
+/tools/listanddiff/*.xlsx

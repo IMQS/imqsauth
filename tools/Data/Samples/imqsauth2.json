@@ -1,0 +1,3590 @@
+{
+  "Permissions": {
+    "dynamic": [
+      {
+        "id": "15096",
+        "name": "HSProjectBaselineAccess",
+        "friendly": "(HS) Allows user to access Project Baselines",
+        "description": "(HS) Allows user to access Project Baselines",
+        "module": "HS"
+      },
+      {
+        "id": "15097",
+        "name": "HSProjectBaselineView",
+        "friendly": "(HS) Allows user to view Project Baselines",
+        "description": "(HS) Allows user to view Project Baselines",
+        "module": "HS"
+      },
+      {
+        "id": "15098",
+        "name": "HSProjectBaselineEdit",
+        "friendly": "(HS) Allows user to edit Project Baselines",
+        "description": "(HS) Allows user to edit Project Baselines",
+        "module": "HS"
+      },
+      {
+        "id": "15099",
+        "name": "HSProjectBaselineAdd",
+        "friendly": "(HS) Allows user to add Project Baselines",
+        "description": "(HS) Allows user to add Project Baselines",
+        "module": "HS"
+      },
+      {
+        "id": "15100",
+        "name": "HSProjectBaselineDelete",
+        "friendly": "(HS) Allows user to delete Project Baselines",
+        "description": "(HS) Allows user to delete Project Baselines",
+        "module": "HS"
+      },
+      {
+        "id": "22000",
+        "name": "hsModuleAccess",
+        "friendly": "HS Module Access",
+        "description": "Allows the user to acces the HS Module",
+        "module": "HS"
+      },
+      {
+        "id": "22051",
+        "name": "HSProjectBudgetCostView",
+        "friendly": "(HS) Project Budget Project Cost View",
+        "description": "(HS) Allows user to view the Project Cost Card",
+        "module": "HS"
+      },
+      {
+        "id": "22052",
+        "name": "HSProjectBudgetCostEdit",
+        "friendly": "(HS) Project Budget Project Cost Edit",
+        "description": "(HS) Allows user to edit the Project Cost Card",
+        "module": "HS"
+      },
+      {
+        "id": "22053",
+        "name": "HSProjectTenderAccess",
+        "friendly": "(HS) Project Tenders Access",
+        "description": "(HS) Allows the user to access the Tenders LHN item",
+        "module": "HS"
+      },
+      {
+        "id": "22054",
+        "name": "HSProjectTenderView",
+        "friendly": "(HS) Project Tender View",
+        "description": "(HS) Allows the user to View Tenders",
+        "module": "HS"
+      },
+      {
+        "id": "22055",
+        "name": "HSProjectTenderEdit",
+        "friendly": "(HS) Project Tender Edit",
+        "description": "(HS) Allows the user to Edit Tenders",
+        "module": "HS"
+      },
+      {
+        "id": "22056",
+        "name": "HSProjectTenderAdd",
+        "friendly": "(HS) Project Tender Add",
+        "description": "(HS) Allows the user to Add Tenders",
+        "module": "HS"
+      },
+      {
+        "id": "22057",
+        "name": "HSProjectTenderDelete",
+        "friendly": "(HS) Project Tender Delete",
+        "description": "(HS) Allows the user to Delete Tenders",
+        "module": "HS"
+      },
+      {
+        "id": "23010",
+        "name": "HSProjectSubModuleAccess",
+        "friendly": "(HS) Project Sub Module Access",
+        "description": "(HS) Allows the user to access the Project Sub Module.",
+        "module": "HS"
+      },
+      {
+        "id": "23011",
+        "name": "HSProgrammeSubModuleAccess",
+        "friendly": "(HS) Programme Sub Module Access",
+        "description": "(HS) Allows the user to access the Programme Sub Module.",
+        "module": "HS"
+      },
+      {
+        "id": "23012",
+        "name": "HSBudgetSubModuleAccess",
+        "friendly": "(HS) Budget Sub Module Access",
+        "description": "(HS) Allows the user to access the Budget Sub Module.",
+        "module": "HS"
+      },
+      {
+        "id": "23014",
+        "name": "HSSetupSubModuleAccess",
+        "friendly": "(HS) Setup Sub Module Access",
+        "description": "(HS) Allows the user to access the Setup Sub Module.",
+        "module": "HS"
+      },
+      {
+        "id": "23020",
+        "name": "HSProjectOverviewAccess",
+        "friendly": "(HS) Project Overview Access",
+        "description": "(HS) Allows the user to access the Project List.",
+        "module": "HS"
+      },
+      {
+        "id": "23030",
+        "name": "HSProjectListAccess",
+        "friendly": "(HS) Project List Access",
+        "description": "(HS) Allows the user access to the Project List.",
+        "module": "HS"
+      },
+      {
+        "id": "23031",
+        "name": "HSProjectListFullAccess",
+        "friendly": "(HS) Project List Full Access",
+        "description": "(HS) Allows the user access to all the records in the Project List.",
+        "module": "HS"
+      },
+      {
+        "id": "23032",
+        "name": "HSProjectListLimitedAccess",
+        "friendly": "(HS) Project List Limited Access",
+        "description": "(HS) Allows the user access to only the projects they are a part of as a Resource, Service Provider or Contractor.",
+        "module": "HS"
+      },
+      {
+        "id": "23033",
+        "name": "HSProjectListQuickDetailsAccess",
+        "friendly": "(HS) Project List Quick Details Access",
+        "description": "(HS) Allows the user to access the Quick Details of a record in the Project List.",
+        "module": "HS"
+      },
+      {
+        "id": "23034",
+        "name": "HSProjectListProjectView",
+        "friendly": "(HS) Project List Project View",
+        "description": "(HS) Allows the user to view a Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23035",
+        "name": "HSProjectListProjectEdit",
+        "friendly": "(HS) Project List Project Edit",
+        "description": "(HS) Allows the user to edit a Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23036",
+        "name": "HSProjectListProjectDelete",
+        "friendly": "(HS) Project List Project Delete",
+        "description": "(HS) Allows the user to Retire a Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23037",
+        "name": "HSProjectListProjectUnlock",
+        "friendly": "(HS) Allows the user to unlock Projects",
+        "description": "(HS) Allows the user to unlock Projects.",
+        "module": "HS"
+      },
+      {
+        "id": "23038",
+        "name": "HSProjectListViewLockedProjects",
+        "friendly": "(HS) Project List View Locked Projects",
+        "description": "(HS) Allows the user to filter locked Projects.",
+        "module": "HS"
+      },
+      {
+        "id": "23040",
+        "name": "HSProjectAdd",
+        "friendly": "(HS) Project Add",
+        "description": "(HS) Allows the user to add a Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23041",
+        "name": "HSProjectStateRequest",
+        "friendly": "(HS) Project State Request",
+        "description": "(HS) Allows the user to request a Project State.",
+        "module": "HS"
+      },
+      {
+        "id": "23042",
+        "name": "HSProjectStateCancel",
+        "friendly": "(HS) Project State Cancel",
+        "description": "(HS) Allows the user to cancel a Project State.",
+        "module": "HS"
+      },
+      {
+        "id": "23043",
+        "name": "HSProjectStateApprove",
+        "friendly": "(HS) Project State Approve",
+        "description": "(HS) Allows the user to approve a Project State.",
+        "module": "HS"
+      },
+      {
+        "id": "23044",
+        "name": "HSProjectStateReject",
+        "friendly": "(HS) Project State Reject",
+        "description": "(HS) Allows the user to reject a Project State.",
+        "module": "HS"
+      },
+      {
+        "id": "23045",
+        "name": "HSProjectStateRevert",
+        "friendly": "(HS) Project State Revert",
+        "description": "(HS) Allows the user to revert a Project State.",
+        "module": "HS"
+      },
+      {
+        "id": "23050",
+        "name": "HSProjectHubAccess",
+        "friendly": "(HS) Project Hub Access",
+        "description": "(HS) Allows the user access to the Hub.",
+        "module": "HS"
+      },
+      {
+        "id": "23051",
+        "name": "HSProjectHubAddComments",
+        "friendly": "(HS) Project Hub Add Comments",
+        "description": "(HS) Allows the user to add comments.",
+        "module": "HS"
+      },
+      {
+        "id": "23052",
+        "name": "HSProjectHubViewComments",
+        "friendly": "(HS) Project Hub View Comments",
+        "description": "(HS) Allows the user to view comments.",
+        "module": "HS"
+      },
+      {
+        "id": "23060",
+        "name": "HSProjectInformationAccess",
+        "friendly": "(HS) Project Information Access",
+        "description": "(HS) Allows the user access to the Project Information page.",
+        "module": "HS"
+      },
+      {
+        "id": "23070",
+        "name": "HSProjectInfoGeneralAccess",
+        "friendly": "(HS) Project Info General Access",
+        "description": "(HS) Allows the user to access the Project Information General Tab",
+        "module": "HS"
+      },
+      {
+        "id": "23071",
+        "name": "HSProjectInfoGeneralAssetDetailsAccessView",
+        "friendly": "(HS) Project Info General Asset Details Access View",
+        "description": "(HS) Allows the user to access the Asset Details card within the General Tab in Project Information.",
+        "module": "HS"
+      },
+      {
+        "id": "23072",
+        "name": "HSProjectInfoGeneralAssetDetailsAccessEdit",
+        "friendly": "(HS) Project Info General Asset Details Access Edit",
+        "description": "(HS) Allows the user to access the Asset Details card within the General Tab in Project Information.",
+        "module": "HS"
+      },
+      {
+        "id": "23073",
+        "name": "HSProjectInfoGeneralProjectDetailsAccessView",
+        "friendly": "(HS) Project Info General Project Details Access View",
+        "description": "(HS) Allows the user to access the Project Details card within the General Tab in Project Information.",
+        "module": "HS"
+      },
+      {
+        "id": "23074",
+        "name": "HSProjectInfoGeneralProjectDetailsAccessEdit",
+        "friendly": "(HS) Project Info General Project Details Access Edit",
+        "description": "(HS) Allows the user to access the Project Details card within the General Tab in Project Information.",
+        "module": "HS"
+      },
+      {
+        "id": "23075",
+        "name": "HSProjectInfoGeneralAdditionalDetailsAccessView",
+        "friendly": "(HS) Project Info General Additional Details Access View",
+        "description": "(HS) Allows the user to access the Additional Details card within the General Tab in Project Information.",
+        "module": "HS"
+      },
+      {
+        "id": "23076",
+        "name": "HSProjectInfoGeneralAdditionalDetailsAccessEdit",
+        "friendly": "(HS) Project Info General Additional Details Access Edit",
+        "description": "(HS) Allows the user to access the Additional Details card within the General Tab in Project Information.",
+        "module": "HS"
+      },
+      {
+        "id": "23080",
+        "name": "HSProjectInformationLocationAccess",
+        "friendly": "(HS) Project Information Location Access",
+        "description": "(HS) Allows the user to access the Project Information Location Tab",
+        "module": "HS"
+      },
+      {
+        "id": "23090",
+        "name": "HSProjectInformationDescriptionAccess",
+        "friendly": "(HS) Project Information Description Access",
+        "description": "(HS) Allows the user to access the Project Information Description Tab",
+        "module": "HS"
+      },
+      {
+        "id": "23091",
+        "name": "HSProjectInformationDescriptionAccessView",
+        "friendly": "(HS) Project Information Description Access View",
+        "description": "(HS) Allows the user to access the Project Information Description Tab",
+        "module": "HS"
+      },
+      {
+        "id": "23092",
+        "name": "HSProjectInformationDescriptionAccessEdit",
+        "friendly": "(HS) Project Information Description Access Edit",
+        "description": "(HS) Allows the user to access the Project Information Description Tab",
+        "module": "HS"
+      },
+      {
+        "id": "23100",
+        "name": "HSProjectInformationProgrammeAccess",
+        "friendly": "(HS) Project Information Programme Access",
+        "description": "(HS) Allows the user to access the Project Information Programme Tab",
+        "module": "HS"
+      },
+      {
+        "id": "23120",
+        "name": "HSProjectResourcesAccess",
+        "friendly": "(HS) Project Resources Access",
+        "description": "(HS) Allows the user access to the Project Resources page.",
+        "module": "HS"
+      },
+      {
+        "id": "23121",
+        "name": "HSProjectResourcesAddResource",
+        "friendly": "(HS) Project Resources Add Resource",
+        "description": "(HS) Allows the user to add Resources to the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23122",
+        "name": "HSProjectResourcesEditResource",
+        "friendly": "(HS) Project Resources Edit Resource",
+        "description": "(HS) Allows the user to edit Resources on the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23123",
+        "name": "HSProjectResourcesViewResource",
+        "friendly": "(HS) Project Resources View Resource",
+        "description": "(HS) Allows the user to view Resources on the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23124",
+        "name": "HSProjectResourcesDeleteResource",
+        "friendly": "(HS) Project Resources Delete Resource",
+        "description": "(HS) Allows the user to delete Resources from the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23130",
+        "name": "HSProjectServiceProvidersAccess",
+        "friendly": "(HS) Project Service Providers Access",
+        "description": "(HS) Allows the user access to the Project Service Providers page.",
+        "module": "HS"
+      },
+      {
+        "id": "23131",
+        "name": "HSProjectServiceProvidersLimitedAccess",
+        "friendly": "(HS) Project Service Providers Limited Access",
+        "description": "(HS) Allows the user to only view a limited amount of Service Providers in the List.",
+        "module": "HS"
+      },
+      {
+        "id": "23132",
+        "name": "HSProjectServiceProvidersAdd",
+        "friendly": "(HS) Project Service Providers Add",
+        "description": "(HS) Allows the user to add Service Providers to the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23133",
+        "name": "HSProjectServiceProvidersEdit",
+        "friendly": "(HS) Project Service Providers Edit",
+        "description": "(HS) Allows the user to edit Service Providers on the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23134",
+        "name": "HSProjectServiceProvidersView",
+        "friendly": "(HS) Project Service Providers View",
+        "description": "(HS) Allows the user to view Service Providers on the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23135",
+        "name": "HSProjectServiceProvidersDelete",
+        "friendly": "(HS) Project Service Providers Delete",
+        "description": "(HS) Allows the user to delete Service Providers from the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23140",
+        "name": "HSProjectContractorsAccess",
+        "friendly": "(HS) Project Contractors Access",
+        "description": "(HS) Allows the user access to the Project Contractors page.",
+        "module": "HS"
+      },
+      {
+        "id": "23141",
+        "name": "HSProjectContractorsLimitedAccess",
+        "friendly": "(HS) Project Contractors Limited Access",
+        "description": "(HS) Allows the user to only view a limited amount of Contractors in the List.",
+        "module": "HS"
+      },
+      {
+        "id": "23142",
+        "name": "HSProjectContractorsAdd",
+        "friendly": "(HS) Project Contractors Add",
+        "description": "(HS) Allows the user to add Contractors to the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23143",
+        "name": "HSProjectContractorsEdit",
+        "friendly": "(HS) Project Contractors Edit",
+        "description": "(HS) Allows the user to edit Contractors on the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23144",
+        "name": "HSProjectContractorsView",
+        "friendly": "(HS) Project Contractors View",
+        "description": "(HS) Allows the user to View Contractors on the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23145",
+        "name": "HSProjectContractorsDelete",
+        "friendly": "(HS) Project Contractors Delete",
+        "description": "(HS) Allows the user to delete Contractors from the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23150",
+        "name": "HSProjectBudgetAccess",
+        "friendly": "(HS) Project Budget Access",
+        "description": "(HS) Allows the user access to the Project Budget page.",
+        "module": "HS"
+      },
+      {
+        "id": "23151",
+        "name": "HSProjectBudgetAdd",
+        "friendly": "(HS) Project Budget Add",
+        "description": "(HS) Allows the user to add a Budget Item to the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23152",
+        "name": "HSProjectBudgetEdit",
+        "friendly": "(HS) Project Budget Edit",
+        "description": "(HS) Allows the user to edit a Budget Item on the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23153",
+        "name": "HSProjectBudgetView",
+        "friendly": "(HS) Project Budget View",
+        "description": "(HS) Allows the user to view a Budget Item on the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23154",
+        "name": "HSProjectBudgetDelete",
+        "friendly": "(HS) Project Budget Delete",
+        "description": "(HS) Allows the user to delete a Budget Item from the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23160",
+        "name": "HSProjectTimelineAccess",
+        "friendly": "(HS) Project Timeline Access",
+        "description": "(HS) Allows the user access to the Project Timeline page.",
+        "module": "HS"
+      },
+      {
+        "id": "23161",
+        "name": "HSProjectTimelineTemplateCreate",
+        "friendly": "(HS) Project Timeline Template Create",
+        "description": "(HS) Allows the user to create Timeline Templates.",
+        "module": "HS"
+      },
+      {
+        "id": "23162",
+        "name": "HSProjectTimelineTemplateApply",
+        "friendly": "(HS) Project Timeline Template Apply",
+        "description": "(HS) Allows the user to apply a Template to the Timeline.",
+        "module": "HS"
+      },
+      {
+        "id": "23163",
+        "name": "HSProjectTimelineView",
+        "friendly": "(HS) Project Timeline View",
+        "description": "(HS) Allows the user to add a Task to the Timeline.",
+        "module": "HS"
+      },
+      {
+        "id": "23164",
+        "name": "HSProjectTimelineEdit",
+        "friendly": "(HS) Project Timeline Edit",
+        "description": "(HS) Allows the user to edit a Task on the Timeline.",
+        "module": "HS"
+      },
+      {
+        "id": "23165",
+        "name": "HSProjectTimelineTemplateDelete",
+        "friendly": "(HS) Project Timeline Template Delete",
+        "description": "(HS) Allows the user to delete a Template from the Timeline.",
+        "module": "HS"
+      },
+      {
+        "id": "23170",
+        "name": "HSProjectDocumentsandPhotosAccess",
+        "friendly": "(HS) Project Documents and Photos Access",
+        "description": "(HS) Allows the user access to the Project Documents and Photos page.",
+        "module": "HS"
+      },
+      {
+        "id": "23171",
+        "name": "HSProjectDocumentsandPhotosFullAccess",
+        "friendly": "(HS) Project Documents and Photos Full Access",
+        "description": "(HS) Allows the user access to all the records in the Documents and Photos List.",
+        "module": "HS"
+      },
+      {
+        "id": "23172",
+        "name": "HSProjectDocumentsandPhotosLimitedAccess",
+        "friendly": "(HS) Project Documents and Photos Limited Access",
+        "description": "(HS) Allows the user access to only the Documents and Photos they are a part of as a Resource, Service Provider or Contractor.",
+        "module": "HS"
+      },
+      {
+        "id": "23173",
+        "name": "HSProjectDocumentsandPhotosAdd",
+        "friendly": "(HS) Project Documents and Photos Add",
+        "description": "(HS) Allows the user to add Documents and Photos to the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23174",
+        "name": "HSProjectDocumentsandPhotosEdit",
+        "friendly": "(HS) Project Documents and Photos Edit",
+        "description": "(HS) Allows the user to edit Documents and Photos on the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23175",
+        "name": "HSProjectDocumentsandPhotosDelete",
+        "friendly": "(HS) Project Documents and Photos Delete",
+        "description": "(HS) Allows the user to delete Documents and Photos from the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23176",
+        "name": "HSProjectDocumentsandPhotosDownload",
+        "friendly": "(HS) Project Documents and Photos Download",
+        "description": "(HS) Allows the user to download Documents and Photos from the Project.",
+        "module": "HS"
+      },
+      {
+        "id": "23180",
+        "name": "HSProjectAuditAccess",
+        "friendly": "(HS) Project Audit Access",
+        "description": "(HS) Allows the user access to the Project Audit page.",
+        "module": "HS"
+      },
+      {
+        "id": "23182",
+        "name": "HSProjectAuditExport",
+        "friendly": "(HS) Project Audit Export",
+        "description": "(HS) Allows the user to export the Audit Trail.",
+        "module": "HS"
+      },
+      {
+        "id": "23190",
+        "name": "HSProgrammeSubModuleAccess",
+        "friendly": "(HS) Programme Sub Module Access",
+        "description": "(HS) Allows the user to access the Programme Sub Module.",
+        "module": "HS"
+      },
+      {
+        "id": "23191",
+        "name": "HSProgrammeOverviewAccess",
+        "friendly": "(HS) Programme Overview Access",
+        "description": "(HS) Allows the user access to the Programme Overview.",
+        "module": "HS"
+      },
+      {
+        "id": "23192",
+        "name": "HSProgrammeListAccess",
+        "friendly": "(HS) Programme List Access",
+        "description": "(HS) Allows the user access to the Programme List.",
+        "module": "HS"
+      },
+      {
+        "id": "23193",
+        "name": "HSProgrammeListQuickDetailsAccess",
+        "friendly": "(HS) Programme List Quick Details Access",
+        "description": "(HS) Allows the user to access the Quick Details of a record in the Programme List.",
+        "module": "HS"
+      },
+      {
+        "id": "23194",
+        "name": "HSProgrammeListProgrammeView",
+        "friendly": "(HS) Programme List Programme View",
+        "description": "(HS) Allows the user to view a Programme .",
+        "module": "HS"
+      },
+      {
+        "id": "23195",
+        "name": "HSProgrammeListProgrammeEdit",
+        "friendly": "(HS) Programme List Programme Edit",
+        "description": "(HS) Allows the user to edit a Programme .",
+        "module": "HS"
+      },
+      {
+        "id": "23196",
+        "name": "HSProgrammeListProgrammeDelete",
+        "friendly": "(HS) Programme List Programme Delete",
+        "description": "(HS) Allows the user to Retire a Programme .",
+        "module": "HS"
+      },
+      {
+        "id": "23200",
+        "name": "HSProgrammeAdd",
+        "friendly": "(HS) Programme Add",
+        "description": "(HS) Allows the user to add a Programme.",
+        "module": "HS"
+      },
+      {
+        "id": "23210",
+        "name": "HSProgrammeHubAccess",
+        "friendly": "(HS) Programme Hub Access",
+        "description": "(HS) Allows the user access to the Programme Hub page.",
+        "module": "HS"
+      },
+      {
+        "id": "23220",
+        "name": "HSProgrammeInformationPageAccess",
+        "friendly": "(HS) Programme Information Page Access",
+        "description": "(HS) Allows the user access to the Programme Information page.",
+        "module": "HS"
+      },
+      {
+        "id": "23230",
+        "name": "HSProgrammeInformationTabAccess",
+        "friendly": "(HS) Programme Information Tab Access",
+        "description": "(HS) Allows the user access to the Programme Information Tab.",
+        "module": "HS"
+      },
+      {
+        "id": "23231",
+        "name": "HSProgrammeInformationView",
+        "friendly": "(HS) Programme Information View",
+        "description": "(HS) Allows the user access to the Programme Information Card.",
+        "module": "HS"
+      },
+      {
+        "id": "23232",
+        "name": "HSProgrammeInformationEdit",
+        "friendly": "(HS) Programme Information Edit",
+        "description": "(HS) Allows the user access to the Programme Information Card.",
+        "module": "HS"
+      },
+      {
+        "id": "23240",
+        "name": "HSProgrammeAuditAccess",
+        "friendly": "(HS) Programme Audit Access",
+        "description": "(HS) Allows the user access to the Programme Audit page.",
+        "module": "HS"
+      },
+      {
+        "id": "23242",
+        "name": "HSProgrammeAuditExport",
+        "friendly": "(HS) Programme Audit Export",
+        "description": "(HS) Allows the user to export the Audit Trail.",
+        "module": "HS"
+      },
+      {
+        "id": "23250",
+        "name": "HSBudgetSubModuleAccess",
+        "friendly": "(HS) Budget Sub Module Access",
+        "description": "(HS) Allows the user to access the Budget Sub Module.",
+        "module": "HS"
+      },
+      {
+        "id": "23251",
+        "name": "HSBudgetOverviewAccess",
+        "friendly": "(HS) Budget Overview Access",
+        "description": "(HS) Allows the user access to the Budget Overview.",
+        "module": "HS"
+      },
+      {
+        "id": "23252",
+        "name": "HSBudgetListAccess",
+        "friendly": "(HS) Budget List Access",
+        "description": "(HS) Allows the user access to the Budget List.",
+        "module": "HS"
+      },
+      {
+        "id": "23253",
+        "name": "HSBudgetListQuickDetailsAccess",
+        "friendly": "(HS) Budget List Quick Details Access",
+        "description": "(HS) Allows the user to access the Quick Details of a record in the Budget List.",
+        "module": "HS"
+      },
+      {
+        "id": "23254",
+        "name": "HSBudgetListView",
+        "friendly": "(HS) Budget List View",
+        "description": "(HS) Allows the user to view a Budget .",
+        "module": "HS"
+      },
+      {
+        "id": "23255",
+        "name": "HSBudgetListEdit",
+        "friendly": "(HS) Budget List Edit",
+        "description": "(HS) Allows the user to edit a Budget .",
+        "module": "HS"
+      },
+      {
+        "id": "23256",
+        "name": "HSBudgetListDelete",
+        "friendly": "(HS) Budget List Delete",
+        "description": "(HS) Allows the user to Retire a Budget .",
+        "module": "HS"
+      },
+      {
+        "id": "23260",
+        "name": "HSBudgetAdd",
+        "friendly": "(HS) Budget Add",
+        "description": "(HS) Allows the user to add a Budget.",
+        "module": "HS"
+      },
+      {
+        "id": "23270",
+        "name": "HSBudgetHubAccess",
+        "friendly": "(HS) Budget Hub Access",
+        "description": "(HS) Allows the user access to the Budget Hub page.",
+        "module": "HS"
+      },
+      {
+        "id": "23280",
+        "name": "HSBudgetInformationAccess",
+        "friendly": "(HS) Budget Information Access",
+        "description": "(HS) Allows the user access to the Budget Information page.",
+        "module": "HS"
+      },
+      {
+        "id": "23281",
+        "name": "HSBudgetGeneralAccess",
+        "friendly": "(HS) Budget General Access",
+        "description": "(HS) Allows user to access the Budget General Tab",
+        "module": "HS"
+      },
+      {
+        "id": "23282",
+        "name": "HSBudgetGeneralEdit",
+        "friendly": "(HS) Budget General Edit",
+        "description": "(HS) Allows user to edit the Budget General Tab",
+        "module": "HS"
+      },
+      {
+        "id": "23283",
+        "name": "HSBudgetGeneralView",
+        "friendly": "(HS) Budget General View",
+        "description": "(HS) Allows user to view the Budget General Tab",
+        "module": "HS"
+      },
+      {
+        "id": "23284",
+        "name": "HSBudgetLineItemsAccess",
+        "friendly": "(HS) Budget Line Items Access",
+        "description": "(HS) Allows user to access the Budget Line Items Tab",
+        "module": "HS"
+      },
+      {
+        "id": "23285",
+        "name": "HSBudgetLineItemsAdd",
+        "friendly": "(HS) Budget Line Items Add",
+        "description": "(HS) Allows the user to Add Budget Line Items",
+        "module": "HS"
+      },
+      {
+        "id": "23286",
+        "name": "HSBudgetLineItemsView",
+        "friendly": "(HS) Budget Line Items View",
+        "description": "(HS) Allows the user to View Budget Line Items",
+        "module": "HS"
+      },
+      {
+        "id": "23287",
+        "name": "HSBudgetLineItemsEdit",
+        "friendly": "(HS) Budget Line Items Edit",
+        "description": "(HS) Allows the user to Edit Budget Line Items",
+        "module": "HS"
+      },
+      {
+        "id": "23288",
+        "name": "HSBudgetLineItemsDelete",
+        "friendly": "(HS) Budget Line Items Delete",
+        "description": "(HS) Allows the user to Delete Budget Line Items",
+        "module": "HS"
+      },
+      {
+        "id": "23290",
+        "name": "HSBudgetAuditAccess",
+        "friendly": "(HS) Budget Audit Access",
+        "description": "(HS) Allows the user access to the Budget Audit page.",
+        "module": "HS"
+      },
+      {
+        "id": "23291",
+        "name": "HSBudgetAuditExport",
+        "friendly": "(HS) Budget Audit Export",
+        "description": "(HS) Allows the user to export the Audit Trail.",
+        "module": "HS"
+      },
+      {
+        "id": "23301",
+        "name": "HSReportsListAccess",
+        "friendly": "(HS) Reports List Access",
+        "description": "(HS) Allows the user access to the Reports List.",
+        "module": "HS"
+      },
+      {
+        "id": "23310",
+        "name": "HSSetupSubModuleAccess",
+        "friendly": "(HS) Setup Sub Module Access",
+        "description": "(HS) Allows the user to access the Setup Sub Module.",
+        "module": "HS"
+      },
+      {
+        "id": "23311",
+        "name": "HSSetupLookupAccess",
+        "friendly": "(HS) Setup Lookup Access",
+        "description": "(HS) Allows the user to access the Lookup page.",
+        "module": "HS"
+      },
+      {
+        "id": "23312",
+        "name": "HSSetupLookupAdd",
+        "friendly": "(HS) Setup Lookup Add",
+        "description": "(HS) Allows the user to Add a Lookup.",
+        "module": "HS"
+      },
+      {
+        "id": "23313",
+        "name": "HSSetupLookupEdit",
+        "friendly": "(HS) Setup Lookup Edit",
+        "description": "(HS) Allows the user to Edit a Lookup.",
+        "module": "HS"
+      },
+      {
+        "id": "23314",
+        "name": "HSSetupAdministrationAccess",
+        "friendly": "(HS) Setup Administration Access",
+        "description": "(HS) Allows the user to Access the Administration page.",
+        "module": "HS"
+      },
+      {
+        "id": "23315",
+        "name": "HSProjectArchive",
+        "friendly": "(HS) Project Archive Access",
+        "description": "(HS) Allows the user to access the archive button on project grid.",
+        "module": "HS"
+      },
+      {
+        "id": "25006",
+        "name": "HSProcurementDetailsAccess",
+        "friendly": "(HS)  Project info Procurement Details Access",
+        "description": "(HS) Activate the procurement submodule",
+        "module": "HS"
+      },
+      {
+        "id": "25007",
+        "name": "HSProcurementDetailsEdit",
+        "friendly": "(HS) Project info Procurement Details Edit",
+        "description": "(HS) Allows the user to edit Procurement Details.",
+        "module": "HS"
+      },
+      {
+        "id": "25008",
+        "name": "HSProcurementDetailsView",
+        "friendly": "(HS) Project info Procurement Details View",
+        "description": "(HS) Allows the user to view ProcurementDetails.",
+        "module": "HS"
+      },
+      {
+        "id": "25010",
+        "name": "HSPaymentsItemAccess",
+        "friendly": "(HS) Payments Item Access",
+        "description": "(HS) Allows the user access to the Payments Item in the LHN of Project.",
+        "module": "HS"
+      },
+      {
+        "id": "25011",
+        "name": "HSPaymentsTransactionRecordAdd",
+        "friendly": "(HS) Payments Transaction Record Add",
+        "description": "(HS) Allows the user to add a Transaction record from within PCS.",
+        "module": "HS"
+      },
+      {
+        "id": "25012",
+        "name": "HSBudgetSCOAView",
+        "friendly": "(HS) Project Budget SCOA View",
+        "description": "(HS) Allows the user to view the Budget SCOA card.",
+        "module": "HS"
+      },
+      {
+        "id": "25013",
+        "name": "HSBudgetSCOAEdit",
+        "friendly": "(HS) Project Budget SCOA Edit",
+        "description": "(HS) Allows the user to edit the Budget SCOA card.",
+        "module": "HS"
+      },
+      {
+        "id": "25014",
+        "name": "HSCostDetailsAccess",
+        "friendly": "(HS) Project Cost Details Tab View",
+        "description": "(HS) Allows the user to access the Cost Details tab.",
+        "module": "HS"
+      },
+      {
+        "id": "25015",
+        "name": "HSProjectCostDetailsAdd",
+        "friendly": "(HS) Project Cost Details Add",
+        "description": "(HS) Allows the user to add on the Cost Details linkedgrid.",
+        "module": "HS"
+      },
+      {
+        "id": "25016",
+        "name": "HSProjectCostDetailsView",
+        "friendly": "(HS) Project Cost Details View",
+        "description": "(HS) Allows the user to view the Cost Details linkedgrid.",
+        "module": "HS"
+      },
+      {
+        "id": "25017",
+        "name": "HSProjectCostDetailsEdit",
+        "friendly": "(HS) Project Cost Details Edit",
+        "description": "(HS) Allows the user to edit on the Cost Details linkedgrid.",
+        "module": "HS"
+      },
+      {
+        "id": "25018",
+        "name": "HSProjectCostDetailsDelete",
+        "friendly": "(HS) Project Cost Details Delete",
+        "description": "(HS) Allows the user to delete on the Cost Details linkedgrid.",
+        "module": "HS"
+      },
+      {
+        "id": "25019",
+        "name": "HSCostDetailsEdit",
+        "friendly": "(HS) Project Cost Details Card Edit",
+        "description": "(HS) Allows the user to edit on the Cost Details card.",
+        "module": "HS"
+      },
+      {
+        "id": "25020",
+        "name": "HSCostDetailsView",
+        "friendly": "(HS) Project Cost Details Card View",
+        "description": "(HS) Allows the user to view on the Cost Details card.",
+        "module": "HS"
+      },
+      {
+        "id": "25021",
+        "name": "HSProjectRiskDetailsAccess",
+        "friendly": "(HS) Project Risk Details Tab View",
+        "description": "(HS) Allows the user to access on the Risk tab.",
+        "module": "HS"
+      },
+      {
+        "id": "25022",
+        "name": "HSProjectRiskDetailsAdd",
+        "friendly": "(HS) Project Risk Details Add",
+        "description": "(HS) Allows the user to add on the Risk Details linkedgrid.",
+        "module": "HS"
+      },
+      {
+        "id": "25023",
+        "name": "HSProjectRiskDetailsEdit",
+        "friendly": "(HS) Project Risk Details Edit",
+        "description": "(HS) Allows the user to edit on the Risk Details linkedgrid.",
+        "module": "HS"
+      },
+      {
+        "id": "25024",
+        "name": "HSProjectRiskDetailsDelete",
+        "friendly": "(HS) Project Risk Details Delete",
+        "description": "(HS) Allows the user to delete on the Risk Details linkedgrid.",
+        "module": "HS"
+      },
+      {
+        "id": "25025",
+        "name": "HSProjectRiskDetailsView",
+        "friendly": "(HS) Project Risk Details View",
+        "description": "(HS) Allows the user to view on the Risk Details linkedgrid.",
+        "module": "HS"
+      },
+      {
+        "id": "25026",
+        "name": "HSRiskDetailsView",
+        "friendly": "(HS) Project Risk Details Card View",
+        "description": "(HS) Allows the user to view on the Risk Details card.",
+        "module": "HS"
+      },
+      {
+        "id": "25027",
+        "name": "HSRiskDetailsEdit",
+        "friendly": "(HS) Project Risk Details Card Edit",
+        "description": "(HS) Allows the user to edit on the Risk Details card.",
+        "module": "HS"
+      },
+      {
+        "id": "25028",
+        "name": "HSProjectIssueDetailsTabAccess",
+        "friendly": "(HS) Project Issue Details Tab View",
+        "description": "(HS) Allows the user to view the Issue Details Tab.",
+        "module": "HS"
+      },
+      {
+        "id": "25029",
+        "name": "HSIssueDetailsCardView",
+        "friendly": "(HS) Project Issue Details Card View",
+        "description": "(HS) Allows the user to access the Issue Details Card within the Issue Tab in Project Information.",
+        "module": "HS"
+      },
+      {
+        "id": "25030",
+        "name": "HSIssueDetailsCardEdit",
+        "friendly": "(HS) Project Issue Details Card Edit",
+        "description": "(HS) Allows the user to edit the Issue Details Card within the Issue Tab in Project Information.",
+        "module": "HS"
+      },
+      {
+        "id": "25031",
+        "name": "HSProjectIssueDetailsDelete",
+        "friendly": "(HS) Project Issue Details Delete",
+        "description": "(HS) Allows the user to Delete Issue Details.",
+        "module": "HS"
+      },
+      {
+        "id": "25032",
+        "name": "HSProjectIssueDetailsAdd",
+        "friendly": "(HS) Project Issue Details Add",
+        "description": "(HS) Allows the user to Add Issue Details.",
+        "module": "HS"
+      },
+      {
+        "id": "25033",
+        "name": "HSProjectIssueDetailsView",
+        "friendly": "(HS) Project Issue Details View",
+        "description": "(HS) Allows the user to View Issue Details.",
+        "module": "HS"
+      },
+      {
+        "id": "25034",
+        "name": "HSProjectIssueDetailsEdit",
+        "friendly": "(HS) Project Issue Details Edit",
+        "description": "(HS) Allows the user to Edit Issue Details.",
+        "module": "HS"
+      },
+      {
+        "id": "25035",
+        "name": "HSProjectLessonsDetailsAccess",
+        "friendly": "(HS) Project Lessons Learned Details Tab Access",
+        "description": "(HS) Allows the user to access the Lessons Learned tab.",
+        "module": "HS"
+      },
+      {
+        "id": "25036",
+        "name": "HSProjectLessonsDetailsAdd",
+        "friendly": "(HS) Project Lessons Learned Details Tab Add",
+        "description": "(HS) Allows the user to add on the Lessons Learned Details linkedgrid.",
+        "module": "HS"
+      },
+      {
+        "id": "25037",
+        "name": "HSProjectLessonsDetailsEdit",
+        "friendly": "(HS) Project Lessons Learned Details Tab Edit",
+        "description": "(HS) Allows the user to Edit on the Lessons Learned Details linkedgrid.",
+        "module": "HS"
+      },
+      {
+        "id": "25038",
+        "name": "HSProjectLessonsDetailsView",
+        "friendly": "(HS) Project Lessons Learned Details Tab View",
+        "description": "(HS) Allows the user to view the Lessons Learned Details linkedgrid.",
+        "module": "HS"
+      },
+      {
+        "id": "25039",
+        "name": "HSProjectLessonsDetailsDelete",
+        "friendly": "(HS) Project Lessons Learned Details Tab Delete",
+        "description": "(HS) Allows the user to Delete on the Lessons Learned Details linkedgrid.",
+        "module": "HS"
+      },
+      {
+        "id": "25040",
+        "name": "HSReportsSubModuleAccess",
+        "friendly": "(HS) Reports Sub Module Access",
+        "description": "(HS) Allows the user to access the Reports Sub Module.",
+        "module": "HS"
+      },
+      {
+        "id": "25041",
+        "name": "HSCreateProjectBuild",
+        "friendly": "(HS) Create Build Projects (Units/Services/Planning)",
+        "description": "(HS) Allows the user to create Build Projects (Units/Services/Planning)",
+        "module": "HS"
+      },
+      {
+        "id": "25042",
+        "name": "HSCreateProjectApplication",
+        "friendly": "(HS) Create Application project Types",
+        "description": "(HS) Allows the user to create Application project types",
+        "module": "HS"
+      },
+      {
+        "id": "25043",
+        "name": "HSProjectDeliveryEdit",
+        "friendly": "(HS) Project Delivery Values Edit",
+        "description": "(HS) Allows the user to edit Project/Application delivery values",
+        "module": "HS"
+      },
+      {
+        "id": "25044",
+        "name": "HSProjectDeliveryView",
+        "friendly": "(HS) Project Delivery Values View",
+        "description": "(HS) Allows the user to view Project/Application delivery values",
+        "module": "HS"
+      },
+      {
+        "id": "25045",
+        "name": "HSProjectDeliveryAccess",
+        "friendly": "(HS) Project Delivery Values Access",
+        "description": "(HS) Allows the user to access Project/Application delivery values",
+        "module": "HS"
+      },
+      {
+        "id": "15000",
+        "name": "WRSubmit",
+        "friendly": "Work Request - Submit",
+        "description": "Allow user to submit a work request",
+        "module": "Maintenance Management"
+      },
+      {
+        "id": "15001",
+        "name": "WRActivate",
+        "friendly": "Work Request - Activate",
+        "description": "Allow user to activate a work request",
+        "module": "Maintenance Management"
+      },
+      {
+        "id": "15002",
+        "name": "WRReject",
+        "friendly": "Work Request - Reject",
+        "description": "Allow user to reject a work request",
+        "module": "Maintenance Management"
+      },
+      {
+        "id": "15003",
+        "name": "WRComplete",
+        "friendly": "Work Request - Complete",
+        "description": "Allow user to complete a work request",
+        "module": "Maintenance Management"
+      },
+      {
+        "id": "15004",
+        "name": "WRClose",
+        "friendly": "Work Request - Close",
+        "description": "Allow user to close a work request",
+        "module": "Maintenance Management"
+      },
+      {
+        "id": "15005",
+        "name": "WRApproveEIB",
+        "friendly": "Work Request - EIB Approval",
+        "description": "Allow user to do an EIB approval",
+        "module": "Maintenance Management"
+      },
+      {
+        "id": "15011",
+        "name": "WRRejectEIB",
+        "friendly": "Work Request - EIB Rejection",
+        "description": "Allow user to do an EIB rejection",
+        "module": "Maintenance Management"
+      },
+      {
+        "id": "15012",
+        "name": "WRRevertWorkFlow",
+        "friendly": "Work Request - Revert Incident",
+        "description": "Allow user to do revert the state of the incident to the previous one",
+        "module": "Maintenance Management"
+      },
+      {
+        "id": "15013",
+        "name": "newMmIlDrawer",
+        "friendly": "IL – Checklist Comments",
+        "description": "User can access checklist comments panel",
+        "module": "Maintenance Management"
+      },
+      {
+        "id": "15014",
+        "name": "newMmIlEditChecklist",
+        "friendly": "IL – Edit Checklist",
+        "description": "User can edit checklist",
+        "module": "Maintenance Management"
+      },
+      {
+        "id": "15015",
+        "name": "newMmIlViewChecklist",
+        "friendly": "IL – View Checklist",
+        "description": "User can view checklist",
+        "module": "Maintenance Management"
+      },
+      {
+        "id": "15006",
+        "name": "pcsprogrammeaccess",
+        "friendly": "Programme Access",
+        "description": "Activate the programme submodule",
+        "module": "PCS"
+      },
+      {
+        "id": "15007",
+        "name": "pcsprojectaccess",
+        "friendly": "Project Access",
+        "description": "Activate the project submodule",
+        "module": "PCS"
+      },
+      {
+        "id": "15008",
+        "name": "pcsbudgetaccess",
+        "friendly": "Budget Access",
+        "description": "Activate the budget submodule",
+        "module": "PCS"
+      },
+      {
+        "id": "15009",
+        "name": "pcssetupaccess",
+        "friendly": "Setup Access",
+        "description": "Activate the setup submodule",
+        "module": "PCS"
+      },
+      {
+        "id": "15010",
+        "name": "pcsmapaccess",
+        "friendly": "Map Access",
+        "description": "Activate the map submodule",
+        "module": "PCS"
+      },
+      {
+        "id": "15072",
+        "name": "PCS2ProjectBudgetCostView",
+        "friendly": "Project Budget Project Cost View",
+        "description": "Allows user to view the Project Cost Card",
+        "module": "PCS"
+      },
+      {
+        "id": "15016",
+        "name": "PCS2TaskOrderSubModuleAccess",
+        "friendly": "Task Order Sub Module Access",
+        "description": "Allows the user to access the Task Order Sub Module.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15017",
+        "name": "PCS2TaskOrderOverviewAccess",
+        "friendly": "Task Order Overview Access",
+        "description": "Allows the user to access the Task Order Overview.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15018",
+        "name": "PCS2TaskOrderListAccess",
+        "friendly": "Task Order List Access",
+        "description": "Allows the user to access the Task Order List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15019",
+        "name": "PCS2TaskOrderAdd",
+        "friendly": "Task Order Add",
+        "description": "Allows the user to add a Task Order.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15020",
+        "name": "PCS2TaskOrderHubAccess",
+        "friendly": "Task Order Hub Access",
+        "description": "Allows the user access to the Task Order Hub.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15021",
+        "name": "PCS2TaskOrderInformationPageAccess",
+        "friendly": "Task Order Information Page",
+        "description": "Allows the user access to the Task Order Information Page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15022",
+        "name": "PCS2TaskOrderAuditAccess",
+        "friendly": "Task Order Audit Access",
+        "description": "Allows the user access a Task Order Audit Trail.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15023",
+        "name": "PCS2TaskOrderListTaskOrderEdit",
+        "friendly": "Task Order Edit",
+        "description": "Allows the user to edit a Task Order",
+        "module": "PCS2"
+      },
+      {
+        "id": "15024",
+        "name": "PCS2TaskOrderListTaskOrderView",
+        "friendly": "Task Order View",
+        "description": "Allows the user to view a Task Order",
+        "module": "PCS2"
+      },
+      {
+        "id": "15025",
+        "name": "PCS2TaskOrderListTaskOrderDelete",
+        "friendly": "Task Order Delete",
+        "description": "Allows the user to delete a Task Order",
+        "module": "PCS2"
+      },
+      {
+        "id": "15026",
+        "name": "PCS2TaskOrderDocumentsandPhotosAccess",
+        "friendly": "Task Order Documents And Photots",
+        "description": "Allows the user to access Task Order Documents and Photos",
+        "module": "PCS2"
+      },
+      {
+        "id": "15027",
+        "name": "PCS2TaskOrderListQuickDetailsAccess",
+        "friendly": "Task Order Quick Details",
+        "description": "Allows the user to access Task Order Quick Details",
+        "module": "PCS2"
+      },
+      {
+        "id": "15028",
+        "name": "PCS2TaskOrderDocumentsAdd",
+        "friendly": "Task Order Document Add",
+        "description": "Allows the user to add documents to Task Orders",
+        "module": "PCS2"
+      },
+      {
+        "id": "15029",
+        "name": "PCS2TaskOrderDocumentsDownload",
+        "friendly": "Task Order Document Download",
+        "description": "Allows the user to download Task Order Documents",
+        "module": "PCS2"
+      },
+      {
+        "id": "15030",
+        "name": "PCS2TaskOrderDocumentsEdit",
+        "friendly": "Task Order Document Edit",
+        "description": "Allows the user to edit Task Order Documents",
+        "module": "PCS2"
+      },
+      {
+        "id": "15031",
+        "name": "PCS2TaskOrderDocumentsDelete",
+        "friendly": "Task Order Document Delete",
+        "description": "Allows the user to delete Task Order Documents",
+        "module": "PCS2"
+      },
+      {
+        "id": "15032",
+        "name": "PCS2TaskOrderItemAccess",
+        "friendly": "Project Task Orders Access",
+        "description": "Allows the user to access Task Orders from Project",
+        "module": "PCS2"
+      },
+      {
+        "id": "15033",
+        "name": "PCS2TaskOrderRecordAdd",
+        "friendly": "Project Task Orders Add",
+        "description": "Allows the user to add Task Orders from Project",
+        "module": "PCS2"
+      },
+      {
+        "id": "15034",
+        "name": "PCS2SMDocumentsandPhotosAdd",
+        "friendly": "Scope Management Documents Add",
+        "description": "Allows the user to add Documents and Photos to the record.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15035",
+        "name": "PCS2SMDocumentsandPhotosDownload",
+        "friendly": "Scope Management Documents Download",
+        "description": "Allows the user to download Documents and Photos uploaded against the record.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15036",
+        "name": "PCS2SMDocumentsandPhotosEdit",
+        "friendly": "Scope Management Documents Edit",
+        "description": "Allows the user to edit Documents and Photos uploaded against the record.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15037",
+        "name": "PCS2SMDocumentsandPhotosDelete",
+        "friendly": "Scope Management Documents Delete",
+        "description": "Allows the user to Delete Documents and Photos uploaded against the record.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15038",
+        "name": "PCS2SMTabAccess",
+        "friendly": "Scope Management Tab Access",
+        "description": "Allows the user to access the Scope Management' General Tab.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15039",
+        "name": "PCS2SMGeneralView",
+        "friendly": "Scope Management General Card View",
+        "description": "Allows the user to view the Scope Management' General Card.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15040",
+        "name": "PCS2SMGeneralEdit",
+        "friendly": "Scope Management General Card Edit",
+        "description": "Allows the user to edit the Scope Management' General Card.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15041",
+        "name": "PCS2SMInformationSCCardEdit",
+        "friendly": "Scope Management Information SM Card Edit",
+        "description": "Allows the user to edit the Compensation Event card within Information.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15042",
+        "name": "PCS2SMInformationSCCardView",
+        "friendly": "Scope Management Information SM Card View",
+        "description": "Allows the user to access and view the Compensation Event card within Information.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15043",
+        "name": "PCS2SMInformationSCVEdit",
+        "friendly": "Scope Management Information Scope Values Edit",
+        "description": "Allows the user to edit the Scope Values within Information.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15044",
+        "name": "PCS2SMInformationSCVView",
+        "friendly": "Scope Management Information Scope Values View",
+        "description": "Allows the user to access and view the Scope Values within Information.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15045",
+        "name": "PCS2SMHubAccess",
+        "friendly": "Scope Management Hub Access",
+        "description": "Allows the user to access the Scope Management Hub page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15046",
+        "name": "PCS2SMInformationPageAccess",
+        "friendly": "Scope Management Information Page Access",
+        "description": "Allows the user to access the Scope Management Information Page",
+        "module": "PCS2"
+      },
+      {
+        "id": "15047",
+        "name": "PCS2SMDocumentsandPhotosAccess",
+        "friendly": "Scope Management Documents Access",
+        "description": "Allows the user access to the Documents and Photos page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15048",
+        "name": "PCS2SMAuditAccess",
+        "friendly": "Scope Management Audit Trail Access",
+        "description": "Allows the user access to the Compensation Event Audit page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15049",
+        "name": "PCS2ProjectSMAccess",
+        "friendly": "Project SM Item Access",
+        "description": "Allows the user access to the Project SM page",
+        "module": "PCS2"
+      },
+      {
+        "id": "15050",
+        "name": "PCS2SMSubModuleAccess",
+        "friendly": "Scope Management Sub Module Access",
+        "description": "Allows the user to access the Scope Management Sub Module",
+        "module": "PCS2"
+      },
+      {
+        "id": "15051",
+        "name": "PCS2SMOverviewAccess",
+        "friendly": "Scope Management Overview Access",
+        "description": "Allows the user to access the Overview",
+        "module": "PCS2"
+      },
+      {
+        "id": "15052",
+        "name": "PCS2SMListAccess",
+        "friendly": "Scope Management List Access",
+        "description": "Allows the user access to all the records in the Scope Management List",
+        "module": "PCS2"
+      },
+      {
+        "id": "15053",
+        "name": "PCS2SMAdd",
+        "friendly": "Scope Management Record Add",
+        "description": "Allows the user add records to Scope Management",
+        "module": "PCS2"
+      },
+      {
+        "id": "15054",
+        "name": "PCS2SMStateRequest",
+        "friendly": "Scope Management Workflow Request",
+        "description": "Allows the user to request the next workflow state.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15055",
+        "name": "PCS2SMStateApprove",
+        "friendly": "Scope Management Workflow Approve",
+        "description": "Allows the user to approve the requested workflow state.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15056",
+        "name": "PCS2SMStateDecline",
+        "friendly": "Scope Management Workflow Decline",
+        "description": "Allows the user to decline the workflow state request.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15057",
+        "name": "PCS2SMStateCancel",
+        "friendly": "Scope Management Workflow Cancel",
+        "description": "Allows the user to cancel the requested workflow state.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15058",
+        "name": "PCS2SMStateRevert",
+        "friendly": "Scope Management Workflow Revert to Capture",
+        "description": "Allows the user to revert the workflow to the Capture state.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15059",
+        "name": "PCS2ProjectSMAdd",
+        "friendly": "Project SM Record Add",
+        "description": "Allows the user to add a SM record from within PCS",
+        "module": "PCS2"
+      },
+      {
+        "id": "15060",
+        "name": "PCS2SMListRecordEdit",
+        "friendly": "Scope Management List Record Edit",
+        "description": "Allows the user edit records in the Scope Management List",
+        "module": "PCS2"
+      },
+      {
+        "id": "15061",
+        "name": "PCS2SMListRecordView",
+        "friendly": "Scope Management List Record View",
+        "description": "Allows the user view records in the Scope Management List",
+        "module": "PCS2"
+      },
+      {
+        "id": "15062",
+        "name": "PCS2SMListRecordDelete",
+        "friendly": "Scope Management List Record Delete",
+        "description": "Allows the user delete records in the Scope Management List",
+        "module": "PCS2"
+      },
+      {
+        "id": "15063",
+        "name": "PCS2SMListQuickDetailsAccess",
+        "friendly": "Scope Management List Quick Details Access",
+        "description": "Allows the user access to all the deleted records in the Scope Management List",
+        "module": "PCS2"
+      },
+      {
+        "id": "15068",
+        "name": "PCS2TaskOrderGeneralCardEdit",
+        "friendly": "Task Order Information General Card Edit",
+        "description": "Allows the user to edit Task Orders General Card",
+        "module": "PCS2"
+      },
+      {
+        "id": "15069",
+        "name": "PCS2TaskOrderGeneralCardView",
+        "friendly": "Task Order Information General Card View",
+        "description": "Allows the user to view Task Orders General Card",
+        "module": "PCS2"
+      },
+      {
+        "id": "15070",
+        "name": "PCS2TaskOrderTaskorderCardEdit",
+        "friendly": "Task Order Information Task Order Card Edit",
+        "description": "Allows the user to edit Task Orders Task Order Card",
+        "module": "PCS2"
+      },
+      {
+        "id": "15071",
+        "name": "PCS2TaskOrderTaskorderCardView",
+        "friendly": "Task Order Information Task Order Card View",
+        "description": "Allows the user to view Task Orders Task Order Card",
+        "module": "PCS2"
+      },
+      {
+        "id": "15073",
+        "name": "PCS2ProjectBudgetCostEdit",
+        "friendly": "Project Budget Project Cost Edit",
+        "description": "Allows user to edit the Project Cost Card",
+        "module": "PCS2"
+      },
+      {
+        "id": "15074",
+        "name": "PCS2ProjectTenderAccess",
+        "friendly": "Project Tenders Access",
+        "description": "Allows the user to access the Tenders LHN item",
+        "module": "PCS2"
+      },
+      {
+        "id": "15075",
+        "name": "PCS2ProjectTenderView",
+        "friendly": "Project Tender View",
+        "description": "Allows the user to View Tenders",
+        "module": "PCS2"
+      },
+      {
+        "id": "15076",
+        "name": "PCS2ProjectTenderEdit",
+        "friendly": "Project Tender Edit",
+        "description": "Allows the user to Edit Tenders",
+        "module": "PCS2"
+      },
+      {
+        "id": "15077",
+        "name": "PCS2ProjectTenderAdd",
+        "friendly": "Project Tender Add",
+        "description": "Allows the user to Add Tenders",
+        "module": "PCS2"
+      },
+      {
+        "id": "15078",
+        "name": "PCS2ProjectTenderDelete",
+        "friendly": "Project Tender Delete",
+        "description": "Allows the user to Delete Tenders",
+        "module": "PCS2"
+      },
+      {
+        "id": "15081",
+        "name": "PCS2ProjectEBSPortalAccess",
+        "friendly": "Project EBS Portal Access",
+        "description": "Allows user to access the EBS Invoice portal",
+        "module": "PCS2"
+      },
+      {
+        "id": "15082",
+        "name": "PCS2ProjectPaymentCertificatesItemAccess",
+        "friendly": "Payment Certificates Item Access",
+        "description": "Allows the user access to the Payment Certificates Item.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15088",
+        "name": "PCS2WarningLettersSubModuleAccess",
+        "friendly": "Warning Letters Sub Module Access",
+        "description": "Allows the user access to the Warning Letters Sub Module.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15089",
+        "name": "PCS2WarningLettersProjectAccess",
+        "friendly": "Warning Letters Project Access",
+        "description": "Allows the user access to the LHN Item.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15090",
+        "name": "PCS2WarningLettersListAccess",
+        "friendly": "Warning Letters List Access",
+        "description": "Allows the user access to the List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15091",
+        "name": "PCS2WarningLettersListRecordView",
+        "friendly": "Warning Letters List Record View",
+        "description": "Allows the user to view a Warning Letter.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15092",
+        "name": "PCS2WarningLettersListRecordEdit",
+        "friendly": "Warning Letters List Record Edit",
+        "description": "Allows the user to edit a Warning Letter.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15093",
+        "name": "PCS2WarningLettersListRecordDelete",
+        "friendly": "Warning Letters List Record Delete",
+        "description": "Allows the user to delete a Warning Letter.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15094",
+        "name": "PCS2WarningLettersListRecordAdd",
+        "friendly": "Warning Letters List Record Add",
+        "description": "Allows the user to add a Warning Letter.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15095",
+        "name": "PCS2UnbundlingAppAccess",
+        "friendly": "Unbundling App",
+        "description": "Allows users to access Unbundling App's LHN item",
+        "module": "PCS2"
+      },
+      {
+        "id": "16000",
+        "name": "pcs2ModuleAccess",
+        "friendly": "PCS2 Module Access",
+        "description": "Allows the user to access the PCS Module.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16010",
+        "name": "PCS2ProjectSubModuleAccess",
+        "friendly": "Project Sub Module Access",
+        "description": "Allows the user to access the Project Sub Module.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16011",
+        "name": "PCS2ProgrammeSubModuleAccess",
+        "friendly": "Programme Sub Module Access",
+        "description": "Allows the user to access the Programme Sub Module.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16012",
+        "name": "PCS2BudgetSubModuleAccess",
+        "friendly": "Budget Sub Module Access",
+        "description": "Allows the user to access the Budget Sub Module.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16013",
+        "name": "PCS2ReportsSubModuleAccess",
+        "friendly": "Reports Sub Module Access",
+        "description": "Allows the user to access the Reports Sub Module.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16014",
+        "name": "PCS2SetupSubModuleAccess",
+        "friendly": "Setup Sub Module Access",
+        "description": "Allows the user to access the Setup Sub Module.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16020",
+        "name": "PCS2ProjectOverviewAccess",
+        "friendly": "Project Overview Access",
+        "description": "Allows the user to access the Project List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16030",
+        "name": "PCS2ProjectListAccess",
+        "friendly": "Project List Access",
+        "description": "Allows the user access to the Project List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16031",
+        "name": "PCS2ProjectListFullAccess",
+        "friendly": "Project List Full Access",
+        "description": "Allows the user access to all the records in the Project List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16032",
+        "name": "PCS2ProjectListLimitedAccess",
+        "friendly": "Project List Limited Access",
+        "description": "Allows the user access to only the projects they are a part of as a Resource, Service Provider or Contractor.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16033",
+        "name": "PCS2ProjectListQuickDetailsAccess",
+        "friendly": "Project List Quick Details Access",
+        "description": "Allows the user to access the Quick Details of a record in the Project List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16034",
+        "name": "PCS2ProjectListProjectView",
+        "friendly": "Project List Project View",
+        "description": "Allows the user to view a Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16035",
+        "name": "PCS2ProjectListProjectEdit",
+        "friendly": "Project List Project Edit",
+        "description": "Allows the user to edit a Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16036",
+        "name": "PCS2ProjectListProjectDelete",
+        "friendly": "Project List Project Delete",
+        "description": "Allows the user to Retire a Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16037",
+        "name": "PCS2ProjectListProjectUnlock",
+        "friendly": "Project List Project Unlock",
+        "description": "Allows the user to Unlock a Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16038",
+        "name": "PCS2ProjectListViewLockedProjects",
+        "friendly": "Project List View Locked Projects",
+        "description": "Allows the user to filter locked Projects.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16040",
+        "name": "PCS2ProjectAdd",
+        "friendly": "Project Add",
+        "description": "Allows the user to add a Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16041",
+        "name": "PCS2ProjectStateRequest",
+        "friendly": "Project State Request",
+        "description": "Allows the user to request a Project State.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16042",
+        "name": "PCS2ProjectStateCancel",
+        "friendly": "Project State Cancel",
+        "description": "Allows the user to cancel a Project State.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16043",
+        "name": "PCS2ProjectStateApprove",
+        "friendly": "Project State Approve",
+        "description": "Allows the user to approve a Project State.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16044",
+        "name": "PCS2ProjectStateReject",
+        "friendly": "Project State Reject",
+        "description": "Allows the user to reject a Project State.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16045",
+        "name": "PCS2ProjectStateRevert",
+        "friendly": "Project State Revert",
+        "description": "Allows the user to revert a Project State.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16050",
+        "name": "PCS2ProjectHubAccess",
+        "friendly": "Project Hub Access",
+        "description": "Allows the user access to the Hub.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16051",
+        "name": "PCS2ProjectHubAddComments",
+        "friendly": "Project Hub Add Comments",
+        "description": "Allows the user to add comments.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16052",
+        "name": "PCS2ProjectHubViewComments",
+        "friendly": "Project Hub View Comments",
+        "description": "Allows the user to view comments.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16060",
+        "name": "PCS2ProjectInformationAccess",
+        "friendly": "Project Information Access",
+        "description": "Allows the user access to the Project Information page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16070",
+        "name": "PCS2ProjectInfoGeneralAccess",
+        "friendly": "Project Info General Access",
+        "description": "Allows the user to access the Project Information General Tab",
+        "module": "PCS2"
+      },
+      {
+        "id": "16071",
+        "name": "PCS2ProjectInfoGeneralAssetDetailsAccessView",
+        "friendly": "Project Info General Asset Details Access View",
+        "description": "Allows the user to access the Asset Details card within the General Tab in Project Information.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16072",
+        "name": "PCS2ProjectInfoGeneralAssetDetailsAccessEdit",
+        "friendly": "Project Info General Asset Details Access Edit",
+        "description": "Allows the user to access the Asset Details card within the General Tab in Project Information.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16073",
+        "name": "PCS2ProjectInfoGeneralProjectDetailsAccessView",
+        "friendly": "Project Info General Project Details Access View",
+        "description": "Allows the user to access the Project Details card within the General Tab in Project Information.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16074",
+        "name": "PCS2ProjectInfoGeneralProjectDetailsAccessEdit",
+        "friendly": "Project Info General Project Details Access Edit",
+        "description": "Allows the user to access the Project Details card within the General Tab in Project Information.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16075",
+        "name": "PCS2ProjectInfoGeneralAdditionalDetailsAccessView",
+        "friendly": "Project Info General Additional Details Access View",
+        "description": "Allows the user to access the Additional Details card within the General Tab in Project Information.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16076",
+        "name": "PCS2ProjectInfoGeneralAdditionalDetailsAccessEdit",
+        "friendly": "Project Info General Additional Details Access Edit",
+        "description": "Allows the user to access the Additional Details card within the General Tab in Project Information.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16080",
+        "name": "PCS2ProjectInformationLocationAccess",
+        "friendly": "Project Information Location Access",
+        "description": "Allows the user to access the Project Information Location Tab",
+        "module": "PCS2"
+      },
+      {
+        "id": "16090",
+        "name": "PCS2ProjectInformationDescriptionAccess",
+        "friendly": "Project Information Description Access",
+        "description": "Allows the user to access the Project Information Description Tab",
+        "module": "PCS2"
+      },
+      {
+        "id": "16091",
+        "name": "PCS2ProjectInformationDescriptionAccessView",
+        "friendly": "Project Information Description Access View",
+        "description": "Allows the user to access the Project Information Description Tab",
+        "module": "PCS2"
+      },
+      {
+        "id": "16092",
+        "name": "PCS2ProjectInformationDescriptionAccessEdit",
+        "friendly": "Project Information Description Access Edit",
+        "description": "Allows the user to access the Project Information Description Tab",
+        "module": "PCS2"
+      },
+      {
+        "id": "16100",
+        "name": "PCS2ProjectInformationProgrammeAccess",
+        "friendly": "Project Information Programme Access",
+        "description": "Allows the user to access the Project Information Programme Tab",
+        "module": "PCS2"
+      },
+      {
+        "id": "16120",
+        "name": "PCS2ProjectResourcesAccess",
+        "friendly": "Project Resources Access",
+        "description": "Allows the user access to the Project Resources page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16121",
+        "name": "PCS2ProjectResourcesAddResource",
+        "friendly": "Project Resources Add Resource",
+        "description": "Allows the user to add Resources to the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16122",
+        "name": "PCS2ProjectResourcesEditResource",
+        "friendly": "Project Resources Edit Resource",
+        "description": "Allows the user to edit Resources on the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16123",
+        "name": "PCS2ProjectResourcesViewResource",
+        "friendly": "Project Resources View Resource",
+        "description": "Allows the user to view Resources on the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16124",
+        "name": "PCS2ProjectResourcesDeleteResource",
+        "friendly": "Project Resources Delete Resource",
+        "description": "Allows the user to delete Resources from the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16130",
+        "name": "PCS2ProjectServiceProvidersAccess",
+        "friendly": "Project Service Providers Access",
+        "description": "Allows the user access to the Project Service Providers page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16131",
+        "name": "PCS2ProjectServiceProvidersLimitedAccess",
+        "friendly": "Project Service Providers Limited Access",
+        "description": "Allows the user to only view a limited amount of Service Providers in the List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16132",
+        "name": "PCS2ProjectServiceProvidersAdd",
+        "friendly": "Project Service Providers Add",
+        "description": "Allows the user to add Service Providers to the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16133",
+        "name": "PCS2ProjectServiceProvidersEdit",
+        "friendly": "Project Service Providers Edit",
+        "description": "Allows the user to edit Service Providers on the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16134",
+        "name": "PCS2ProjectServiceProvidersView",
+        "friendly": "Project Service Providers View",
+        "description": "Allows the user to view Service Providers on the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16135",
+        "name": "PCS2ProjectServiceProvidersDelete",
+        "friendly": "Project Service Providers Delete",
+        "description": "Allows the user to delete Service Providers from the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16140",
+        "name": "PCS2ProjectContractorsAccess",
+        "friendly": "Project Contractors Access",
+        "description": "Allows the user access to the Project Contractors page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16141",
+        "name": "PCS2ProjectContractorsLimitedAccess",
+        "friendly": "Project Contractors Limited Access",
+        "description": "Allows the user to only view a limited amount of Contractors in the List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16142",
+        "name": "PCS2ProjectContractorsAdd",
+        "friendly": "Project Contractors Add",
+        "description": "Allows the user to add Contractors to the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16143",
+        "name": "PCS2ProjectContractorsEdit",
+        "friendly": "Project Contractors Edit",
+        "description": "Allows the user to edit Contractors on the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16144",
+        "name": "PCS2ProjectContractorsView",
+        "friendly": "Project Contractors View",
+        "description": "Allows the user to View Contractors on the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16145",
+        "name": "PCS2ProjectContractorsDelete",
+        "friendly": "Project Contractors Delete",
+        "description": "Allows the user to delete Contractors from the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16150",
+        "name": "PCS2ProjectBudgetAccess",
+        "friendly": "Project Budget Access",
+        "description": "Allows the user access to the Project Budget page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16151",
+        "name": "PCS2ProjectBudgetAdd",
+        "friendly": "Project Budget Add",
+        "description": "Allows the user to add a Budget Item to the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16152",
+        "name": "PCS2ProjectBudgetEdit",
+        "friendly": "Project Budget Edit",
+        "description": "Allows the user to edit a Budget Item on the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16153",
+        "name": "PCS2ProjectBudgetView",
+        "friendly": "Project Budget View",
+        "description": "Allows the user to view a Budget Item on the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16154",
+        "name": "PCS2ProjectBudgetDelete",
+        "friendly": "Project Budget Delete",
+        "description": "Allows the user to delete a Budget Item from the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16160",
+        "name": "PCS2ProjectTimelineAccess",
+        "friendly": "Project Timeline Access",
+        "description": "Allows the user access to the Project Timeline page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16161",
+        "name": "PCS2ProjectTimelineTemplateCreate",
+        "friendly": "Project Timeline Template Create",
+        "description": "Allows the user to create Timeline Templates.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16162",
+        "name": "PCS2ProjectTimelineTemplateApply",
+        "friendly": "Project Timeline Template Apply",
+        "description": "Allows the user to apply a Template to the Timeline.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16163",
+        "name": "PCS2ProjectTimelineView",
+        "friendly": "Project Timeline View",
+        "description": "Allows the user to add a Task to the Timeline.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16164",
+        "name": "PCS2ProjectTimelineEdit",
+        "friendly": "Project Timeline Edit",
+        "description": "Allows the user to edit a Task on the Timeline.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16165",
+        "name": "PCS2ProjectTimelineTemplateDelete",
+        "friendly": "Project Timeline Template Delete",
+        "description": "Allows the user to delete a Template from the Timeline.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16170",
+        "name": "PCS2ProjectDocumentsandPhotosAccess",
+        "friendly": "Project Documents and Photos Access",
+        "description": "Allows the user access to the Project Documents and Photos page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16171",
+        "name": "PCS2ProjectDocumentsandPhotosFullAccess",
+        "friendly": "Project Documents and Photos Full Access",
+        "description": "Allows the user access to all the records in the Documents and Photos List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16172",
+        "name": "PCS2ProjectDocumentsandPhotosLimitedAccess",
+        "friendly": "Project Documents and Photos Limited Access",
+        "description": "Allows the user access to only the Documents and Photos they are a part of as a Resource, Service Provider or Contractor.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16173",
+        "name": "PCS2ProjectDocumentsandPhotosAdd",
+        "friendly": "Project Documents and Photos Add",
+        "description": "Allows the user to add Documents and Photos to the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16174",
+        "name": "PCS2ProjectDocumentsandPhotosEdit",
+        "friendly": "Project Documents and Photos Edit",
+        "description": "Allows the user to edit Documents and Photos on the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16175",
+        "name": "PCS2ProjectDocumentsandPhotosDelete",
+        "friendly": "Project Documents and Photos Delete",
+        "description": "Allows the user to delete Documents and Photos from the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16176",
+        "name": "PCS2ProjectDocumentsandPhotosDownload",
+        "friendly": "Project Documents and Photos Download",
+        "description": "Allows the user to download Documents and Photos from the Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16180",
+        "name": "PCS2ProjectAuditAccess",
+        "friendly": "Project Audit Access",
+        "description": "Allows the user access to the Project Audit page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16182",
+        "name": "PCS2ProjectAuditExport",
+        "friendly": "Project Audit Export",
+        "description": "Allows the user to export the Audit Trail.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16190",
+        "name": "PCS2ProgrammeSubModuleAccess",
+        "friendly": "Programme Sub Module Access",
+        "description": "Allows the user to access the Programme Sub Module.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16191",
+        "name": "PCS2ProgrammeOverviewAccess",
+        "friendly": "Programme Overview Access",
+        "description": "Allows the user access to the Programme Overview.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16192",
+        "name": "PCS2ProgrammeListAccess",
+        "friendly": "Programme List Access",
+        "description": "Allows the user access to the Programme List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16193",
+        "name": "PCS2ProgrammeListQuickDetailsAccess",
+        "friendly": "Programme List Quick Details Access",
+        "description": "Allows the user to access the Quick Details of a record in the Programme List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16194",
+        "name": "PCS2ProgrammeListProgrammeView",
+        "friendly": "Programme List Programme View",
+        "description": "Allows the user to view a Programme .",
+        "module": "PCS2"
+      },
+      {
+        "id": "16195",
+        "name": "PCS2ProgrammeListProgrammeEdit",
+        "friendly": "Programme List Programme Edit",
+        "description": "Allows the user to edit a Programme .",
+        "module": "PCS2"
+      },
+      {
+        "id": "16196",
+        "name": "PCS2ProgrammeListProgrammeDelete",
+        "friendly": "Programme List Programme Delete",
+        "description": "Allows the user to Retire a Programme .",
+        "module": "PCS2"
+      },
+      {
+        "id": "16200",
+        "name": "PCS2ProgrammeAdd",
+        "friendly": "Programme Add",
+        "description": "Allows the user to add a Programme.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16210",
+        "name": "PCS2ProgrammeHubAccess",
+        "friendly": "Programme Hub Access",
+        "description": "Allows the user access to the Programme Hub page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16220",
+        "name": "PCS2ProgrammeInformationPageAccess",
+        "friendly": "Programme Information Page Access",
+        "description": "Allows the user access to the Programme Information page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16230",
+        "name": "PCS2ProgrammeInformationTabAccess",
+        "friendly": "Programme Information Tab Access",
+        "description": "Allows the user access to the Programme Information Tab.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16231",
+        "name": "PCS2ProgrammeInformationView",
+        "friendly": "Programme Information View",
+        "description": "Allows the user access to the Programme Information Card.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16232",
+        "name": "PCS2ProgrammeInformationEdit",
+        "friendly": "Programme Information Edit",
+        "description": "Allows the user access to the Programme Information Card.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16240",
+        "name": "PCS2ProgrammeAuditAccess",
+        "friendly": "Programme Audit Access",
+        "description": "Allows the user access to the Programme Audit page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16242",
+        "name": "PCS2ProgrammeAuditExport",
+        "friendly": "Programme Audit Export",
+        "description": "Allows the user to export the Audit Trail.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16250",
+        "name": "PCS2BudgetSubModuleAccess",
+        "friendly": "Budget Sub Module Access",
+        "description": "Allows the user to access the Budget Sub Module.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16251",
+        "name": "PCS2BudgetOverviewAccess",
+        "friendly": "Budget Overview Access",
+        "description": "Allows the user access to the Budget Overview.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16252",
+        "name": "PCS2BudgetListAccess",
+        "friendly": "Budget List Access",
+        "description": "Allows the user access to the Budget List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16253",
+        "name": "PCS2BudgetListQuickDetailsAccess",
+        "friendly": "Budget List Quick Details Access",
+        "description": "Allows the user to access the Quick Details of a record in the Budget List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16254",
+        "name": "PCS2BudgetListView",
+        "friendly": "Budget List View",
+        "description": "Allows the user to view a Budget .",
+        "module": "PCS2"
+      },
+      {
+        "id": "16255",
+        "name": "PCS2BudgetListEdit",
+        "friendly": "Budget List Edit",
+        "description": "Allows the user to edit a Budget .",
+        "module": "PCS2"
+      },
+      {
+        "id": "16256",
+        "name": "PCS2BudgetListDelete",
+        "friendly": "Budget List Delete",
+        "description": "Allows the user to Retire a Budget .",
+        "module": "PCS2"
+      },
+      {
+        "id": "16260",
+        "name": "PCS2BudgetAdd",
+        "friendly": "Budget Add",
+        "description": "Allows the user to add a Budget.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16270",
+        "name": "PCS2BudgetHubAccess",
+        "friendly": "Budget Hub Access",
+        "description": "Allows the user access to the Budget Hub page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16280",
+        "name": "PCS2BudgetInformationAccess",
+        "friendly": "Budget Information Access",
+        "description": "Allows the user access to the Budget Information page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16281",
+        "name": "PCS2BudgetGeneralAccess",
+        "friendly": "Budget General Access",
+        "description": "Allows user to access the Budget General Tab",
+        "module": "PCS2"
+      },
+      {
+        "id": "16282",
+        "name": "PCS2BudgetGeneralEdit",
+        "friendly": "Budget General Edit",
+        "description": "Allows user to edit the Budget General Tab",
+        "module": "PCS2"
+      },
+      {
+        "id": "16283",
+        "name": "PCS2BudgetGeneralView",
+        "friendly": "Budget General View",
+        "description": "Allows user to view the Budget General Tab",
+        "module": "PCS2"
+      },
+      {
+        "id": "16284",
+        "name": "PCS2BudgetLineItemsAccess",
+        "friendly": "Budget Line Items Access",
+        "description": "Allows user to access the Budget Line Items Tab",
+        "module": "PCS2"
+      },
+      {
+        "id": "16285",
+        "name": "PCS2BudgetLineItemsAdd",
+        "friendly": "Budget Line Items Add",
+        "description": "Allows the user to Add Budget Line Items",
+        "module": "PCS2"
+      },
+      {
+        "id": "16286",
+        "name": "PCS2BudgetLineItemsView",
+        "friendly": "Budget Line Items View",
+        "description": "Allows the user to View Budget Line Items",
+        "module": "PCS2"
+      },
+      {
+        "id": "16287",
+        "name": "PCS2BudgetLineItemsEdit",
+        "friendly": "Budget Line Items Edit",
+        "description": "Allows the user to Edit Budget Line Items",
+        "module": "PCS2"
+      },
+      {
+        "id": "16288",
+        "name": "PCS2BudgetLineItemsDelete",
+        "friendly": "Budget Line Items Delete",
+        "description": "Allows the user to Delete Budget Line Items",
+        "module": "PCS2"
+      },
+      {
+        "id": "16290",
+        "name": "PCS2BudgetAuditAccess",
+        "friendly": "Budget Audit Access",
+        "description": "Allows the user access to the Budget Audit page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16291",
+        "name": "PCS2BudgetAuditExport",
+        "friendly": "Budget Audit Export",
+        "description": "Allows the user to export the Audit Trail.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16301",
+        "name": "PCS2ReportsListAccess",
+        "friendly": "Reports List Access",
+        "description": "Allows the user access to the Reports List.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16310",
+        "name": "PCS2SetupSubModuleAccess",
+        "friendly": "Setup Sub Module Access",
+        "description": "Allows the user to access the Setup Sub Module.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16311",
+        "name": "PCS2SetupLookupAccess",
+        "friendly": "Setup Lookup Access",
+        "description": "Allows the user to access the Lookup page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16312",
+        "name": "PCS2SetupLookupAdd",
+        "friendly": "Setup Lookup Add",
+        "description": "Allows the user to Add a Lookup.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16313",
+        "name": "PCS2SetupLookupEdit",
+        "friendly": "Setup Lookup Edit",
+        "description": "Allows the user to Edit a Lookup.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16314",
+        "name": "PCS2SetupAdministrationAccess",
+        "friendly": "Setup Administration Access",
+        "description": "Allows the user to Access the Administration page.",
+        "module": "PCS2"
+      },
+      {
+        "id": "16315",
+        "name": "PCS2ProjectArchive",
+        "friendly": "Project Archive Access",
+        "description": "Allows the user to access the archive button on project grid.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18006",
+        "name": "PCS2ProcurementDetailsAccess",
+        "friendly": " Project info Procurement Details Access",
+        "description": "Activate the procurement submodule",
+        "module": "PCS2"
+      },
+      {
+        "id": "18007",
+        "name": "PCS2ProcurementDetailsEdit",
+        "friendly": "Project info Procurement Details Edit",
+        "description": "Allows the user to edit Procurement Details.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18008",
+        "name": "PCS2ProcurementDetailsView",
+        "friendly": "Project info Procurement Details View",
+        "description": "Allows the user to view ProcurementDetails.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18009",
+        "name": "PCS2CompensationEventsAccess",
+        "friendly": "Project Compensation Events View",
+        "description": "Allows the user to view Compensation Events",
+        "module": "PCS2"
+      },
+      {
+        "id": "18010",
+        "name": "PCS2PaymentsItemAccess",
+        "friendly": "Payments Item Access",
+        "description": "Allows the user access to the Payments Item in the LHN of Project.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18011",
+        "name": "PCS2PaymentsTransactionRecordAdd",
+        "friendly": "Payments Transaction Record Add",
+        "description": "Allows the user to add a Transaction record from within PCS.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18012",
+        "name": "PCS2BudgetSCOAView",
+        "friendly": "Project Budget SCOA View",
+        "description": "Allows the user to view the Budget SCOA card.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18013",
+        "name": "PCS2BudgetSCOAEdit",
+        "friendly": "Project Budget SCOA Edit",
+        "description": "Allows the user to edit the Budget SCOA card.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18014",
+        "name": "PCS2CostDetailsAccess",
+        "friendly": "Project Cost Details Tab View",
+        "description": "Allows the user to access the Cost Details tab.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18015",
+        "name": "PCS2ProjectCostDetailsAdd",
+        "friendly": "Project Cost Details Add",
+        "description": "Allows the user to add on the Cost Details linkedgrid.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18016",
+        "name": "PCS2ProjectCostDetailsView",
+        "friendly": "Project Cost Details View",
+        "description": "Allows the user to view the Cost Details linkedgrid.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18017",
+        "name": "PCS2ProjectCostDetailsEdit",
+        "friendly": "Project Cost Details Edit",
+        "description": "Allows the user to edit on the Cost Details linkedgrid.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18018",
+        "name": "PCS2ProjectCostDetailsDelete",
+        "friendly": "Project Cost Details Delete",
+        "description": "Allows the user to delete on the Cost Details linkedgrid.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18019",
+        "name": "PCS2CostDetailsEdit",
+        "friendly": "Project Cost Details Card Edit",
+        "description": "Allows the user to edit on the Cost Details card.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18020",
+        "name": "PCS2CostDetailsView",
+        "friendly": "Project Cost Details Card View",
+        "description": "Allows the user to view on the Cost Details card.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18021",
+        "name": "PCS2ProjectRiskDetailsAccess",
+        "friendly": "Project Risk Details Tab View",
+        "description": "Allows the user to access on the Risk tab.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18022",
+        "name": "PCS2ProjectRiskDetailsAdd",
+        "friendly": "Project Risk Details Add",
+        "description": "Allows the user to add on the Risk Details linkedgrid.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18023",
+        "name": "PCS2ProjectRiskDetailsEdit",
+        "friendly": "Project Risk Details Edit",
+        "description": "Allows the user to edit on the Risk Details linkedgrid.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18024",
+        "name": "PCS2ProjectRiskDetailsDelete",
+        "friendly": "Project Risk Details Delete",
+        "description": "Allows the user to delete on the Risk Details linkedgrid.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18025",
+        "name": "PCS2ProjectRiskDetailsView",
+        "friendly": "Project Risk Details View",
+        "description": "Allows the user to view on the Risk Details linkedgrid.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18026",
+        "name": "PCS2RiskDetailsView",
+        "friendly": "Project Risk Details Card View",
+        "description": "Allows the user to view on the Risk Details card.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18027",
+        "name": "PCS2RiskDetailsEdit",
+        "friendly": "Project Risk Details Card Edit",
+        "description": "Allows the user to edit on the Risk Details card.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18028",
+        "name": "PCS2ProjectIssueDetailsTabAccess",
+        "friendly": "Project Issue Details Tab View",
+        "description": "Allows the user to view the Issue Details Tab.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18029",
+        "name": "PCS2IssueDetailsCardView",
+        "friendly": "Project Issue Details Card View",
+        "description": "Allows the user to access the Issue Details Card within the Issue Tab in Project Information.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18030",
+        "name": "PCS2IssueDetailsCardEdit",
+        "friendly": "Project Issue Details Card Edit",
+        "description": "Allows the user to edit the Issue Details Card within the Issue Tab in Project Information.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18031",
+        "name": "PCS2ProjectIssueDetailsDelete",
+        "friendly": "Project Issue Details Delete",
+        "description": "Allows the user to Delete Issue Details.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18032",
+        "name": "PCS2ProjectIssueDetailsAdd",
+        "friendly": "Project Issue Details Add",
+        "description": "Allows the user to Add Issue Details.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18033",
+        "name": "PCS2ProjectIssueDetailsView",
+        "friendly": "Project Issue Details View",
+        "description": "Allows the user to View Issue Details.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18034",
+        "name": "PCS2ProjectIssueDetailsEdit",
+        "friendly": "Project Issue Details Edit",
+        "description": "Allows the user to Edit Issue Details.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18035",
+        "name": "PCS2ProjectLessonsDetailsAccess",
+        "friendly": "Project Lessons Learned Details Tab Access",
+        "description": "Allows the user to access the Lessons Learned tab.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18036",
+        "name": "PCS2ProjectLessonsDetailsAdd",
+        "friendly": "Project Lessons Learned Details Tab Add",
+        "description": "Allows the user to add on the Lessons Learned Details linkedgrid.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18037",
+        "name": "PCS2ProjectLessonsDetailsEdit",
+        "friendly": "Project Lessons Learned Details Tab Edit",
+        "description": "Allows the user to Edit on the Lessons Learned Details linkedgrid.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18038",
+        "name": "PCS2ProjectLessonsDetailsView",
+        "friendly": "Project Lessons Learned Details Tab View",
+        "description": "Allows the user to view the Lessons Learned Details linkedgrid.",
+        "module": "PCS2"
+      },
+      {
+        "id": "18039",
+        "name": "PCS2ProjectLessonsDetailsDelete",
+        "friendly": "Project Lessons Learned Details Tab Delete",
+        "description": "Allows the user to Delete on the Lessons Learned Details linkedgrid.",
+        "module": "PCS2"
+      },
+      {
+        "id": "15064",
+        "name": "PaymentsTransactionsListFullAccess",
+        "friendly": "Transaction List Full Access",
+        "description": "Allows the user access to all the records in the Transaction List.",
+        "module": "Payments"
+      },
+      {
+        "id": "15065",
+        "name": "PaymentsTransactionsListLimitedAccess",
+        "friendly": "Transaction List Limited Access",
+        "description": "Allows the user access to only the transactions they are a part of as a Verifier, Approver or Authoriser.",
+        "module": "Payments"
+      },
+      {
+        "id": "15066",
+        "name": "PaymentsBasPaymentsListFullAccess",
+        "friendly": "BAS Payment List Full Access",
+        "description": "Allows the user access to all the records in the BAS Payment List.",
+        "module": "Payments"
+      },
+      {
+        "id": "15067",
+        "name": "PaymentsBasPaymentsListLimitedAccess",
+        "friendly": "BAS Payment List Limited Access",
+        "description": "Allows the user access to only the BAS payments they are a part of as a Verifier, Approver or Authoriser.",
+        "module": "Payments"
+      },
+      {
+        "id": "15079",
+        "name": "PaymentsTransactionAuthorisedStateRevert",
+        "friendly": "Transaction Workflow Revert to Pending Authorisation",
+        "description": "Allows the user to revert the invoice to the Pending Authorisation workflow state.",
+        "module": "Payments"
+      },
+      {
+        "id": "15080",
+        "name": "PaymentsTransactionEBSPortalAccess",
+        "friendly": "Transaction EBS Portal Access",
+        "description": "Allows user to access the EBS Invoice portal",
+        "module": "Payments"
+      },
+      {
+        "id": "15083",
+        "name": "PaymentsPaymentCertificatesListAccess",
+        "friendly": "Transaction Payment Certificates List Access",
+        "description": "Allows the user access to the Sub Module.",
+        "module": "Payments"
+      },
+      {
+        "id": "15084",
+        "name": "PaymentsPaymentCertificateListView",
+        "friendly": "Payment Certificates List Record View",
+        "description": "Allows the user to view a Payment Certificate.",
+        "module": "Payments"
+      },
+      {
+        "id": "15085",
+        "name": "PaymentsPaymentCertificateListEdit",
+        "friendly": "Payment Certificates List Record Edit",
+        "description": "Allows the user to edit a Payment Certificate.",
+        "module": "Payments"
+      },
+      {
+        "id": "15086",
+        "name": "PaymentsPaymentCertificateListDelete",
+        "friendly": "Payment Certificates List Record Delete",
+        "description": "Allows the user to delete a Payment Certificate.",
+        "module": "Payments"
+      },
+      {
+        "id": "15087",
+        "name": "PaymentsPaymentCertificateAdd",
+        "friendly": "Payment Certificates List Record Add",
+        "description": "Allows the user to add a Payment Certificate.",
+        "module": "Payments"
+      },
+      {
+        "id": "15101",
+        "name": "PaymentsTransactionStateAmend",
+        "friendly": "Transaction Workflow Amendment",
+        "description": "Allows the user to move the transaction into the Amendment workflow state.",
+        "module": "Payments"
+      },
+      {
+        "id": "15102",
+        "name": "PaymentsTransactionStateJournal",
+        "friendly": "Transaction Workflow Journal",
+        "description": "Allows the user to move the workflow to the Journal state.",
+        "module": "Payments"
+      },
+      {
+        "id": "15103",
+        "name": "PaymentsBasPaymentStateJournal",
+        "friendly": "BAS Payment Workflow Journal",
+        "description": "Allows the user to transition payment to Journal State.",
+        "module": "Payments"
+      },
+      {
+        "id": "20000",
+        "name": "paymentsModuleAccess",
+        "friendly": "Payments Module Access",
+        "description": "Allows the user to access the Payments Module.",
+        "module": "Payments"
+      },
+      {
+        "id": "20001",
+        "name": "PaymentsTransactionsSubModuleAccess",
+        "friendly": "Transaction Sub Module Access",
+        "description": "Allows the user to access the Transaction Sub Module.",
+        "module": "Payments"
+      },
+      {
+        "id": "20002",
+        "name": "PaymentsBASPaymentsSubModuleAccess",
+        "friendly": "BAS Payment Sub Module Access",
+        "description": "Allows the user to access the BAS Payment Sub Module.",
+        "module": "Payments"
+      },
+      {
+        "id": "20003",
+        "name": "PaymentsSetupSubModuleAccess",
+        "friendly": "Setup Sub Module Access",
+        "description": "Allows the user to access the Setup Sub Module.",
+        "module": "Payments"
+      },
+      {
+        "id": "20004",
+        "name": "PaymentsTranactionsOverviewAccess",
+        "friendly": "Transaction Overview Access",
+        "description": "Allows the user to access the Transaction Overview.",
+        "module": "Payments"
+      },
+      {
+        "id": "20005",
+        "name": "PaymentsTranactionsListAccess",
+        "friendly": "Transaction List Access",
+        "description": "Allows the user to access the Transaction List.",
+        "module": "Payments"
+      },
+      {
+        "id": "20006",
+        "name": "PaymentsBASPaymentsOverviewAccess",
+        "friendly": "BAS Payment Overview Access",
+        "description": "Allows the user to access the BAS Payment Overview.",
+        "module": "Payments"
+      },
+      {
+        "id": "20007",
+        "name": "PaymentsBASPaymentsListAccess",
+        "friendly": "BAS Payment List Access",
+        "description": "Allows the user to access the BAS Payment List.",
+        "module": "Payments"
+      },
+      {
+        "id": "20008",
+        "name": "PaymentsSetupLookupAccess",
+        "friendly": "Setup Lookup Access",
+        "description": "Allows the user to access the Setup Lookups.",
+        "module": "Payments"
+      },
+      {
+        "id": "20009",
+        "name": "PaymentsTransactionsDocumentsAdd",
+        "friendly": "Transaction Documents Add",
+        "description": "Allows the user to add Documents and Photos to the Transaction record",
+        "module": "Payments"
+      },
+      {
+        "id": "20010",
+        "name": "PaymentsTransactionsDocumentsDownload",
+        "friendly": "Transaction Documents Download",
+        "description": "Allows the user to download Documents and Photos uploaded against the Transaction record",
+        "module": "Payments"
+      },
+      {
+        "id": "20011",
+        "name": "PaymentsTransactionsDocumentsEdit",
+        "friendly": "Transaction Documents Edit",
+        "description": "Allows the user to edit Documents and Photos uploaded against the Transaction record",
+        "module": "Payments"
+      },
+      {
+        "id": "20012",
+        "name": "PaymentsTransactionsDocumentsDelete",
+        "friendly": "Transaction Documents Delete",
+        "description": "Allows the user to Delete Documents and Photos uploaded against the Transaction record",
+        "module": "Payments"
+      },
+      {
+        "id": "20013",
+        "name": "PaymentsTransactionsDocumentsAccess",
+        "friendly": "Transaction Documents Access",
+        "description": "Allows the user to access the Document section on a transaction.",
+        "module": "Payments"
+      },
+      {
+        "id": "20014",
+        "name": "PaymentsTransactionSupplierDetailsTabView",
+        "friendly": "Transaction Information Supplier Details Tab Access",
+        "description": "Allows the user to view the Supplier Details Tab.",
+        "module": "Payments"
+      },
+      {
+        "id": "20015",
+        "name": "PaymentsTransactionSupplierDetailsCardView",
+        "friendly": "Transaction Information Supplier Details Card View",
+        "description": "Allows the user to view the Supplier Details Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20016",
+        "name": "PaymentsTransactionTabView",
+        "friendly": "Transaction Information Transaction Tab Access",
+        "description": "Allows the user to view the Transaction Tab.",
+        "module": "Payments"
+      },
+      {
+        "id": "20018",
+        "name": "PaymentsGeneralCardView",
+        "friendly": "Transaction Information General Card View",
+        "description": "Allows the user to view the General Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20019",
+        "name": "PaymentsGeneralCardEdit",
+        "friendly": "Transaction Information General Card Edit",
+        "description": "Allows the user to edit the General Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20020",
+        "name": "PaymentsTransactionCardView",
+        "friendly": "Transaction Information Transaction Card View",
+        "description": "Allows the user to view the Transaction Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20021",
+        "name": "PaymentsTransactionCardEdit",
+        "friendly": "Transaction Information Transaction Card Edit",
+        "description": "Allows the user to edit the Transaction Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20022",
+        "name": "PaymentsTransactionAdd",
+        "friendly": "Transaction List Record Add",
+        "description": "Allows the user to add a Transaction.",
+        "module": "Payments"
+      },
+      {
+        "id": "20023",
+        "name": "PaymentsTransactionAuditAccess",
+        "friendly": "Transaction Audit Trail Access",
+        "description": "Allows the user to access the Audit Trail section on a transaction.",
+        "module": "Payments"
+      },
+      {
+        "id": "20024",
+        "name": "PaymentsTransactionsListView",
+        "friendly": "Transaction List Record View",
+        "description": "Allows the user to view a Transaction.",
+        "module": "Payments"
+      },
+      {
+        "id": "20025",
+        "name": "PaymentsTransactionsListEdit",
+        "friendly": "Transaction List Record Edit",
+        "description": "Allows the user to edit a Transaction.",
+        "module": "Payments"
+      },
+      {
+        "id": "20026",
+        "name": "PaymentsTransactionsListDelete",
+        "friendly": "Transaction List Record Delete",
+        "description": "Allows the user to retire a Transaction.",
+        "module": "Payments"
+      },
+      {
+        "id": "20027",
+        "name": "PaymentsTransactionStateApprove",
+        "friendly": "Transaction Workflow Approve",
+        "description": "Allows the user to approve the requested workflow state.",
+        "module": "Payments"
+      },
+      {
+        "id": "20028",
+        "name": "PaymentsTransactionStateCancel",
+        "friendly": "Transaction Workflow Cancel",
+        "description": "Allows the user to cancel the requested workflow state.",
+        "module": "Payments"
+      },
+      {
+        "id": "20029",
+        "name": "PaymentsTransactionStateDecline",
+        "friendly": "Transaction Workflow Decline",
+        "description": "Allows the user to decline the workflow state request.",
+        "module": "Payments"
+      },
+      {
+        "id": "20030",
+        "name": "PaymentsTransactionStateReject",
+        "friendly": "Transaction Workflow Reject",
+        "description": "Allows the user to reject the workflow state request.",
+        "module": "Payments"
+      },
+      {
+        "id": "20031",
+        "name": "PaymentsTransactionStateRevert",
+        "friendly": "Transaction Workflow Revert",
+        "description": "Allows the user to revert the workflow to the Capture state.",
+        "module": "Payments"
+      },
+      {
+        "id": "20032",
+        "name": "PaymentsTransactionStateRequest",
+        "friendly": "Transaction Workflow Request",
+        "description": "Allows the user to request the next workflow state.",
+        "module": "Payments"
+      },
+      {
+        "id": "20033",
+        "name": "PaymentsTransactionStateMarkAsPaid",
+        "friendly": "Transaction Workflow Mark as Paid",
+        "description": "Allows the user to mark the transaction as paid and move the record into the Paid workflow state.",
+        "module": "Payments"
+      },
+      {
+        "id": "20034",
+        "name": "PaymentsBASPaymentPaymentDetailsTabView",
+        "friendly": "BAS Payment Information Payment Details Tab Access",
+        "description": "Allows the user to view the Payment Details Tab.",
+        "module": "Payments"
+      },
+      {
+        "id": "20036",
+        "name": "PaymentsBASPaymentsAdd",
+        "friendly": "BAS Payment List Record Add",
+        "description": "Allows the user to add a BAS Payment.",
+        "module": "Payments"
+      },
+      {
+        "id": "20037",
+        "name": "PaymentsBASPaymentPaymentDetailsCardView",
+        "friendly": "BAS Payment Information Payment Details Card View",
+        "description": "Allows the user to view the Payment Details Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20038",
+        "name": "PaymentsBASPaymentPaymentDetailsCardEdit",
+        "friendly": "BAS Payment Information Payment Details Card Edit",
+        "description": "Allows the user to edit the Payment Details Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20039",
+        "name": "PaymentsBASPaymentAuditAccess",
+        "friendly": "BAS Payment Audit Trail Access",
+        "description": "Allows the user to access the Audit Trail section on a BAS payment.",
+        "module": "Payments"
+      },
+      {
+        "id": "20040",
+        "name": "PaymentsBASPaymentDocumentsAccess",
+        "friendly": "BAS Payment Documents Access",
+        "description": "Allows the user to access the Document section on a BAS payment.",
+        "module": "Payments"
+      },
+      {
+        "id": "20041",
+        "name": "PaymentsBasPaymentStateRequest",
+        "friendly": "BAS Payment Workflow Request",
+        "description": "Allows the user to request the next workflow state.",
+        "module": "Payments"
+      },
+      {
+        "id": "20042",
+        "name": "PaymentsBasPaymentStateApprove",
+        "friendly": "BAS Payment Workflow Approve",
+        "description": "Allows the user to approve the requested workflow state.",
+        "module": "Payments"
+      },
+      {
+        "id": "20043",
+        "name": "PaymentsBasPaymentStateDecline",
+        "friendly": "BAS Payment Workflow Decline",
+        "description": "Allows the user to decline the workflow state request.",
+        "module": "Payments"
+      },
+      {
+        "id": "20044",
+        "name": "PaymentsBasPaymentStateCancel",
+        "friendly": "BAS Payment Workflow Cancel",
+        "description": "Allows the user to cancel the requested workflow state.",
+        "module": "Payments"
+      },
+      {
+        "id": "20045",
+        "name": "PaymentsBasPaymentStateMarkAsSuccess",
+        "friendly": "BAS Payment Workflow Mark as Success",
+        "description": "Allows the user to mark the BAS Payment batch as paid and move the record into the Success workflow state.",
+        "module": "Payments"
+      },
+      {
+        "id": "20046",
+        "name": "PaymentsBasPaymentStateMarkAsFailed",
+        "friendly": "BAS Payment Workflow Mark as Fail",
+        "description": "Allows the user to mark the BAS Payment batch as paid and move the record into the Fail workflow state.",
+        "module": "Payments"
+      },
+      {
+        "id": "20047",
+        "name": "PaymentsBasPaymentStateRevert",
+        "friendly": "BAS Payment Workflow Revert",
+        "description": "Allows the user to revert the workflow to the Capture state.",
+        "module": "Payments"
+      },
+      {
+        "id": "20048",
+        "name": "PaymentsBasPaymentStateReject",
+        "friendly": "BAS Payment Workflow Reject",
+        "description": "Allows the user to reject the workflow state request.",
+        "module": "Payments"
+      },
+      {
+        "id": "20049",
+        "name": "PaymentsBasPaymentsListView",
+        "friendly": "BAS Payment List Record View",
+        "description": "Allows the user to view a BAS Payment.",
+        "module": "Payments"
+      },
+      {
+        "id": "20050",
+        "name": "PaymentsBasPaymentsListEdit",
+        "friendly": "BAS Payment List Record Edit",
+        "description": "Allows the user to edit a BAS Payment.",
+        "module": "Payments"
+      },
+      {
+        "id": "20051",
+        "name": "PaymentsBasPaymentsListDelete",
+        "friendly": "BAS Payment List Record Delete",
+        "description": "Allows the user to retire a BAS Payment.",
+        "module": "Payments"
+      },
+      {
+        "id": "20052",
+        "name": "PaymentsReconciliationSubModuleAccess",
+        "friendly": "Reconciliation Sub Module Access",
+        "description": "Allows the user to access the Reconciliation Sub Module.",
+        "module": "Payments"
+      },
+      {
+        "id": "20053",
+        "name": "PaymentsReconciliationOverviewAccess",
+        "friendly": "Reconciliation Overview Access",
+        "description": "Allows the user to access the Reconciliation Overview.",
+        "module": "Payments"
+      },
+      {
+        "id": "20054",
+        "name": "PaymentsReconciliationListAccess",
+        "friendly": "Reconciliation List Access",
+        "description": "Allows the user to access the Reconciliation List.",
+        "module": "Payments"
+      },
+      {
+        "id": "20055",
+        "name": "PaymentsReconciliationAdd",
+        "friendly": "Reconciliation List Record Add",
+        "description": "Allows the user to add a Reconciliation.",
+        "module": "Payments"
+      },
+      {
+        "id": "20056",
+        "name": "PaymentsReconciliationListEdit",
+        "friendly": "Reconciliation List Record Edit",
+        "description": "Allows the user to edit a Reconciliation.",
+        "module": "Payments"
+      },
+      {
+        "id": "20057",
+        "name": "PaymentsReconciliationListView",
+        "friendly": "Reconciliation List Record View",
+        "description": "Allows the user to view a Reconciliation.",
+        "module": "Payments"
+      },
+      {
+        "id": "20058",
+        "name": "PaymentsReconciliationListDelete",
+        "friendly": "Reconciliation List Record Delete",
+        "description": "Allows the user to Delete a Reconciliation.",
+        "module": "Payments"
+      },
+      {
+        "id": "20059",
+        "name": "PaymentsReconciliationInformationAccess",
+        "friendly": "Reconciliation Information Access",
+        "description": "Allows the user to access the Information section on a reconciliation.",
+        "module": "Payments"
+      },
+      {
+        "id": "20060",
+        "name": "PaymentsReconciliationDocumentsAccess",
+        "friendly": "Reconciliation Documents Access",
+        "description": "Allows the user to access the Document section on a reconciliation.",
+        "module": "Payments"
+      },
+      {
+        "id": "20061",
+        "name": "PaymentsReconciliationAuditTrailAccess",
+        "friendly": "Reconciliation Audit Trail Access",
+        "description": "Allows the user to access the Audit Trail section on a reconciliation.",
+        "module": "Payments"
+      },
+      {
+        "id": "20062",
+        "name": "PaymentsReconciliationProcessStateRequest",
+        "friendly": "Reconciliation Process Action",
+        "description": "Allows the user to request the process workflow state.",
+        "module": "Payments"
+      },
+      {
+        "id": "20063",
+        "name": "PaymentsReconciliationDocumentsAdd",
+        "friendly": "Reconciliation Document Add",
+        "description": "Allows the user to add a document to a reconciliation.",
+        "module": "Payments"
+      },
+      {
+        "id": "20064",
+        "name": "PaymentsReconciliationDocumentsDownload",
+        "friendly": "Reconciliation Document Download",
+        "description": "Allows the user to download a reconciliation document.",
+        "module": "Payments"
+      },
+      {
+        "id": "20065",
+        "name": "PaymentsReconciliationDocumentsEdit",
+        "friendly": "Reconciliation Document Edit",
+        "description": "Allows the user to edit a reconciliation document.",
+        "module": "Payments"
+      },
+      {
+        "id": "20066",
+        "name": "PaymentsReconciliationDocumentsDelete",
+        "friendly": "Reconciliation Document Delete",
+        "description": "Allows the user to delete a reconciliation document.",
+        "module": "Payments"
+      },
+      {
+        "id": "20067",
+        "name": "PaymentsTransactionBasStatusView",
+        "friendly": "Transaction Information BAS Status Card View",
+        "description": "Allows the user to view the BAS Status card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20068",
+        "name": "PaymentsTransactionApprovalsTabView",
+        "friendly": "Transaction Information Approvals Tab Access",
+        "description": "Allows the user to view the Approvals Tab.",
+        "module": "Payments"
+      },
+      {
+        "id": "20069",
+        "name": "PaymentsTransactionApprovalsCardEdit",
+        "friendly": "Transaction Information Approvals Card Edit",
+        "description": "Allows the user to edit the Approvals Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20070",
+        "name": "PaymentsTransactionApprovalsCardView",
+        "friendly": "Transaction Information Approvals Card View",
+        "description": "Allows the user to view the Approvals Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20071",
+        "name": "PaymentsBASPaymentDocumentsAdd",
+        "friendly": "BAS Payment Documents Add",
+        "description": "Allows the user to add Documents and Photos to the BAS Payment record",
+        "module": "Payments"
+      },
+      {
+        "id": "20072",
+        "name": "PaymentsBASPaymentDocumentsDownload",
+        "friendly": "BAS Payment Documents Download",
+        "description": "Allows the user to download Documents and Photos uploaded against the BAS Payment record",
+        "module": "Payments"
+      },
+      {
+        "id": "20073",
+        "name": "PaymentsBASPaymentDocumentsEdit",
+        "friendly": "BAS Payment Documents Edit",
+        "description": "Allows the user to edit Documents and Photos uploaded against the BAS Payment record",
+        "module": "Payments"
+      },
+      {
+        "id": "20074",
+        "name": "PaymentsBASPaymentDocumentsDelete",
+        "friendly": "BAS Payment Documents Delete",
+        "description": "Allows the user to Delete Documents and Photos uploaded against the BAS Payment record",
+        "module": "Payments"
+      },
+      {
+        "id": "20075",
+        "name": "PaymentsBASPaymentApprovalsTabView",
+        "friendly": "BAS Payment Information Approvals Tab Access",
+        "description": "Allows the user to view the Approvals Tab.",
+        "module": "Payments"
+      },
+      {
+        "id": "20076",
+        "name": "PaymentsBASPaymentApprovalsCardEdit",
+        "friendly": "BAS Payment Information Approvals Card Edit",
+        "description": "Allows the user to edit the Approvals Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20077",
+        "name": "PaymentsBASPaymentApprovalsCardView",
+        "friendly": "BAS Payment Information Approvals Card View",
+        "description": "Allows the user to view the Approvals Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20078",
+        "name": "PaymentsBASPaymentSupplierDetailsTabView",
+        "friendly": "BAS Payment Information Supplier Details Tab Access",
+        "description": "Allows the user to view the Supplier Details Tab.",
+        "module": "Payments"
+      },
+      {
+        "id": "20079",
+        "name": "PaymentsBASPaymentSupplierDetailsCardView",
+        "friendly": "BAS Payment Information Supplier Details Card View",
+        "description": "Allows the user to view the Supplier Details Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20080",
+        "name": "PaymentsTransactionInformationAccess",
+        "friendly": "Transaction Information Access",
+        "description": "Allows the user to access the Information section on a transaction.",
+        "module": "Payments"
+      },
+      {
+        "id": "20081",
+        "name": "PaymentsTransactionHubAccess",
+        "friendly": "Transaction Hub Access",
+        "description": "Allows the user to access the Hub section on a transaction.",
+        "module": "Payments"
+      },
+      {
+        "id": "20082",
+        "name": "PaymentsTransactionInformationProjectDetailsTabAccess",
+        "friendly": "Transaction Information Project Details Tab Access",
+        "description": "Allows the user to view the Project Details Tab.",
+        "module": "Payments"
+      },
+      {
+        "id": "20083",
+        "name": "PaymentsTransactionInformationProjectDetailsCardView",
+        "friendly": "Transaction Information Project Details Card View",
+        "description": "Allows the user to view the Project Details Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20084",
+        "name": "PaymentsBASPaymentHubAccess",
+        "friendly": "BAS Payment Hub Access",
+        "description": "Allows the user to access the Hub section on a BAS payment.",
+        "module": "Payments"
+      },
+      {
+        "id": "20085",
+        "name": "PaymentsBASPaymentInformationAccess",
+        "friendly": "BAS Payment Information Access",
+        "description": "Allows the user to access the Information section on a BAS payment.",
+        "module": "Payments"
+      },
+      {
+        "id": "20086",
+        "name": "PaymentsBASPaymentPaymentLineAdd",
+        "friendly": "BAS Payments Information Payment Lines Add",
+        "description": "Allows the user to add on the Payment Line linkedgrid.",
+        "module": "Payments"
+      },
+      {
+        "id": "20087",
+        "name": "PaymentsBASPaymentPaymentLineView",
+        "friendly": "BAS Payments Information Payment Lines View",
+        "description": "Allows the user to view on the Payment Line linkedgrid.",
+        "module": "Payments"
+      },
+      {
+        "id": "20088",
+        "name": "PaymentsBASPaymentPaymentLineEdit",
+        "friendly": "BAS Payments Information Payment Lines Edit",
+        "description": "Allows the user to edit on the Payment Line linkedgrid.",
+        "module": "Payments"
+      },
+      {
+        "id": "20089",
+        "name": "PaymentsBASPaymentPaymentLineDelete",
+        "friendly": "BAS Payments Information Payment Lines Delete",
+        "description": "Allows the user to delete from the Payment Line linkedgrid.",
+        "module": "Payments"
+      },
+      {
+        "id": "20090",
+        "name": "PaymentsBASPaymentSCOADetailsCardView",
+        "friendly": "BAS Payment Information SCOA Details Card View",
+        "description": "Allows the user to view the SCOA Details Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20091",
+        "name": "PaymentsBASPaymentSCOADetailsCardEdit",
+        "friendly": "BAS Payment Information SCOA Details Card Edit",
+        "description": "Allows the user to edit the SCOA Details Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20092",
+        "name": "PaymentsReconciliationReconciliationDetailsCardView",
+        "friendly": "Reconciliation Information Reconciliation Details Card View",
+        "description": "Allows the user to view the Reconciliation Details Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20093",
+        "name": "PaymentsReconciliationReconciliationDetailsCardEdit",
+        "friendly": "Reconciliation Information Reconciliation Details Card Edit",
+        "description": "Allows the user to edit the Reconciliation Details Card.",
+        "module": "Payments"
+      },
+      {
+        "id": "20097",
+        "name": "RMTimeManagementEdit",
+        "friendly": "RM - Time Management - Edit",
+        "description": "Allows the user to edit in time management.",
+        "module": "Resource Manager"
+      },
+      {
+        "id": "20098",
+        "name": "RMTimeManagementAdd",
+        "friendly": "RM - Time Management - Add",
+        "description": "Allows the user to add in time management.",
+        "module": "Resource Manager"
+      },
+      {
+        "id": "20099",
+        "name": "RMTimeManagementView",
+        "friendly": "RM - Time Management - View",
+        "description": "Allows the user to view time management.",
+        "module": "Resource Manager"
+      }
+    ]
+  }
+}

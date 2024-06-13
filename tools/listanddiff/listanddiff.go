@@ -52,37 +52,42 @@ type GroupClean struct {
 
 func main() {
 	//load permissions
-	fPerm, e := os.ReadFile("imqsauth.json")
+	e, permsMap := loadImqsAuth("imqsauth.json")
 	if e != nil {
 		fmt.Printf("Error: %v\n", e)
 		os.Exit(1)
 	}
-	perms := Permissions{}
-	err := json.Unmarshal(fPerm, &perms)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+	e, permsMap2 := loadImqsAuth("imqsauth2.json")
+	if e != nil {
+		fmt.Printf("Error: %v\n", e)
 		os.Exit(1)
 	}
 
-	permsMap := make(map[int]string)
-	for _, p := range perms.Permissions.Dynamic {
-		id, e := strconv.Atoi(p.Id)
-		if e != nil {
-			fmt.Printf("Error converting %s to int: %v\n", p.Id, e)
+	// merge the two permission maps
+	for k, v := range permsMap2 {
+		if _, ok := permsMap[k]; !ok {
+			permsMap[k] = v
 		}
-		permsMap[id] = p.Name
 	}
+
 	// add permslight if available
-	fPermsLight, e := os.ReadFile("imqsauth2.json")
-	if e != nil {
+	permsLight, er := loadAuthMap("authmap.json")
+	if er != nil {
 		fmt.Printf("Error: %v\n", e)
 		os.Exit(1)
 	}
-	permsLight := authPermsLight{}
-	err = json.Unmarshal(fPermsLight, &permsLight)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+
+	permsLight2, er := loadAuthMap("authmap2.json")
+	if er != nil {
+		fmt.Printf("Error: %v\n", e)
 		os.Exit(1)
+	}
+
+	// merge the two permission maps
+	for k, v := range permsLight2.Perms {
+		if _, ok := permsLight.Perms[k]; !ok {
+			permsLight.Perms[k] = v
+		}
 	}
 
 	for k, v := range permsLight.Perms {
@@ -136,6 +141,45 @@ func main() {
 	if e != nil {
 		fmt.Printf("Error: %v\n", e)
 	}
+}
+
+func loadAuthMap(name string) (*authPermsLight, error) {
+	fPermsLight, e := os.ReadFile(name)
+	if e != nil {
+		fmt.Printf("Error: %v\n", e)
+		return nil, e
+	}
+	permsLight := authPermsLight{}
+	err := json.Unmarshal(fPermsLight, &permsLight)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return nil, err
+	}
+	return &permsLight, nil
+}
+
+func loadImqsAuth(name string) (error, map[int]string) {
+	fPerm, e := os.ReadFile(name)
+	if e != nil {
+		fmt.Printf("Error: %v\n", e)
+		return e, nil
+	}
+	perms := Permissions{}
+	err := json.Unmarshal(fPerm, &perms)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return err, nil
+	}
+
+	permsMap := make(map[int]string)
+	for _, p := range perms.Permissions.Dynamic {
+		id, e := strconv.Atoi(p.Id)
+		if e != nil {
+			fmt.Printf("Error converting %s to int: %v\n", p.Id, e)
+		}
+		permsMap[id] = p.Name
+	}
+	return e, permsMap
 }
 
 func compareGroups(w *strings.Builder, sourceAuth *AuthClean, targetAuth *AuthClean, permsMap map[int]string) error {
@@ -251,19 +295,17 @@ func parseFile(tempFilename string) []*GroupClean {
 func printGroups(clean []*GroupClean, filename string, permsMap map[int]string) {
 	// output to csv
 	fw, e := os.OpenFile(strings.Replace(filename, ".json", ".csv", 1), os.O_CREATE|os.O_WRONLY, 0666)
-	if fw == nil {
-		os.Exit(1)
-	}
+	defer fw.Close()
 	if e != nil {
 		fmt.Printf("Error: %v\n", e)
+		os.Exit(1)
 	}
-	defer fw.Close()
 
 	w := bufio.NewWriter(fw)
 	defer w.Flush()
 	for _, s := range clean {
-		for p := range s.PermList {
-			fmt.Fprintf(w, "%s,%s,%v\n", s.Name, permsMap[p], p)
+		for _, p := range s.PermList {
+			fmt.Fprintf(w, "%s,%s,%v\n", s.Name, permsMap[int(p)], p)
 		}
 	}
 }
