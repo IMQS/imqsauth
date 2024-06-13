@@ -27,3 +27,6 @@ __debug_bin
 /tools/listanddiff/*.zip
 /tools/listanddiff/*.xlsx
 /tools/Data/Working/
+/tools/listanddiff/AuthGroupsTRN.json
+/tools/listanddiff/authmap.json
+/tools/listanddiff/authmap2.json
