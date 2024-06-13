@@ -26,3 +26,4 @@ __debug_bin
 /tools/listanddiff/AuthGroups_2023_12_21.json
 /tools/listanddiff/*.zip
 /tools/listanddiff/*.xlsx
+/tools/Data/Working/
