@@ -256,18 +256,21 @@ func parseFile(tempFilename string) []*GroupClean {
 	defer f.Close()
 
 	if e != nil {
+		fmt.Printf("Error: %v\n", e)
 		os.Exit(1)
 	}
 
 	r := bufio.NewReader(f)
 	rAll, e := io.ReadAll(r)
 	if e != nil {
+		fmt.Printf("Error: %v\n", e)
 		os.Exit(1)
 	}
 	groupList := Group{}
 
 	err := json.Unmarshal(rAll, &groupList)
 	if err != nil {
+		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 
