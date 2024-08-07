@@ -51,7 +51,7 @@ type GroupClean struct {
 }
 
 func main() {
-	//load permissions
+	//load auth permissions configuration
 	e, permsMap := loadImqsAuth("imqsauth.json")
 	if e != nil {
 		fmt.Printf("Error: %v\n", e)
@@ -70,7 +70,7 @@ func main() {
 		}
 	}
 
-	// add permslight if available
+	// load endpoint-retrieved perms maps if available
 	permsLight, er := loadAuthMap("authmap.json")
 	if er != nil {
 		fmt.Printf("Error: %v\n", e)

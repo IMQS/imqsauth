@@ -139,7 +139,7 @@ Here is a snippet of the config:
 }
 ```
 
-\* Formal schema to be defined
+Formal schema: [Config schema](docs/config-schema/imqsauth.json)
 
 Ldap config: This config is not mandatory, as the auth system does not need an LDAP implementation to rely on authentication. When not supplying an LDAP configuration, the system assumes it must perform its own authentication and there is no LDAP implementation.
 
