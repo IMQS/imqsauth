@@ -1,0 +1,1 @@
+go test listanddiff.go listanddiff_test.go

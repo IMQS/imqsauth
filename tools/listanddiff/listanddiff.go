@@ -28,9 +28,7 @@ type Permissions struct {
 	} `json:"Permissions"`
 }
 
-type authPermsLight struct {
-	Perms map[string]string
-}
+type AuthPermsLight map[string]string
 
 type GroupItem struct {
 	ID       int    `json:"ID"`
@@ -71,26 +69,26 @@ func main() {
 	}
 
 	// load endpoint-retrieved perms maps if available
-	permsLight, er := loadAuthMap("authmap.json")
+	permsLight, er := LoadAuthMap("authmap.json")
 	if er != nil {
 		fmt.Printf("Error: %v\n", e)
 		os.Exit(1)
 	}
 
-	permsLight2, er := loadAuthMap("authmap2.json")
+	permsLight2, er := LoadAuthMap("authmap2.json")
 	if er != nil {
 		fmt.Printf("Error: %v\n", e)
 		os.Exit(1)
 	}
 
 	// merge the two permission maps
-	for k, v := range permsLight2.Perms {
-		if _, ok := permsLight.Perms[k]; !ok {
-			permsLight.Perms[k] = v
+	for k, v := range permsLight2 {
+		if _, ok := permsLight[k]; !ok {
+			permsLight[k] = v
 		}
 	}
 
-	for k, v := range permsLight.Perms {
+	for k, v := range permsLight {
 		i, e := strconv.Atoi(k)
 		if e != nil {
 			fmt.Printf("Error converting %s to int: %v\n", k, e)
@@ -143,19 +141,19 @@ func main() {
 	}
 }
 
-func loadAuthMap(name string) (*authPermsLight, error) {
+func LoadAuthMap(name string) (AuthPermsLight, error) {
 	fPermsLight, e := os.ReadFile(name)
 	if e != nil {
 		fmt.Printf("Error: %v\n", e)
 		return nil, e
 	}
-	permsLight := authPermsLight{}
+	permsLight := AuthPermsLight{}
 	err := json.Unmarshal(fPermsLight, &permsLight)
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		return nil, err
 	}
-	return &permsLight, nil
+	return permsLight, nil
 }
 
 func loadImqsAuth(name string) (error, map[int]string) {
