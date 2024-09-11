@@ -2,6 +2,10 @@
 
 ## Current
 
+## v1.6.2
+
+* fix: Patch OAuth security breach in redirect URL (asg-3855)
+
 ## v1.6.1
 
 * fix: Add missing log statements to align normal login logs with OAuth logs 
