@@ -2,6 +2,10 @@
 
 ## Current
 
+## v1.6.3
+
+* fix: Update authaus version to v1.1.0 (unarchive feature and fixes) (asg-3355)
+
 ## v1.6.2
 
 * fix: Patch OAuth security breach in redirect URL (asg-3855)
