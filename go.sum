@@ -1,8 +1,8 @@
 github.com/BurntSushi/migration v0.0.0-20140125045755-c45b897f1335 h1:n8o916boOorBHMGywZ+ucvUZRLIvjt2CaY/694CgMfU=
 github.com/BurntSushi/migration v0.0.0-20140125045755-c45b897f1335/go.mod h1:eVEKGm5N/F2XPdHocE3gP//Ab+rb/54WJ7XXtFGxwaQ=
 github.com/BurntSushi/toml v1.0.0 h1:dtDWrepsVPfW9H/4y7dDgFc2MBUSeJhlaDtK13CxFlU=
-github.com/IMQS/authaus v1.1.0 h1:jn+sTq2zYnkJcj/R5ZtWn+2nEpVAZGLopRaaK/TU16M=
-github.com/IMQS/authaus v1.1.0/go.mod h1:Y8OTve3XI+DEagXTis8SwlgjQ4EIzd8iC+thTnWVITc=
+github.com/IMQS/authaus v1.1.1 h1:tz3LbdtBviv8Dl3+oiSKzQKR9PbrBgFMFGER73qqAYE=
+github.com/IMQS/authaus v1.1.1/go.mod h1:Y8OTve3XI+DEagXTis8SwlgjQ4EIzd8iC+thTnWVITc=
 github.com/IMQS/cli v0.0.0-20151022082634-156324308096 h1:VffSY+13RAsa1X+AWA7/ftPqMoW76RHL+t4Ys6q43c0=
 github.com/IMQS/cli v0.0.0-20151022082634-156324308096/go.mod h1:y2XQLPuROeqlwkjD/fieklY8cTCqFIh5OWNwsgrrwa8=
 github.com/IMQS/gowinsvc v0.0.0-20220601052852-62ce07b0ae0b h1:UoYC6fmg+eG8QgfYiXEvzrAjXzqnvX4rOo50O7CXeZM=

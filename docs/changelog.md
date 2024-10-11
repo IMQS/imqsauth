@@ -2,7 +2,11 @@
 
 ## Current
 
-## v1.6.3
+## v1.6.4
+
+* fix: Update authaus version to v1.1.1 (asg-3355)
+
+## v1.6.3 (retracted)
 
 * fix: Update authaus version to v1.1.0 (unarchive feature and fixes) (asg-3355)
 
