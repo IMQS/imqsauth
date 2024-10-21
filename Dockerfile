@@ -3,7 +3,7 @@
 ##################################
 # Builder image
 ##################################
-FROM golang:1.18 as builder
+FROM golang:1.22 AS builder
 
 ARG SSH_KEY
 
@@ -33,7 +33,7 @@ RUN go build imqsauth.go
 ##################################
 # Deployed image
 ##################################
-FROM imqs/ubuntu-base:20.04
+FROM imqs/ubuntu-base:24.04
 
 RUN mkdir -p /etc/imqsbin
 RUN mkdir -p /var/log/imqs/
