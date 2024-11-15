@@ -24,7 +24,7 @@ concurrency: ${{ github.ref }}
 jobs:
   build:
     name: Build Auth
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -39,4 +39,4 @@ jobs:
           repository: imqs/auth
           tag_with_ref: true
           build_args: SSH_KEY=${{ env.SSH_KEY }}
-          cache_froms: golang:1.16, imqs/ubuntu-base:20.04
+          cache_froms: golang:1.22, imqs/ubuntu-base:24.04

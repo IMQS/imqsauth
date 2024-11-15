@@ -1,6 +1,8 @@
-/* Benchmark the latency involved when talking to another HTTP service on the same machine.
-This is part of an investigation into the costs of inter-service authentication.
-*/
+// Benchmark the latency involved when talking to another HTTP service on the same machine.
+// This is part of an investigation into the costs of inter-service authentication.
+
+//go:build windows
+
 package main
 
 import (
