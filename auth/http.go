@@ -1450,8 +1450,6 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	if user, err := central.Central.GetUserFromUserId(authaus.UserId(userId)); err == nil {
-		// auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: User "+user.Username+" permissions changed", authaus.AuditActionUpdated)
-
 		// filter out the enabled group from the groups that were added and removed
 		filteredGroupsToAdd := filterGroups(groupsToAdd, RoleGroupEnabled)
 		filteredGroupsToRemove := filterGroups(groupsToRemove, RoleGroupEnabled)
