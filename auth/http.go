@@ -252,7 +252,8 @@ func (x *ImqsCentral) RunHttp() error {
 
 	server := &http.Server{}
 	server.Handler = smux
-	server.Addr = x.Config.Authaus.HTTP.Bind + ":" + x.Config.Authaus.HTTP.Port
+	// server.Addr = x.Config.Authaus.HTTP.Bind + ":" + x.Config.Authaus.HTTP.Port
+	server.Addr = "0.0.0.0" + ":" + x.Config.Authaus.HTTP.Port
 
 	x.Central.Log.Infof("ImqsAuth is trying to listen on %v:%v", x.Config.Authaus.HTTP.Bind, x.Config.Authaus.HTTP.Port)
 
@@ -1367,6 +1368,16 @@ func getIdentityGroupIDs(central *ImqsCentral, userId authaus.UserId) []authaus.
 	return []authaus.GroupIDU32{}
 }
 
+func filterGroups(groups []string, exclude string) []string {
+	var filtered []string
+	for _, group := range groups {
+		if group != exclude {
+			filtered = append(filtered, group)
+		}
+	}
+	return filtered
+}
+
 func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	defer func() {
 		if ex := recover(); ex != nil {
@@ -1396,6 +1407,43 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 		panic("Invalid groups: " + errGroupIDs.Error())
 	}
 
+	// Determine the user's current groups before changing them
+	currentGroups := []string{}
+	// Retrieve the permit for the given user ID
+	perm, err := central.Central.GetPermit(userId)
+	if err != nil {
+		panic("Error retrieving permit: " + err.Error())
+	}
+
+	// Decode the roles from the permit
+	permGroups, errDecode := authaus.DecodePermit(perm.Roles)
+	if errDecode != nil {
+		panic("Error decoding permit: " + errDecode.Error())
+	}
+
+	// Iterate through the decoded group IDs and fetch group details
+	for _, groupID := range permGroups {
+		group, errGroup := central.Central.GetRoleGroupDB().GetByID(groupID)
+		if errGroup != nil {
+			panic("Error retrieving group by ID (" + strconv.FormatUint(uint64(groupID), 10) + "): " + errGroup.Error())
+		}
+		currentGroups = append(currentGroups, group.Name)
+	}
+
+	// Determine the groups that are being added and removed
+	groupsToAdd := []string{}
+	groupsToRemove := []string{}
+	for _, group := range groups {
+		if !containsStr(currentGroups, group) {
+			groupsToAdd = append(groupsToAdd, group)
+		}
+	}
+	for _, group := range currentGroups {
+		if !containsStr(groups, group) {
+			groupsToRemove = append(groupsToRemove, group)
+		}
+	}
+
 	permit := &authaus.Permit{}
 	permit.Roles = authaus.EncodePermit(groupIDs)
 	if eSetPermit := central.Central.SetPermit(userId, permit); eSetPermit != nil {
@@ -1403,7 +1451,40 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	if user, err := central.Central.GetUserFromUserId(authaus.UserId(userId)); err == nil {
-		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: User "+user.Username+" permissions changed", authaus.AuditActionUpdated)
+		// auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: User "+user.Username+" permissions changed", authaus.AuditActionUpdated)
+
+		// filter out the enabled group from the groups that were added and removed
+		filteredGroupsToAdd := filterGroups(groupsToAdd, RoleGroupEnabled)
+		filteredGroupsToRemove := filterGroups(groupsToRemove, RoleGroupEnabled)
+
+		// Prepare the audit log message for groups added
+		logMessage := "User Profile: User " + user.Username + " permissions changed."
+
+		// Add the groups to the message if any groups were added
+		if len(filteredGroupsToAdd) > 0 {
+			logMessage += " Groups added: " + strings.Join(filteredGroupsToAdd, ",") + "."
+		}
+
+		// Add the groups to the message if any groups were removed
+		if len(filteredGroupsToRemove) > 0 {
+			logMessage += " Groups removed: " + strings.Join(filteredGroupsToRemove, ",") + "."
+		}
+
+		// Only log if there are changes (i.e., either added or removed groups)
+		if len(filteredGroupsToAdd) > 0 || len(filteredGroupsToRemove) > 0 {
+			auditUserLogAction(central, r, user.UserId, user.Username, logMessage, authaus.AuditActionUpdated)
+		}
+
+		// if the user is being enabled, add a message to the audit log
+		if containsStr(groupsToAdd, RoleGroupEnabled) {
+			auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: User "+user.Username+" enabled", authaus.AuditActionUpdated)
+		}
+
+		// if the user is being disabled, add a message to the audit log
+		if containsStr(groupsToRemove, RoleGroupEnabled) {
+			auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: User "+user.Username+" disabled", authaus.AuditActionUpdated)
+		}
+
 	}
 
 	summary := strings.Join(groups, ",")
