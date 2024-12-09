@@ -252,7 +252,8 @@ func (x *ImqsCentral) RunHttp() error {
 
 	server := &http.Server{}
 	server.Handler = smux
-	server.Addr = x.Config.Authaus.HTTP.Bind + ":" + x.Config.Authaus.HTTP.Port
+	// server.Addr = x.Config.Authaus.HTTP.Bind + ":" + x.Config.Authaus.HTTP.Port
+	server.Addr = "0.0.0.0" + ":" + x.Config.Authaus.HTTP.Port
 
 	x.Central.Log.Infof("ImqsAuth is trying to listen on %v:%v", x.Config.Authaus.HTTP.Bind, x.Config.Authaus.HTTP.Port)
 
@@ -1397,7 +1398,7 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	// Determine the user's current groups before changing them
-	currentGroups := []string{}
+
 	// Retrieve the permit for the given user ID
 	perm, err := central.Central.GetPermit(userId)
 	if err != nil {
@@ -1410,28 +1411,16 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 		panic("Error decoding permit: " + errDecode.Error())
 	}
 
-	// Iterate through the decoded group IDs and fetch group details
-	for _, groupID := range permGroups {
-		group, errGroup := central.Central.GetRoleGroupDB().GetByID(groupID)
-		if errGroup != nil {
-			panic("Error retrieving group by ID (" + strconv.FormatUint(uint64(groupID), 10) + "): " + errGroup.Error())
-		}
-		currentGroups = append(currentGroups, group.Name)
+	// Retrieve the group details for the decoded group IDs using authaus.GroupIDsToNames
+	groupCache := map[authaus.GroupIDU32]string{}
+	currentGroups, errGroups := authaus.GroupIDsToNames(permGroups, central.Central.GetRoleGroupDB(), groupCache)
+	if errGroups != nil {
+		panic("Error retrieving group names: " + errGroups.Error())
 	}
 
 	// Determine the groups that are being added and removed
-	groupsToAdd := []string{}
-	groupsToRemove := []string{}
-	for _, group := range groups {
-		if !containsStr(currentGroups, group) {
-			groupsToAdd = append(groupsToAdd, group)
-		}
-	}
-	for _, group := range currentGroups {
-		if !containsStr(groups, group) {
-			groupsToRemove = append(groupsToRemove, group)
-		}
-	}
+	groupsToAdd := computeDifference(groups, currentGroups)    // In groups but not in currentGroups
+	groupsToRemove := computeDifference(currentGroups, groups) // In currentGroups but not in groups
 
 	permit := &authaus.Permit{}
 	permit.Roles = authaus.EncodePermit(groupIDs)
