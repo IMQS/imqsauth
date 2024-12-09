@@ -1440,21 +1440,23 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	if user, err := central.Central.GetUserFromUserId(authaus.UserId(userId)); err == nil {
-		// Prepare the audit log message for groups added
-		logMessage := "User Profile: User " + user.Username + " permissions changed."
-
-		// Add the groups to the message if any groups were added
-		if len(groupsToAdd) > 0 {
-			logMessage += " Groups added: " + strings.Join(groupsToAdd, ",") + "."
-		}
-
-		// Add the groups to the message if any groups were removed
-		if len(groupsToRemove) > 0 {
-			logMessage += " Groups removed: " + strings.Join(groupsToRemove, ",") + "."
-		}
 
 		// Only log if there are changes (i.e., either added or removed groups)
 		if len(groupsToAdd) > 0 || len(groupsToRemove) > 0 {
+
+			// Prepare the audit log message for groups added
+			logMessage := "User Profile: User " + user.Username + " permissions changed."
+
+			// Add the groups to the message if any groups were added
+			if len(groupsToAdd) > 0 {
+				logMessage += " Groups added: " + strings.Join(groupsToAdd, ",") + "."
+			}
+
+			// Add the groups to the message if any groups were removed
+			if len(groupsToRemove) > 0 {
+				logMessage += " Groups removed: " + strings.Join(groupsToRemove, ",") + "."
+			}
+
 			auditUserLogAction(central, r, user.UserId, user.Username, logMessage, authaus.AuditActionUpdated)
 		}
 	}
