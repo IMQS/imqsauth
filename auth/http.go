@@ -1355,6 +1355,31 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 		panic("Invalid groups: " + errGroupIDs.Error())
 	}
 
+	// Determine the user's current groups before changing them
+
+	// Retrieve the permit for the given user ID
+	perm, err := central.Central.GetPermit(userId)
+	if err != nil {
+		panic("Error retrieving permit: " + err.Error())
+	}
+
+	// Decode the roles from the permit
+	permGroups, errDecode := authaus.DecodePermit(perm.Roles)
+	if errDecode != nil {
+		panic("Error decoding permit: " + errDecode.Error())
+	}
+
+	// Retrieve the group details for the decoded group IDs using authaus.GroupIDsToNames
+	groupCache := map[authaus.GroupIDU32]string{}
+	currentGroups, errGroups := authaus.GroupIDsToNames(permGroups, central.Central.GetRoleGroupDB(), groupCache)
+	if errGroups != nil {
+		panic("Error retrieving group names: " + errGroups.Error())
+	}
+
+	// Determine the groups that are being added and removed
+	groupsToAdd := computeDifference(groups, currentGroups)    // In groups but not in currentGroups
+	groupsToRemove := computeDifference(currentGroups, groups) // In currentGroups but not in groups
+
 	permit := &authaus.Permit{}
 	permit.Roles = authaus.EncodePermit(groupIDs)
 	if eSetPermit := central.Central.SetPermit(userId, permit); eSetPermit != nil {
@@ -1362,7 +1387,25 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	if user, err := central.Central.GetUserFromUserId(authaus.UserId(userId)); err == nil {
-		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: User "+user.Username+" permissions changed", authaus.AuditActionUpdated)
+
+		// Only log if there are changes (i.e., either added or removed groups)
+		if len(groupsToAdd) > 0 || len(groupsToRemove) > 0 {
+
+			// Prepare the audit log message for groups added
+			logMessage := "User Profile: User " + user.Username + " permissions changed."
+
+			// Add the groups to the message if any groups were added
+			if len(groupsToAdd) > 0 {
+				logMessage += " Groups added: " + strings.Join(groupsToAdd, ",") + "."
+			}
+
+			// Add the groups to the message if any groups were removed
+			if len(groupsToRemove) > 0 {
+				logMessage += " Groups removed: " + strings.Join(groupsToRemove, ",") + "."
+			}
+
+			auditUserLogAction(central, r, user.UserId, user.Username, logMessage, authaus.AuditActionUpdated)
+		}
 	}
 
 	summary := strings.Join(groups, ",")
