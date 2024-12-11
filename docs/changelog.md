@@ -2,6 +2,14 @@
 
 ## Current
 
+## v1.7.1
+
+* feat: Add user's group diff update to audit log 
+
+## v1.7.0
+
+* fix: Update golang to 1.22.7
+
 ## v1.6.5
 
 * fix: Update authaus version to v1.1.2 (asg-3355)
