@@ -2,6 +2,10 @@
 
 ## Current
 
+## v1.7.2
+
+* fix: Update authaus version to v1.3.1
+
 ## v1.7.1
 
 * feat: Add user's group diff update to audit log 
