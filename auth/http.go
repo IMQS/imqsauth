@@ -252,7 +252,8 @@ func (x *ImqsCentral) RunHttp() error {
 
 	server := &http.Server{}
 	server.Handler = smux
-	server.Addr = x.Config.Authaus.HTTP.Bind + ":" + x.Config.Authaus.HTTP.Port
+	// server.Addr = x.Config.Authaus.HTTP.Bind + ":" + x.Config.Authaus.HTTP.Port
+	server.Addr = "0.0.0.0" + ":" + x.Config.Authaus.HTTP.Port
 
 	x.Central.Log.Infof("ImqsAuth is trying to listen on %v:%v", x.Config.Authaus.HTTP.Bind, x.Config.Authaus.HTTP.Port)
 
@@ -1437,12 +1438,12 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 
 			// Add the groups to the message if any groups were added
 			if len(groupsToAdd) > 0 {
-				logMessage += " Groups added: " + strings.Join(groupsToAdd, ",") + "."
+				logMessage += " Permissions added: " + strings.Join(groupsToAdd, ",") + "."
 			}
 
 			// Add the groups to the message if any groups were removed
 			if len(groupsToRemove) > 0 {
-				logMessage += " Groups removed: " + strings.Join(groupsToRemove, ",") + "."
+				logMessage += " Permissions removed: " + strings.Join(groupsToRemove, ",") + "."
 			}
 
 			auditUserLogAction(central, r, user.UserId, user.Username, logMessage, authaus.AuditActionUpdated)
