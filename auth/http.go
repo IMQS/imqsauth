@@ -1447,6 +1447,17 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 
 			auditUserLogAction(central, r, user.UserId, user.Username, logMessage, authaus.AuditActionUpdated)
 		}
+
+		// If groupsToAdd contains 'enabled', then we need to log a special auditUserLogAction
+		if containsStr(groupsToAdd, RoleGroupEnabled) {
+			auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username+" profile enabled", authaus.AuditActionEnabled)
+		}
+
+		// If groupsToRemove contains 'enabled', then we need to log a special auditUserLogAction
+		if containsStr(groupsToRemove, RoleGroupEnabled) {
+			auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username+" profile disabled", authaus.AuditActionDisabled)
+		}
+
 	}
 
 	summary := strings.Join(groups, ",")
