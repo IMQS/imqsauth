@@ -1354,6 +1354,17 @@ func containsStr(list []string, str string) bool {
 	return false
 }
 
+// removeStr removes a specific string from a slice
+func removeStr(slice []string, str string) []string {
+	var result []string
+	for _, v := range slice {
+		if v != str {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
 func getIdentityGroupIDs(central *ImqsCentral, userId authaus.UserId) []authaus.GroupIDU32 {
 	if perm, e := central.Central.GetPermit(userId); e == nil {
 		if permGroups, eDecode := authaus.DecodePermit(perm.Roles); eDecode == nil {
@@ -1428,6 +1439,20 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	if user, err := central.Central.GetUserFromUserId(authaus.UserId(userId)); err == nil {
+
+		// If groupsToAdd contains 'enabled', then we need to log a special auditUserLogAction
+		// Also remove 'enabled' from groupsToAdd so that it is not logged as a group added
+		if containsStr(groupsToAdd, RoleGroupEnabled) {
+			auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username+" profile enabled", authaus.AuditActionEnabled)
+			groupsToAdd = removeStr(groupsToAdd, RoleGroupEnabled)
+		}
+
+		// If groupsToRemove contains 'enabled', then we need to log a special auditUserLogAction
+		// Also remove 'enabled' from groupsToRemove so that it is not logged as a group removed
+		if containsStr(groupsToRemove, RoleGroupEnabled) {
+			auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username+" profile disabled", authaus.AuditActionDisabled)
+			groupsToRemove = removeStr(groupsToRemove, RoleGroupEnabled)
+		}
 
 		// Only log if there are changes (i.e., either added or removed groups)
 		if len(groupsToAdd) > 0 || len(groupsToRemove) > 0 {
