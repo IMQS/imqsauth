@@ -1,0 +1,1017 @@
+openapi: 3.0.3
+info:
+  title: IMQS Auth API
+  description: IMQS Auth API
+  version: 1.0.0
+servers:
+  - url: 'https'
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+      description: HTTP Basic Authentication
+  responses:
+    NotAcceptable:
+      description: Not Acceptable
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Error message
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Error message
+    ServiceUnavailable:
+        description: Service Unavailable
+        content:
+            text/plain:
+            schema:
+                type: string
+                example: Error message
+security:
+  - basicAuth: []
+paths:
+  /login:
+    post:
+      summary: Login
+      security:
+        - basicAuth: []
+      requestBody:
+        required: false
+        content:
+          x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                login_type:
+                  type: string
+                client_id:
+                  type: string
+      responses:
+        '200':
+          description: Normally 'OK', from the code it seems the user's permissions should be returned, but it is not.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: ''
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: session=asdflkj2rsdfDFF3sdfsdf23; Path=/; Expires=Tue, 11 Mar 2025 08:25:45 GMT
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '401':
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /logout:
+       post:
+        summary: Logout
+        security:
+            - basicAuth: []
+        responses:
+            '200':
+              description: OK
+            '401':
+              description: Unauthorized
+  /hello:
+    get:
+      summary: Hello
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Hello!
+  /ping:
+    get:
+      summary: Ping
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Timestamp:
+                    type: integer
+                    example: 1633024800
+  /hostname:
+    get:
+      summary: Get Hostname
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Hostname:
+                    type: string
+                    example: example.com
+  /check:
+    get:
+      summary: Check
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  UserId:
+                    type: integer
+                  Identity:
+                    type: string
+                  Email:
+                    type: string
+                  Username:
+                    type: string
+                  Roles:
+                    type: array
+                    items:
+                      type: string
+                  InternalUUID:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: No authorization information
+  /create_user:
+    put:
+      summary: Create User
+      security:
+        - basicAuth: []
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: firstname
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: lastname
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: mobilenumber
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: telephonenumber
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: remarks
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: password
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: uuid
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /update_user:
+    post:
+      summary: Update User
+      security:
+        - basicAuth: []
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: firstname
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: lastname
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: mobilenumber
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: telephonenumber
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: remarks
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: authusertype
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Invalid AuthUserType...
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /unlock_user:
+    post:
+      summary: Unlock User
+      security:
+        - basicAuth: []
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+            description: Bad Request
+            content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Error message
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /archive_user:
+    post:
+      summary: Archive User
+      security:
+        - basicAuth: []
+      parameters:
+        - name: userid
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /create_group:
+    put:
+      summary: Create Group
+      security:
+        - basicAuth: []
+      parameters:
+        - name: groupname
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+            description: Bad Request
+            content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Error creating group
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+  /update_group:
+    post:
+      summary: Update Group
+      security:
+        - basicAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: newname
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+  /delete_group:
+    put:
+      summary: Delete Group
+      security:
+        - basicAuth: []
+      parameters:
+        - name: groupname
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error deleting group...
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '405':
+          description: Method Not Allowed
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Deleting group %v is not permitted
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /set_group_roles:
+    put:
+      summary: Set Group Roles
+      security:
+        - basicAuth: []
+      parameters:
+        - name: groupname
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: roles
+          in: query
+          required: true
+          schema:
+            type: string
+            example: 23,45,99
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '404':
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Group %v not found
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+  /set_user_groups:
+    post:
+      summary: Set User Groups
+      security:
+        - basicAuth: []
+      parameters:
+        - name: userid
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: groups
+          in: query
+          required: true
+          schema:
+            type: string
+            example: Assets,enabled,DevelopmentControl - Admin
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /set_password:
+    post:
+      summary: Set Password
+      security:
+        - basicAuth: []
+      parameters:
+        - name: userid
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+            description: Bad Request
+            content:
+              text/plain:
+                schema:
+                  type: string
+                  example: Error message
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /update_password:
+    post:
+      summary: Update Password
+      security:
+        - basicAuth: []
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /check_password:
+    post:
+      summary: Check Password
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /reset_password_start:
+    post:
+      summary: Reset Password Start
+      security:
+        - basicAuth: []
+      parameters:
+        - name: userid
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            Either userid OR email MUST be specified.
+        - name: email
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            Either userid OR email MUST be specified.
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /reset_password_finish:
+    post:
+      summary: Reset Password Finish
+      security:
+        - basicAuth: []
+      parameters:
+        - name: userid
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: X-ResetToken
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: X-NewPassword
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /users:
+    get:
+      summary: Get Users
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    UserId:
+                      type: integer
+                    Identity:
+                      type: string
+                    Email:
+                      type: string
+                    Username:
+                      type: string
+                    Roles:
+                      type: array
+                      items:
+                        type: string
+                    InternalUUID:
+                      type: string
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /userobjects:
+    get:
+      summary: Get User Objects
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    UserId:
+                      type: integer
+                    Identity:
+                      type: string
+                    Email:
+                      type: string
+                    Username:
+                      type: string
+                    Roles:
+                      type: array
+                      items:
+                        type: string
+                    InternalUUID:
+                      type: string
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /userobject:
+    get:
+      summary: Get User Object
+      security:
+        - basicAuth: []
+      parameters:
+        - name: userid
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: identity
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  UserId:
+                    type: integer
+                  Identity:
+                    type: string
+                  Email:
+                    type: string
+                  Username:
+                    type: string
+                  Roles:
+                    type: array
+                    items:
+                      type: string
+                  InternalUUID:
+                    type: string
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /groups:
+    get:
+      summary: Get Groups
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    Name:
+                      type: string
+                    Roles:
+                      type: array
+                      items:
+                        type: string
+                    ID:
+                      type: string
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /exportgroups:
+    get:
+      summary: Export User Groups
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ID:
+                          type: string
+                        Groups:
+                          type: array
+                          items:
+                            type: integer
+                  Groups:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        Name:
+                          type: string
+                        Roles:
+                          type: array
+                          items:
+                            type: string
+                        ID:
+                          type: string
+                  OverwriteGroups:
+                    type: boolean
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /importgroups:
+    post:
+      summary: Import User Groups
+      security:
+        - basicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Users:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      ID:
+                        type: string
+                      Groups:
+                        type: array
+                        items:
+                          type: integer
+                Groups:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      Name:
+                        type: string
+                      Roles:
+                        type: array
+                        items:
+                          type: string
+                      ID:
+                        type: string
+                OverwriteGroups:
+                  type: boolean
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /hasactivedirectory:
+    get:
+      summary: Has Active Directory
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 1
+  /groups_perm_names:
+    get:
+      summary: Get Groups Permission Names
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /dynamic_permissions:
+    get:
+      summary: Get Dynamic Permissions
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /oauth/providers:
+    get:
+      summary: Get OAuth Providers
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /oauth/start:
+    get:
+      summary: Start OAuth
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+  /oauth/finish:
+    get:
+      summary: Finish OAuth
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Forbidden
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
