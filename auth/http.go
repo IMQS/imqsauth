@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/IMQS/authaus"
+	"github.com/IMQS/imqsauth/utils"
 	"github.com/IMQS/serviceauth"
 )
 
@@ -1418,8 +1419,8 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	// Determine the groups that are being added and removed
-	groupsToAdd := computeDifference(groups, currentGroups)    // In groups but not in currentGroups
-	groupsToRemove := computeDifference(currentGroups, groups) // In currentGroups but not in groups
+	groupsToAdd := utils.ComputeDifference(groups, currentGroups)    // In groups but not in currentGroups
+	groupsToRemove := utils.ComputeDifference(currentGroups, groups) // In currentGroups but not in groups
 
 	permit := &authaus.Permit{}
 	permit.Roles = authaus.EncodePermit(groupIDs)
@@ -1428,6 +1429,20 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 	}
 
 	if user, err := central.Central.GetUserFromUserId(authaus.UserId(userId)); err == nil {
+
+		// If groupsToAdd contains 'enabled', then we need to log a special auditUserLogAction
+		// Also remove 'enabled' from groupsToAdd so that it is not logged as a group added
+		if containsStr(groupsToAdd, RoleGroupEnabled) {
+			auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username+" profile enabled", authaus.AuditActionEnabled)
+			groupsToAdd = utils.RemoveStr(groupsToAdd, RoleGroupEnabled)
+		}
+
+		// If groupsToRemove contains 'enabled', then we need to log a special auditUserLogAction
+		// Also remove 'enabled' from groupsToRemove so that it is not logged as a group removed
+		if containsStr(groupsToRemove, RoleGroupEnabled) {
+			auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username+" profile disabled", authaus.AuditActionDisabled)
+			groupsToRemove = utils.RemoveStr(groupsToRemove, RoleGroupEnabled)
+		}
 
 		// Only log if there are changes (i.e., either added or removed groups)
 		if len(groupsToAdd) > 0 || len(groupsToRemove) > 0 {
