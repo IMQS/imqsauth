@@ -1399,23 +1399,29 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 
 	// Determine the user's current groups before changing them
 
+	var currentGroups []string
+
 	// Retrieve the permit for the given user ID
 	perm, err := central.Central.GetPermit(userId)
 	if err != nil {
-		panic("Error retrieving permit: " + err.Error())
-	}
+		if err != authaus.ErrIdentityPermitNotFound {
+			panic("Error retrieving permit: " + err.Error())
+		}
+	} else {
 
-	// Decode the roles from the permit
-	permGroups, errDecode := authaus.DecodePermit(perm.Roles)
-	if errDecode != nil {
-		panic("Error decoding permit: " + errDecode.Error())
-	}
+		// Decode the roles from the permit
+		permGroups, errDecode := authaus.DecodePermit(perm.Roles)
+		if errDecode != nil {
+			panic("Error decoding permit: " + errDecode.Error())
+		}
 
-	// Retrieve the group details for the decoded group IDs using authaus.GroupIDsToNames
-	groupCache := map[authaus.GroupIDU32]string{}
-	currentGroups, errGroups := authaus.GroupIDsToNames(permGroups, central.Central.GetRoleGroupDB(), groupCache)
-	if errGroups != nil {
-		panic("Error retrieving group names: " + errGroups.Error())
+		// Retrieve the group details for the decoded group IDs using authaus.GroupIDsToNames
+		groupCache := map[authaus.GroupIDU32]string{}
+		var errGroups error
+		currentGroups, errGroups = authaus.GroupIDsToNames(permGroups, central.Central.GetRoleGroupDB(), groupCache)
+		if errGroups != nil {
+			panic("Error retrieving group names: " + errGroups.Error())
+		}
 	}
 
 	// Determine the groups that are being added and removed
