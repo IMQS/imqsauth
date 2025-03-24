@@ -2,6 +2,10 @@
 
 ## Current
 
+## v1.7.3
+
+* feat: Update authaus version to v1.3.4
+
 ## v1.7.2
 
 * fix: Update authaus version to v1.3.1
