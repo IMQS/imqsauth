@@ -4,7 +4,10 @@
 
 ## v1.7.3
 
-* feat: Update authaus version to v1.3.4
+* feat: Update authaus version to v1.3.4 (ASG-3268)
+* feat: Add enabled and disabled audit user types (NEXUS-4244)
+* fix: Ensure records does not duplicate on user audit trail (NEXUS-4161)
+* fix: Ensure group changes works on user with no permit (NEXUS-4289)
 
 ## v1.7.2
 
