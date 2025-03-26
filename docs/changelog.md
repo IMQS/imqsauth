@@ -2,6 +2,10 @@
 
 ## Current
 
+## v1.7.4
+
+* fix: Update authaus version to v1.3.5 (NEXUS-4246)
+
 ## v1.7.3
 
 * feat: Update authaus version to v1.3.4 (ASG-3268)
