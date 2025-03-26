@@ -2,6 +2,7 @@
 
 ## Current
 
+* feat: Update serviceauth to v1.0.8
 * fix: Update authaus to v1.0.34
 
 # * fix: Update to Go 1.18

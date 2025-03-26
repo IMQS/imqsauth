@@ -7,7 +7,7 @@ require (
 	github.com/IMQS/cli v0.0.0-20151022082634-156324308096
 	github.com/IMQS/gowinsvc v0.0.0-20220601052852-62ce07b0ae0b
 	github.com/IMQS/log v1.0.3
-	github.com/IMQS/serviceauth v1.0.4
+	github.com/IMQS/serviceauth v1.0.8
 	github.com/IMQS/serviceconfigsgo v1.0.3
 )
 

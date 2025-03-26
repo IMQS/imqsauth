@@ -9,8 +9,8 @@ github.com/IMQS/gowinsvc v0.0.0-20220601052852-62ce07b0ae0b h1:UoYC6fmg+eG8QgfYi
 github.com/IMQS/gowinsvc v0.0.0-20220601052852-62ce07b0ae0b/go.mod h1:/J9Vz5JKF3/Mn3bEWVA2FprLbvkLV3WO0FRCakF2v+g=
 github.com/IMQS/log v1.0.3 h1:Ot2ZnAmmnz+XRWrq6OPPMVWph9j+fmBww703LfO65JQ=
 github.com/IMQS/log v1.0.3/go.mod h1:Giehe5M3rRuAPVPskrMUJKmQfbFxjvPB/Ycb8TmqVo8=
-github.com/IMQS/serviceauth v1.0.4 h1:XQqr35JtrV355yKWZKkdNz/Hj5jln5LUbwXUCBrZFsc=
-github.com/IMQS/serviceauth v1.0.4/go.mod h1:yPZpbaIQNwbS2LD9I1k+IDSKBGbp4y179rRyG0DZe1U=
+github.com/IMQS/serviceauth v1.0.8 h1:KUjZxxGKO7zxzngtGXwN6CjjuGmgpvl1IMi/pK5uti0=
+github.com/IMQS/serviceauth v1.0.8/go.mod h1:yPZpbaIQNwbS2LD9I1k+IDSKBGbp4y179rRyG0DZe1U=
 github.com/IMQS/serviceconfigsgo v1.0.0/go.mod h1:Sal40iFTM7BqULDKrOwKuAV4swyPeCk1jWxx5zMsJsI=
 github.com/IMQS/serviceconfigsgo v1.0.3 h1:dYxGGfNWdDxg8P/cUjbJmY8MtqbK6q/8dFLQC0C2dLM=
 github.com/IMQS/serviceconfigsgo v1.0.3/go.mod h1:jszIaBr45YlF7p9TjCV86wrhQ742T0IjoEAEiBRhk4Q=
