@@ -2,6 +2,8 @@
 
 ## Current
 
+* feat: Update authaus to v1.0.40  (NEXUS-4317)
+* feat: Enhance IMQS user update to include changed values
 * feat: Update serviceauth to v1.0.8
 * fix: Update authaus to v1.0.34
 
