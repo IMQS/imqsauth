@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.22.8
 
 require (
-	github.com/IMQS/authaus v1.0.39
+	github.com/IMQS/authaus v1.0.40
 	github.com/IMQS/cli v0.0.0-20151022082634-156324308096
 	github.com/IMQS/gowinsvc v0.0.0-20220601052852-62ce07b0ae0b
 	github.com/IMQS/log v1.0.3
