@@ -11,7 +11,6 @@ import (
 func (icentral *ImqsCentral) validateUserIsEnabledForNewLogin(sessionKey string, token *authaus.Token, r *httpRequest) (authaus.PermissionList, error) {
 	r.token = token
 	auditUserLogAction(icentral, r, token.UserId, token.Identity, "User Profile: "+token.Identity, authaus.AuditActionAuthentication)
-	icentral.Central.SetUserStats(token.UserId, authaus.UserStatActionLogin)
 	permList, err := authaus.PermitResolveToList(token.Permit.Roles, icentral.Central.GetRoleGroupDB())
 	if err != nil && permList == nil {
 		return nil, fmt.Errorf("Failed to resolve permit: %w", err)

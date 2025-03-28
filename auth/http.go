@@ -598,10 +598,7 @@ func getUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2pe
 		} else if err != nil {
 			central.Central.Log.Warnf("issue fetching group names for user %v : %v", user.UserId, err)
 		}
-		userStats, err := central.Central.GetUserStats(user.UserId)
-		if err != nil {
-			return nil, err
-		}
+
 		jresponse = append(jresponse, &serviceauth.UserObject{
 			Email:         user.Email,
 			UserId:        int64(user.UserId),
@@ -620,9 +617,6 @@ func getUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2pe
 			Archived:      user.Archived,
 			AccountLocked: user.AccountLocked,
 			InternalUUID:  user.InternalUUID,
-			LastLogin:     userStats.LastLoginDate.Time,
-			EnabledDate:   userStats.EnabledDate.Time,
-			DisabledDate:  userStats.DisabledDate.Time,
 		})
 	}
 
@@ -1446,7 +1440,6 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 		// Also remove 'enabled' from groupsToAdd so that it is not logged as a group added
 		if containsStr(groupsToAdd, RoleGroupEnabled) {
 			auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username+" profile enabled", authaus.AuditActionEnabled)
-			central.Central.SetUserStats(user.UserId, authaus.UserStatActionEnable)
 			groupsToAdd = utils.RemoveStr(groupsToAdd, RoleGroupEnabled)
 		}
 
@@ -1454,7 +1447,6 @@ func httpHandlerSetUserGroups(central *ImqsCentral, w http.ResponseWriter, r *ht
 		// Also remove 'enabled' from groupsToRemove so that it is not logged as a group removed
 		if containsStr(groupsToRemove, RoleGroupEnabled) {
 			auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username+" profile disabled", authaus.AuditActionDisabled)
-			central.Central.SetUserStats(user.UserId, authaus.UserStatActionDisable)
 			groupsToRemove = utils.RemoveStr(groupsToRemove, RoleGroupEnabled)
 		}
 
