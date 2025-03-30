@@ -3,11 +3,11 @@ module github.com/IMQS/imqsauth
 go 1.22.7
 
 require (
-	github.com/IMQS/authaus v1.3.5
+	github.com/IMQS/authaus v1.3.7
 	github.com/IMQS/cli v1.2.0
 	github.com/IMQS/gowinsvc v1.2.0
 	github.com/IMQS/log v1.4.0
-	github.com/IMQS/serviceauth v1.3.0
+	github.com/IMQS/serviceauth v1.4.0
 	github.com/IMQS/serviceconfigsgo v1.4.0
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
 )
