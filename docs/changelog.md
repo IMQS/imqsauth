@@ -2,6 +2,9 @@
 
 ## Current
 
+* feat: Update authaus to v1.3.6  (NEXUS-4317)
+* feat: Enhance IMQS user update to include changed values
+
 ## v1.7.4
 
 * fix: Update authaus version to v1.3.5 (NEXUS-4246)
@@ -26,7 +29,7 @@
 * fix: Update golang to 1.22.7
 
 ## v1.6.5
-
+* feat: Enhance IMQS user update to include changed values
 * fix: Update authaus version to v1.1.2 (asg-3355)
 
 ## v1.6.4

@@ -931,6 +931,13 @@ func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 		return
 	}
 
+	oldUser, e := central.Central.GetUserFromUserId(userId)
+	if e != nil {
+		central.Central.Log.Errorf("Error fetching user for comparison: %v", e)
+		authaus.HttpSendTxt(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	// Get the userId of the logged-in user
 	modifiedby := r.token.UserId
 	modified := time.Now().UTC()
@@ -951,7 +958,15 @@ func httpHandlerUpdateUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 	if err := central.Central.UpdateIdentity(&user); err != nil {
 		authaus.HttpSendTxt(w, http.StatusForbidden, err.Error())
 	} else {
-		auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+user.Username, authaus.AuditActionUpdated)
+		// patch up missing fields
+		user.InternalUUID = oldUser.InternalUUID
+		userChanges, e := authaus.UserInfoDiff(oldUser, user)
+		if e != nil {
+			central.Central.Log.Warnf("IMQS user merge: Could not diff user %v (%v)", user.UserId, e)
+			userChanges = "<error comparing> New values: " + authaus.UserInfoToJSON(user)
+		}
+		logMessage := authaus.UserDiffLogMessage(userChanges, user)
+		auditUserLogAction(central, r, user.UserId, user.Username, logMessage, authaus.AuditActionUpdated)
 		authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("Updated user: '%v'", userId))
 	}
 }
