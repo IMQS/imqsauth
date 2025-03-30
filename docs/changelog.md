@@ -2,6 +2,9 @@
 
 ## Current
 
+* feat: Add new columns under "User List" exports (NEXUS-4245)
+* feat: Update serviceauth to v1.4.0 (NEXUS-4245)
+* feat: Update authaus to v1.3.7 (NEXUS-4245)
 * feat: Update authaus to v1.3.6  (NEXUS-4317)
 * feat: Enhance IMQS user update to include changed values
 
