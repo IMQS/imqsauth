@@ -4,7 +4,18 @@ info:
   description: IMQS Auth API
   version: 1.0.0
 servers:
-  - url: 'https'
+  - url: "{protocol}://{host}/{basePath}"
+    variables:
+      protocol:
+        enum:
+          - http
+          - https
+        default: https
+      host:
+        description: The hostname of the environment
+        default: demo.imqs.co.za
+      basePath:
+        default: auth2
 components:
   securitySchemes:
     basicAuth:
@@ -27,12 +38,12 @@ components:
             type: string
             example: Error message
     ServiceUnavailable:
-        description: Service Unavailable
-        content:
-            text/plain:
-            schema:
-                type: string
-                example: Error message
+      description: Service Unavailable
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Error message
 security:
   - basicAuth: []
 paths:
