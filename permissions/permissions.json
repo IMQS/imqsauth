@@ -31,6 +31,7 @@
 
 	"300": {"v": "importer",							"n": "Importer",							"m": "GLOBAL",						"a": true,			"d": "User is allowed to handle data imports"},
 	"301": {"v": "fileDrop",							"n": "File Drop",							"m": "GLOBAL",						"a": true,			"d": "User is allowed to drop files onto IMQS Web"},
+	"302": {"v": "importsModuleAccess",				   	"n": "Importer Module",						"m": "IMPORTER",					"a": true,			"d": "Grants user access to the importer module"},
 
 	"400": {"v": "mm",									"n": "Old MM - Maintenance Management",				"m": "MAINTENANCE_MANAGEMENT",		"a": true,			"d": "MM"},
 	"401": {"v": "mmWorkRequestView",					"n": "Old MM - Work Request View",					"m": "MAINTENANCE_MANAGEMENT",		"a": true,			"d": "Work Request View"},

@@ -44,6 +44,7 @@ const (
 	PermReportViewer authaus.PermissionU16 = 201 // Can view reports
 	PermImporter authaus.PermissionU16 = 300 // User is allowed to handle data imports
 	PermFileDrop authaus.PermissionU16 = 301 // User is allowed to drop files onto IMQS Web
+	PermImportsModuleAccess authaus.PermissionU16 = 302 // Grants user access to the importer module
 	PermMm authaus.PermissionU16 = 400 // MM
 	PermMmWorkRequestView authaus.PermissionU16 = 401 // Work Request View
 	PermMmWorkRequestAddAndDelete authaus.PermissionU16 = 402 // Work Request Add/Delete
@@ -477,6 +478,7 @@ func init() {
 	PermissionsTable[PermReportViewer] = "reportviewer" // Can view reports
 	PermissionsTable[PermImporter] = "importer" // User is allowed to handle data imports
 	PermissionsTable[PermFileDrop] = "filedrop" // User is allowed to drop files onto IMQS Web
+	PermissionsTable[PermImportsModuleAccess] = "importsmoduleaccess" // Grants user access to the importer module
 	PermissionsTable[PermMm] = "mm" // MM
 	PermissionsTable[PermMmWorkRequestView] = "mmworkrequestview" // Work Request View
 	PermissionsTable[PermMmWorkRequestAddAndDelete] = "mmworkrequestaddanddelete" // Work Request Add/Delete
@@ -870,6 +872,7 @@ func init() {
 	PermissionsTable[PermLeasingBillingDelete] = "leasingbillingdelete" // User can delete Billing transactions and projections.
 
 
+	PermissionModuleMap["Importer Module"] = PermImportsModuleAccess
 	PermissionModuleMap["Assets"] = PermAssetsModuleAccess
 	PermissionModuleMap["COGTA"] = PermCogtaModuleAccess
 	PermissionModuleMap["Condition Assessment"] = PermConditionAssessmentModuleAccess
