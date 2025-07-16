@@ -192,7 +192,7 @@ typescript_template = <<END
  *
  * https://imqssoftware.atlassian.net/wiki/display/ASC/Generating+Permissions
  */
-import { AuthModule } from './modules';
+import { AuthModule, authModuleExist } from './modules';
 
 export class Permission {
 	id: string;
