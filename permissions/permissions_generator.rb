@@ -100,7 +100,7 @@ generated = generate_permissions()
 generated += build_modules()
 puts "The following files were generated:\n\n"
 generated.each { |path|
-		puts "\t#{path}"
+	puts "\t#{path}"
 }
 puts "\nThese files will need to be manually committed and pushed to their respective project repos."
 puts "NB: The permissions.json file must only ever be pushed to master, so as to avoid conflicts between teams."
