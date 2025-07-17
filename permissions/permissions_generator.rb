@@ -72,8 +72,8 @@ let AuthModule: { [key: string]: string } = {};
 // Populate AuthModule
 (function () {
 	for (const key of Object.keys(AuthModuleEnum)) {
-	if (key.toUpperCase() === key)
-		AuthModule[key] = AuthModuleEnum[key];
+		if (key.toUpperCase() === key)
+			AuthModule[key] = AuthModuleEnum[key];
 	}
 }());
 function authModuleExist(moduleName: string) {
