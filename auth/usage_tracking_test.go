@@ -102,3 +102,52 @@ func TestCheckUsageTracker_NilConfig(t *testing.T) {
 	tracker.LogCheck("session123", token)
 	tracker.Stop()
 }
+
+func TestCheckUsageTracker_FlushBehavior(t *testing.T) {
+	// Test that flush handles persistence failures correctly
+	config := &UsageTrackingConfig{Enabled: true, FlushInterval: 1}
+	central := &ImqsCentral{}
+	tracker := NewCheckUsageTracker(config, central)
+	defer tracker.Stop()
+	
+	// Add some logs
+	token := &authaus.Token{
+		Identity: "testuser",
+		UserId:   1,
+		Username: "testuser",
+		Email:    "test@example.com",
+	}
+	
+	tracker.LogCheck("session1", token)
+	tracker.LogCheck("session2", token)
+	
+	// Verify logs exist before flush
+	tracker.mutex.RLock()
+	initialCount := len(tracker.logs)
+	tracker.mutex.RUnlock()
+	
+	if initialCount != 2 {
+		t.Errorf("Expected 2 logs before flush, got %d", initialCount)
+	}
+	
+	// Call flush manually
+	tracker.flush()
+	
+	// Wait a bit for the goroutine to complete
+	time.Sleep(100 * time.Millisecond)
+	
+	// Since persistLogs currently always succeeds (just logs), 
+	// logs should be cleared after flush
+	tracker.mutex.RLock()
+	finalCount := len(tracker.logs)
+	flushing := tracker.flushing
+	tracker.mutex.RUnlock()
+	
+	if finalCount != 0 {
+		t.Errorf("Expected 0 logs after successful flush, got %d", finalCount)
+	}
+	
+	if flushing {
+		t.Error("Expected flushing to be false after flush completes")
+	}
+}

@@ -25,6 +25,7 @@ type CheckUsageTracker struct {
 	mutex       sync.RWMutex
 	stopChan    chan struct{}
 	flushTicker *time.Ticker
+	flushing    bool // Track if a flush is in progress
 }
 
 // NewCheckUsageTracker creates a new usage tracker instance
@@ -89,24 +90,44 @@ func (t *CheckUsageTracker) start() {
 // flush writes the in-memory logs to persistent storage and clears the memory
 func (t *CheckUsageTracker) flush() {
 	t.mutex.Lock()
-	defer t.mutex.Unlock()
-
-	if len(t.logs) == 0 {
+	
+	if len(t.logs) == 0 || t.flushing {
+		t.mutex.Unlock()
 		return
 	}
 
 	// Create a copy of logs to persist
 	logsToPersist := make([]CheckLogEntry, len(t.logs))
 	copy(logsToPersist, t.logs)
-
-	// Clear the in-memory logs
-	t.logs = t.logs[:0]
+	logsCount := len(t.logs)
+	
+	// Mark that we're flushing to prevent concurrent flushes
+	t.flushing = true
+	t.mutex.Unlock()
 
 	// Persist logs in a separate goroutine to avoid blocking
 	go func() {
-		if err := t.persistLogs(logsToPersist); err != nil {
+		err := t.persistLogs(logsToPersist)
+		
+		// Handle the result of persistence
+		t.mutex.Lock()
+		t.flushing = false
+		
+		if err != nil {
 			t.central.Central.Log.Errorf("Failed to persist check usage logs: %v", err)
+			// Keep the logs in memory for retry - don't clear them
+		} else {
+			// Only clear logs after successful persistence
+			// Check if new logs were added during persistence
+			if len(t.logs) >= logsCount {
+				// Remove the persisted logs (first logsCount entries)
+				t.logs = t.logs[logsCount:]
+			} else {
+				// Shouldn't happen, but clear all if somehow we have fewer logs
+				t.logs = t.logs[:0]
+			}
 		}
+		t.mutex.Unlock()
 	}()
 }
 
