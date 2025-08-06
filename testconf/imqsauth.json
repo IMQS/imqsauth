@@ -13,10 +13,10 @@
 			"Database": "unittest_auth",
 			"User": "unittest_user",
 			"Password": "unittest_password"
+		},
+		"UsageTracking": {
+			"enabled": true,
+			"flush_interval": 10
 		}
-	},
-	"UsageTracking": {
-		"enabled": true,
-		"flush_interval": 10
 	}
 }
