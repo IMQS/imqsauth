@@ -9,12 +9,9 @@ import (
 
 // CheckLogEntry represents a single session check log entry
 type CheckLogEntry struct {
-	Timestamp    time.Time       `json:"timestamp"`
-	SessionToken string          `json:"session_token"`
-	Identity     string          `json:"identity"`
-	UserId       authaus.UserId  `json:"user_id"`
-	Username     string          `json:"username"`
-	Email        string          `json:"email"`
+	Timestamp    time.Time      `json:"timestamp"`
+	SessionToken string         `json:"session_token"`
+	UserId       authaus.UserId `json:"user_id"`
 }
 
 // CheckUsageTracker manages in-memory storage and periodic flushing of session check logs
@@ -53,10 +50,7 @@ func (t *CheckUsageTracker) LogCheck(sessionToken string, token *authaus.Token) 
 	entry := CheckLogEntry{
 		Timestamp:    time.Now().UTC(),
 		SessionToken: sessionToken,
-		Identity:     token.Identity,
 		UserId:       token.UserId,
-		Username:     token.Username,
-		Email:        token.Email,
 	}
 
 	t.mutex.Lock()
@@ -90,7 +84,7 @@ func (t *CheckUsageTracker) start() {
 // flush writes the in-memory logs to persistent storage and clears the memory
 func (t *CheckUsageTracker) flush() {
 	t.mutex.Lock()
-	
+
 	if len(t.logs) == 0 || t.flushing {
 		t.mutex.Unlock()
 		return
@@ -100,7 +94,7 @@ func (t *CheckUsageTracker) flush() {
 	logsToPersist := make([]CheckLogEntry, len(t.logs))
 	copy(logsToPersist, t.logs)
 	logsCount := len(t.logs)
-	
+
 	// Mark that we're flushing to prevent concurrent flushes
 	t.flushing = true
 	t.mutex.Unlock()
@@ -108,11 +102,11 @@ func (t *CheckUsageTracker) flush() {
 	// Persist logs in a separate goroutine to avoid blocking
 	go func() {
 		err := t.persistLogs(logsToPersist)
-		
+
 		// Handle the result of persistence
 		t.mutex.Lock()
 		t.flushing = false
-		
+
 		if err != nil {
 			t.central.Central.Log.Errorf("Failed to persist check usage logs: %v", err)
 			// Keep the logs in memory for retry - don't clear them
@@ -136,15 +130,12 @@ func (t *CheckUsageTracker) persistLogs(logs []CheckLogEntry) error {
 	// For now, we'll use the existing logging infrastructure
 	// In a production implementation, this would use a proper database table
 	// via the authaus persistence layer
-	
+
 	for _, entry := range logs {
 		t.central.Central.Log.Infof("CheckUsage: time=%v token=%s identity=%s userId=%d username=%s email=%s",
 			entry.Timestamp.Format(time.RFC3339),
 			entry.SessionToken,
-			entry.Identity,
 			entry.UserId,
-			entry.Username,
-			entry.Email,
 		)
 	}
 
