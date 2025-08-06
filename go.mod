@@ -2,6 +2,8 @@ module github.com/IMQS/imqsauth
 
 go 1.22.7
 
+replace github.com/IMQS/authaus => ../authaus
+
 require (
 	github.com/IMQS/authaus v1.3.8
 	github.com/IMQS/cli v1.2.0
