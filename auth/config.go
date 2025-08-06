@@ -77,6 +77,18 @@ type ManagePermissions struct {
 	Relabel []*Permission `json:"relabel,omitempty"` // Relabel is used to change the labels of static permissions
 }
 
+// UsageTrackingConfig controls session check usage tracking
+type UsageTrackingConfig struct {
+	Enabled       bool `json:"enabled"`         // Enable/disable usage tracking
+	FlushInterval int  `json:"flush_interval"`  // Flush interval in seconds (default: 60)
+}
+
+func (x *UsageTrackingConfig) SetDefaults() {
+	if x.FlushInterval <= 0 {
+		x.FlushInterval = 60 // Default to 1 minute
+	}
+}
+
 // Note: Be sure to keep doc.go up to date with the Config structure here
 
 type Config struct {
@@ -91,6 +103,7 @@ type Config struct {
 	lastFileLoaded             string // Used for relative paths (such as HostnameFile)
 	enablePcsRename            bool   // Disabled by unit tests
 	Permissions                *ManagePermissions
+	UsageTracking              *UsageTrackingConfig
 }
 
 func (x *SendMailDetails) SetDefaults() {
@@ -102,6 +115,9 @@ func (x *SendMailDetails) SetDefaults() {
 
 func (x *Config) SetDefaults() {
 	x.SendMailDetails.SetDefaults()
+	if x.UsageTracking != nil {
+		x.UsageTracking.SetDefaults()
+	}
 }
 
 func (x *Config) Reset() {

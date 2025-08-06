@@ -116,8 +116,9 @@ type exportGroupUser struct {
 	Groups []int
 }
 type ImqsCentral struct {
-	Config  *Config
-	Central *authaus.Central
+	Config       *Config
+	Central      *authaus.Central
+	UsageTracker *CheckUsageTracker
 
 	// Guards access to roleChangeSubscribers and lastSubscriberId
 	subscriberLock sync.RWMutex
@@ -1707,6 +1708,15 @@ func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 			if !permList.Has(PermEnabled) {
 				httpSendAccountDisabled(w)
 			} else {
+				// Log successful check request for usage tracking
+				if central.UsageTracker != nil {
+					sessionToken := ""
+					if sessionCookie, err := r.http.Cookie(central.Config.Authaus.HTTP.CookieName); err == nil {
+						sessionToken = sessionCookie.Value
+					}
+					central.UsageTracker.LogCheck(sessionToken, token)
+				}
+				
 				httpSendCheckJson(w, token, permList)
 			}
 		}

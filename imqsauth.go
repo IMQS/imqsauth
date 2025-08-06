@@ -144,6 +144,12 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		ic.Central.Auditor = auth.NewIMQSAuditor(ic.Central.Log)
 	}
 
+	// Setup usage tracker
+	if ic.Central != nil {
+		ic.UsageTracker = auth.NewCheckUsageTracker(ic.Config.UsageTracking, ic)
+		defer ic.UsageTracker.Stop()
+	}
+
 	if ic.Central != nil {
 		ic.Central.LockingPolicy = ic
 	}
