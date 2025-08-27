@@ -1,6 +1,12 @@
 # Changelog
 
-## Current
+## v1.8.1
+
+* docs: Updates changelog
+* fix: Updates the generation of the permissions and modules code (#104)
+* docs: Updates OpenAPI servers property
+
+## v1.8.0
 
 * feat: Add new columns under "User List" exports (NEXUS-4245)
 * feat: Update serviceauth to v1.4.0 (NEXUS-4245)
