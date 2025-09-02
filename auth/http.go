@@ -583,7 +583,7 @@ func getUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2pe
 	usernamemap[authaus.UserIdMSAADMerge] = "MSAAD Merge"
 	userStats, err := central.Central.GetUserStatsAll()
 	if err != nil {
-		fmt.Errorf("%v", err)
+		return nil, err
 	}
 
 	for _, user := range users {
