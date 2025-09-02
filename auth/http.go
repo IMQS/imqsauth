@@ -603,9 +603,6 @@ func getUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2pe
 			central.Central.Log.Warnf("issue fetching group names for user %v : %v", user.UserId, err)
 		}
 
-		if err != nil {
-			return nil, err
-		}
 		userStat, _ := userStats[user.UserId]
 
 		jresponse = append(jresponse, &serviceauth.UserObject{
