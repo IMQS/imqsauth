@@ -1,8 +1,11 @@
 # Changelog
 
+## v1.8.2
+
+* perf: Uses new getUserStatsAll function in authaus (ASG-4879)
+
 ## v1.8.1
 
-* docs: Updates changelog
 * fix: Updates the generation of the permissions and modules code (#104)
 * docs: Updates OpenAPI servers property
 
