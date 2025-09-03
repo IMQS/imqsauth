@@ -581,6 +581,10 @@ func getUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2pe
 	usernamemap[authaus.UserIdLDAPMerge] = "LDAP Merge"
 	usernamemap[authaus.UserIdOAuthImplicitCreate] = "OAuth Sign-in"
 	usernamemap[authaus.UserIdMSAADMerge] = "MSAAD Merge"
+	userStats, err := central.Central.GetUserStatsAll()
+	if err != nil {
+		return nil, err
+	}
 
 	for _, user := range users {
 		permit := ident2perm[user.UserId]
@@ -598,10 +602,9 @@ func getUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2pe
 		} else if err != nil {
 			central.Central.Log.Warnf("issue fetching group names for user %v : %v", user.UserId, err)
 		}
-		userStats, err := central.Central.GetUserStats(user.UserId)
-		if err != nil {
-			return nil, err
-		}
+
+		userStat, _ := userStats[user.UserId]
+
 		jresponse = append(jresponse, &serviceauth.UserObject{
 			Email:         user.Email,
 			UserId:        int64(user.UserId),
@@ -620,9 +623,9 @@ func getUserObjectsJSON(central *ImqsCentral, users []authaus.AuthUser, ident2pe
 			Archived:      user.Archived,
 			AccountLocked: user.AccountLocked,
 			InternalUUID:  user.InternalUUID,
-			LastLogin:     userStats.LastLoginDate.Time,
-			EnabledDate:   userStats.EnabledDate.Time,
-			DisabledDate:  userStats.DisabledDate.Time,
+			LastLogin:     userStat.LastLoginDate.Time,
+			EnabledDate:   userStat.EnabledDate.Time,
+			DisabledDate:  userStat.DisabledDate.Time,
 		})
 	}
 
