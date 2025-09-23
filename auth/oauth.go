@@ -21,7 +21,15 @@ type oauthProviderJSON struct {
 }
 
 func httpHandlerOAuthStart(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	if r.http.FormValue("provider") == "msaad" {
+		_, e := authaus.HttpHandlerPrelude(&central.Config.Authaus.HTTP, central.Central, r.http)
+		if errors.Is(authaus.ErrHttpNotAuthorized, e) {
+			// inject an extra parameter here to enable profile selection
+			r.http.URL.Query().Set("prompt", "select_account")
+		}
+	}
 	central.Central.OAuth.HttpHandlerOAuthStart(w, r.http)
+	// xxxx This is problematic, because httphandleroauthstart already returns
 }
 
 func httpHandlerOAuthFinish(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
