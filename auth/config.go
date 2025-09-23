@@ -2,7 +2,6 @@ package imqsauth
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -87,7 +86,7 @@ type Config struct {
 	SendMailPassword           string // NB: When moving SendMailPassword to a standalone secrets file, change for PCS also. PCS reads imqsauth config file.
 	SendMailDetails            SendMailDetails
 	NotificationUrl            string
-	hostname                   string // This is read from environment variable the first time GetHostname is called
+	hostnameURL                string // This is fetched from configservice
 	lastFileLoaded             string // Used for relative paths (such as HostnameFile)
 	enablePcsRename            bool   // Disabled by unit tests
 	Permissions                *ManagePermissions
@@ -119,7 +118,7 @@ func (x *Config) ResetForUnitTests() {
 	x.enablePcsRename = false
 }
 
-func (x *Config) LoadFile(filename string) error {
+func (x *Config) LoadConfig(filename string) error {
 	x.Reset()
 	err := serviceconfig.GetConfig(filename, serviceName, serviceConfigVersion, serviceConfigFileName, x)
 	if err != nil {
@@ -127,6 +126,12 @@ func (x *Config) LoadFile(filename string) error {
 	}
 
 	x.SetDefaults()
+
+	hostnameURL, err := serviceconfig.GetSystemVariableFromConfigService("IMQS_HOSTNAME_URL")
+	if err != nil {
+		return err
+	}
+	x.hostnameURL = hostnameURL
 
 	x.lastFileLoaded = filename
 	return x.loadDynamicPermissions()
@@ -154,14 +159,8 @@ func (x *Config) IsContainer() bool {
 	return serviceconfig.IsContainer()
 }
 
-func (x *Config) GetHostname() string {
-	if x.hostname == "" {
-		hostname_b, ok := os.LookupEnv("IMQS_HOSTNAME_URL")
-		if ok {
-			x.hostname = strings.TrimSpace(string(hostname_b))
-		}
-	}
-	return x.hostname
+func (x *Config) GetHostnameURL() string {
+	return x.hostnameURL
 }
 
 // MakeOutsideDocker changes all of the hostnames from our common hostnames in
@@ -180,5 +179,5 @@ func (x *Config) MakeOutsideDocker() {
 		x.Authaus.HTTP.Port = "2003"
 	}
 	x.Authaus.Log.Filename = log.Stdout
-	x.hostname = "http://localhost:2500"
+	x.hostnameURL = "http://localhost:2500"
 }

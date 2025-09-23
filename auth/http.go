@@ -265,27 +265,21 @@ func (x *ImqsCentral) RunHttp() error {
 }
 
 // Returns an error if 'hostname' is not configured on this server
-// Why don't we just use the "host" header of the HTTP request? Basically, it's unreliable,
-// especially when our server sits behind a proxy that we don't control.
-func (x *ImqsCentral) makeAbsoluteUrl(relativeUrl string) (string, error) {
-	hostname := x.Config.GetHostname()
-	if hostname == "" {
+// Why don't we just use the "host" header of the HTTP request?
+// Basically, it's unreliable, especially when our server sits
+// behind a proxy that we don't control.
+func (x *ImqsCentral) makeURL(relativeURL string) (string, error) {
+	hostnameURL := x.Config.GetHostnameURL()
+	if hostnameURL == "" {
 		return "", fmt.Errorf("Environment variable 'IMQS_HOSTNAME_URL' is not set on this server")
 	}
 
-	absolute := ""
-	if strings.Index(hostname, "http:") == 0 || strings.Index(hostname, "https:") == 0 {
-		absolute = hostname
-	} else {
-		absolute = "https://" + hostname
+	if relativeURL[0] != '/' {
+		relativeURL += "/"
 	}
 
-	if absolute[len(absolute)-1] != '/' && relativeUrl[0] != '/' {
-		absolute += "/"
-	}
-
-	absolute += relativeUrl
-	return absolute, nil
+	url := hostnameURL + relativeURL
+	return url, nil
 }
 
 // Returns (responseCode, message)
@@ -330,7 +324,7 @@ func (x *ImqsCentral) ResetPasswordStart(userId authaus.UserId, isNewAccount boo
 
 func (x *ImqsCentral) createDefaultMailQuery(user authaus.AuthUser, token string, isNewAccount bool, expireSeconds float64) (string, error) {
 	strUserId := strconv.FormatInt(int64(user.UserId), 10)
-	resetUrl, err := x.makeAbsoluteUrl("/#resetpassword=true&identity=" + url.QueryEscape(user.Email) + "&userid=" + url.QueryEscape(strUserId) + "&token=" + url.QueryEscape(token))
+	resetUrl, err := x.makeURL("/#resetpassword=true&identity=" + url.QueryEscape(user.Email) + "&userid=" + url.QueryEscape(strUserId) + "&token=" + url.QueryEscape(token))
 	if err != nil {
 		return "", fmt.Errorf("Failed to build absolute URL for password reset link in email: %v", err)
 	}
@@ -1235,7 +1229,7 @@ func httpHandlerRenameUser(central *ImqsCentral, w http.ResponseWriter, r *httpR
 
 	auditUserLogAction(central, r, user.UserId, user.Username, "User Profile: "+oldIdent+" renamed to "+newIdent, authaus.AuditActionUpdated)
 	if central.Config.enablePcsRename {
-		if err := pcsRenameUser(central.Config.GetHostname(), oldIdent, newIdent); err != nil {
+		if err := pcsRenameUser(central.Config.GetHostnameURL(), oldIdent, newIdent); err != nil {
 			central.Central.Log.Warnf("Error: failed to rename PCS: %v", err)
 			rollbackErrorTxt := ""
 			if err_rollback := central.Central.RenameIdentity(newIdent, oldIdent); err_rollback != nil {
@@ -1693,7 +1687,7 @@ func httpHandlerPing(central *ImqsCentral, w http.ResponseWriter, r *httpRequest
 }
 
 func httpHanderHostname(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("{\"Hostname\": \"%v\"}", central.Config.GetHostname()))
+	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("{\"Hostname\": \"%v\"}", central.Config.GetHostnameURL()))
 }
 
 func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {

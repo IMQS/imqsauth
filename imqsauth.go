@@ -100,7 +100,7 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 	// Try test config first; otherwise load real config
 	isTestConfig := auth.LoadTestConfig(ic, configFile)
 	if !isTestConfig {
-		if err := ic.Config.LoadFile(configFile); err != nil {
+		if err := ic.Config.LoadConfig(configFile); err != nil {
 			panic(fmt.Sprintf("Error loading config file '%v': %v", configFile, err))
 		}
 
