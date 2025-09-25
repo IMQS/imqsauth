@@ -247,5 +247,6 @@ func setUserPermissionGroupsByName(icentral *ImqsCentral, userid authaus.UserId,
 	perm := authaus.Permit{
 		Roles: authaus.EncodePermit(groupIDs),
 	}
+	// audit log required
 	return icentral.Central.SetPermit(userid, &perm)
 }

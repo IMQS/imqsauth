@@ -1923,6 +1923,7 @@ func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 				authaus.HttpSendTxt(w, http.StatusInternalServerError, eupdate.Error())
 				return
 			}
+			// audit log required for permissions update diff
 		} else if err == nil && !userGroupsJson.OverwriteGroups {
 			central.Central.Log.Warnf("Group %v not updated, overwrite set to false", group.Name)
 		} else if err != nil && strings.Index(err.Error(), authaus.ErrGroupNotExist.Error()) != -1 {
@@ -1930,6 +1931,7 @@ func httpHandlerImportUserGroups(central *ImqsCentral, w http.ResponseWriter, r 
 				authaus.HttpSendTxt(w, http.StatusInternalServerError, einsert.Error())
 				return
 			}
+			// audit log required for new group
 		} else {
 			authaus.HttpSendTxt(w, http.StatusInternalServerError, err.Error())
 			return
