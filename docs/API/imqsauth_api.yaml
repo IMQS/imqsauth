@@ -954,6 +954,34 @@ paths:
               schema:
                 type: string
                 example: Error message
+  /msaad/approles:
+    get:
+      summary: Get MS AAD App Roles
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '401':
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
+        '501':
+          description: Not Implemented
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error message
   /dynamic_permissions:
     get:
       summary: Get Dynamic Permissions

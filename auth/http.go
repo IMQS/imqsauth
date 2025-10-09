@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"golang.org/x/exp/slices"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -246,6 +247,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/oauth/providers", x.makeHandler(HttpMethodGet, httpHandlerOAuthProviders, 0))
 	smux.HandleFunc("/oauth/start", x.makeHandler(HttpMethodAny, httpHandlerOAuthStart, 0))
 	smux.HandleFunc("/oauth/finish", x.makeHandler(HttpMethodGet, httpHandlerOAuthFinish, 0))
+	smux.HandleFunc("/msaad/approles", x.makeHandler(HttpMethodGet, httpHandlerGetAppRoles, handlerFlagNeedAdminRights))
 
 	// It's useful to uncomment this when developing new OAuth concepts,
 	// but it's obviously a bad idea to expose it in production.
@@ -262,6 +264,27 @@ func (x *ImqsCentral) RunHttp() error {
 	}
 
 	return nil
+}
+
+func httpHandlerGetAppRoles(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+	if central.Central.MSAAD == nil || central.Central.MSAAD.Provider() == nil {
+		authaus.HttpSendTxt(w, http.StatusNotImplemented, "MSAAD is not configured")
+		return
+	}
+	roleList, globalErr, quit := central.Central.MSAAD.Provider().GetAppRoles()
+	if globalErr != nil {
+		central.Central.Log.Errorf("Could not retrieve app role list: %v", globalErr)
+		authaus.HttpSendTxt(w, http.StatusInternalServerError, globalErr.Error())
+		return
+	}
+	if quit {
+		authaus.HttpSendTxt(w, http.StatusServiceUnavailable, "Could not retrieve app role list at this time.")
+		return
+	}
+
+	slices.Sort(roleList)
+	authaus.HttpSendJSON(w, http.StatusOK, roleList)
+	return
 }
 
 // Returns an error if 'hostname' is not configured on this server

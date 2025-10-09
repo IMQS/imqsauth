@@ -157,20 +157,16 @@
 						},
 						"DefaultRoles": {
 							"type": "array",
-							"items": [
-								{
-									"type": "string"
-								}
-							]
+							"items": {
+								"type": "string"
+							}
 						},
 						"RoleToGroup": {},
 						"PassthroughClientIDs": {
 							"type": "array",
-							"items": [
-								{
-									"type": "string"
-								}
-							]
+							"items": {
+								"type": "string"
+							}
 						},
 						"AllowArchiveUser": {
 							"type": "boolean"
@@ -263,43 +259,42 @@
 			"properties": {
 				"dynamic": {
 					"type": "array",
-					"items": [
-						{
-							"type": "object",
-							"properties": {
-								"id": {
-									"type": "string"
-								},
-								"name": {
-									"type": "string"
-								},
-								"friendly": {
-									"type": "string"
-								},
-								"description": {
-									"type": "string"
-								},
-								"module": {
-									"type": "string"
-								}
+					"items": {
+						"type": "object",
+						"patternProperties": {
+							"^description$": {
+								"type": "string"
+							}
+						},
+						"properties": {
+							"id": {
+								"type": "string"
 							},
-							"required": [
-								"id",
-								"name",
-								"friendly",
-								"description",
-								"module"
-							]
-						}
-					]
+							"name": {
+								"type": "string"
+							},
+							"friendly": {
+								"type": "string"
+							},
+							"module": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"id",
+							"name",
+							"friendly",
+							"description",
+							"module"
+						]
+					}
 				},
 				"disable": {
 					"type": "array",
-					"items": [
+					"items":
 						{
 							"type": "string"
 						}
-					]
 				}
 			},
 			"required": [
