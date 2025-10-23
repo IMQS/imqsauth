@@ -1,5 +1,9 @@
 # Changelog
 
+## Current
+
+* fix: Set browser cookie to expire on /logout (asg-5004)
+
 ## v1.8.2
 
 * perf: Uses new getUserStatsAll function in authaus (ASG-4879)

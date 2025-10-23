@@ -3,6 +3,7 @@ package imqsauth
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/IMQS/authaus"
 )
@@ -39,6 +40,17 @@ func (icentral *ImqsCentral) setSessionCookie(sessionKey string, token *authaus.
 		Value:   sessionKey,
 		Path:    "/",
 		Expires: token.Expires,
+		Secure:  icentral.Config.Authaus.HTTP.CookieSecure,
+	}
+	http.SetCookie(w, cookie)
+}
+
+func (icentral *ImqsCentral) clearSessionCookie(w http.ResponseWriter) {
+	cookie := &http.Cookie{
+		Name:    icentral.Config.Authaus.HTTP.CookieName,
+		Value:   "",
+		Path:    "/",
+		Expires: time.Unix(0, 0),
 		Secure:  icentral.Config.Authaus.HTTP.CookieSecure,
 	}
 	http.SetCookie(w, cookie)

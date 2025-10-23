@@ -694,6 +694,7 @@ func httpHandlerLogout(central *ImqsCentral, w http.ResponseWriter, r *httpReque
 		central.Central.Logout(sessioncookie.Value)
 	}
 
+	central.clearSessionCookie(w)
 	if identity == "" {
 		httpSendNoIdentity(w)
 		return
