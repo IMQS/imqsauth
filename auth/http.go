@@ -118,7 +118,6 @@ type exportGroupUser struct {
 type ImqsCentral struct {
 	Config  *Config
 	Central *authaus.Central
-	//UsageTracker *CheckUsageTracker
 
 	// Guards access to roleChangeSubscribers and lastSubscriberId
 	subscriberLock sync.RWMutex
@@ -1688,7 +1687,7 @@ func httpHandlerPing(central *ImqsCentral, w http.ResponseWriter, r *httpRequest
 }
 
 func httpHandlerHostname(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
-	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("{\"Hostname\": \"%v\"}", central.Config.GetHostname()))
+	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("{\"Hostname\": \"%v\"}", central.Config.GetHostnameURL()))
 }
 
 func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
