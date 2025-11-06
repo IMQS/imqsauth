@@ -216,7 +216,7 @@ func (x *ImqsCentral) RunHttp() error {
 	smux := http.NewServeMux()
 	smux.HandleFunc("/hello", x.makeHandler(HttpMethodGet, httpHandlerHello, 0))
 	smux.HandleFunc("/ping", x.makeHandler(HttpMethodGet, httpHandlerPing, 0))
-	smux.HandleFunc("/hostname", x.makeHandler(HttpMethodGet, httpHanderHostname, 0))
+	smux.HandleFunc("/hostname", x.makeHandler(HttpMethodGet, httpHandlerHostname, 0))
 	smux.HandleFunc("/login", x.makeHandler(HttpMethodPost, httpHandlerLogin, 0))
 	smux.HandleFunc("/logout", x.makeHandler(HttpMethodPost, httpHandlerLogout, 0))
 	smux.HandleFunc("/check", x.makeHandler(HttpMethodGet, httpHandlerCheck, 0))
@@ -1710,7 +1710,7 @@ func httpHandlerPing(central *ImqsCentral, w http.ResponseWriter, r *httpRequest
 	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("{\"Timestamp\": %v}", time.Now().Unix()))
 }
 
-func httpHanderHostname(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
+func httpHandlerHostname(central *ImqsCentral, w http.ResponseWriter, r *httpRequest) {
 	authaus.HttpSendTxt(w, http.StatusOK, fmt.Sprintf("{\"Hostname\": \"%v\"}", central.Config.GetHostnameURL()))
 }
 
@@ -1728,6 +1728,15 @@ func httpHandlerCheck(central *ImqsCentral, w http.ResponseWriter, r *httpReques
 			if !permList.Has(PermEnabled) {
 				httpSendAccountDisabled(w)
 			} else {
+				// Log successful check request for usage tracking
+				if central.Central.UsageTracker != nil {
+					sessionToken := ""
+					if sessionCookie, err := r.http.Cookie(central.Config.Authaus.HTTP.CookieName); err == nil {
+						sessionToken = sessionCookie.Value
+					}
+					central.Central.UsageTracker.LogCheck(sessionToken, token)
+				}
+
 				httpSendCheckJson(w, token, permList)
 			}
 		}
