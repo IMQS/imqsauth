@@ -339,8 +339,8 @@ func permShow(icentral *auth.ImqsCentral, identityColumnWidth int, identity stri
 	} else {
 		permStr = fmt.Sprintf("Error retrieving permit: %v\n", e)
 	}
-	fmtStr := fmt.Sprintf("%%-%vv  %%v\n", identityColumnWidth)
-	fmt.Printf(fmtStr, identity, permStr)
+	fmtStr := fmt.Sprintf("%%-5v %%-%vv  %%v\n", identityColumnWidth)
+	fmt.Printf(fmtStr, user.UserId, identity, permStr)
 	return
 }
 
@@ -393,16 +393,30 @@ func showAllIdentities(icentral *auth.ImqsCentral) bool {
 
 	longestName := 0
 	for _, user := range users {
-		if len(user.Email) > longestName {
-			longestName = len(user.Email)
+		// pick appropriate identity
+		ident := getIdent(&user)
+
+		if len(ident) > longestName {
+			longestName = len(ident)
 		}
 	}
 
 	for _, user := range users {
-		permShow(icentral, longestName, user.Email)
+		ident := getIdent(&user)
+		permShow(icentral, longestName, ident)
 	}
 
 	return true
+}
+
+func getIdent(user *authaus.AuthUser) string {
+	ident := user.Email
+	if len(user.Email) == 0 {
+		if len(user.Username) > 0 {
+			ident = user.Username
+		}
+	}
+	return ident
 }
 
 func setGroup(icentral *auth.ImqsCentral, groupName string, roles []string) bool {
