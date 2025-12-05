@@ -5,6 +5,7 @@
 * fix: Fix 'showidentities' command line option (NEXUS-4832)
 * feat: Add provider function to retrieve visible entra groups (ASG-4959)
 * fix: Set browser cookie to expire on /logout (asg-5004)
+* feat: Fetch IMQS_HOSTNAME_URL from configservice (ASG-4927)
 
 ## v1.8.2
 
