@@ -50,6 +50,6 @@ jobs:
           ssh: default
           # Push the new image to Docker Hub with the tag as the git ref name
           # (branch or tag), except master is pushed as "latest"
-          tags: imqs/auth:${{ github.ref_name == 'master' && 'latest' || github.ref_name }}
+          tags: imqs/auth:${{ github.head_ref || github.ref_name == 'master' && 'latest' || github.ref_name }}
           push: true
           cache-from: golang:1.22, imqs/ubuntu-base:24.04
