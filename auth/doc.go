@@ -30,6 +30,10 @@ Example config file:
 				"From": "SkyPipe Inc. Password Reset <noreply@skypipeinc.com>",
 				"Subject": "SkyPipe Inc. Reset Password"
 			}
+		},
+		"UsageTracking": {
+			"enabled": false,							-- Enable/disable session check usage tracking
+			"flush_interval": 60						-- Flush interval in seconds for persisting logs
 		}
 	}
 */

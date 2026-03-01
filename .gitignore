@@ -7,3 +7,7 @@ __debug_bin
 /imqsauth.exe
 /log/
 /imqsauth.log
+/id_rsa
+/tools/Data/Working/
+/tools/listanddiff/*.exe
+/tools/listanddiff/output.csv
