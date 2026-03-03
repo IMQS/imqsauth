@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"golang.org/x/exp/slices"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -13,6 +12,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/exp/slices"
 
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/imqsauth/utils"
@@ -54,6 +55,7 @@ const (
 	handlerFlagNeedAdminRights  = 1 << iota // Request won't even reach your handler unless the user is an admin
 	handlerFlagNeedToken                    // Populate the httpRequest object with 'token' and 'permList'
 	handlerFlagNeedInterService             // Request requires interservice authorization
+	handlerFlagNoLicense                    // Request does not require the service to be licensed, so we can still gather metrics/status
 )
 
 type httpRequest struct {
@@ -157,6 +159,16 @@ func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, h
 		needAdmin := 0 != (flags & handlerFlagNeedAdminRights)
 		needToken := 0 != (flags & handlerFlagNeedToken)
 		needInterService := 0 != (flags & handlerFlagNeedInterService)
+		needLicense := !(0 != (flags & handlerFlagNoLicense))
+
+		if needLicense {
+			isValid := isLicensed()
+			if !isValid {
+				authaus.HttpSendTxt(w, http.StatusPaymentRequired, "This service is not licensed to run. Please contact your vendor.")
+				return
+			}
+		}
+
 		if !needAdmin && !needToken && !needInterService {
 			actual(x, w, httpReq)
 			return
@@ -211,14 +223,17 @@ func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, h
 }
 
 func (x *ImqsCentral) RunHttp() error {
+	if err := x.initLicenseClient(); err != nil {
+		return err
+	}
 	// The built-in go ServeMux does not support differentiating based on HTTP verb, so we have to make
 	// the request path unique for each verb. I think this is OK as far as API design is concerned - at least in this domain.
 	smux := http.NewServeMux()
-	smux.HandleFunc("/hello", x.makeHandler(HttpMethodGet, httpHandlerHello, 0))
-	smux.HandleFunc("/ping", x.makeHandler(HttpMethodGet, httpHandlerPing, 0))
-	smux.HandleFunc("/hostname", x.makeHandler(HttpMethodGet, httpHanderHostname, 0))
+	smux.HandleFunc("/hello", x.makeHandler(HttpMethodGet, httpHandlerHello, handlerFlagNoLicense))
+	smux.HandleFunc("/ping", x.makeHandler(HttpMethodGet, httpHandlerPing, handlerFlagNoLicense))
+	smux.HandleFunc("/hostname", x.makeHandler(HttpMethodGet, httpHanderHostname, handlerFlagNoLicense))
 	smux.HandleFunc("/login", x.makeHandler(HttpMethodPost, httpHandlerLogin, 0))
-	smux.HandleFunc("/logout", x.makeHandler(HttpMethodPost, httpHandlerLogout, 0))
+	smux.HandleFunc("/logout", x.makeHandler(HttpMethodPost, httpHandlerLogout, handlerFlagNoLicense))
 	smux.HandleFunc("/check", x.makeHandler(HttpMethodGet, httpHandlerCheck, 0))
 	smux.HandleFunc("/create_user", x.makeHandler(HttpMethodPut, httpHandlerCreateUser, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/update_user", x.makeHandler(HttpMethodPost, httpHandlerUpdateUser, handlerFlagNeedAdminRights))
@@ -238,10 +253,10 @@ func (x *ImqsCentral) RunHttp() error {
 	smux.HandleFunc("/users", x.makeHandler(HttpMethodGet, httpHandlerGetEmails, handlerFlagNeedToken))
 	smux.HandleFunc("/userobjects", x.makeHandler(HttpMethodGet, httpHandlerGetUsers, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/userobject", x.makeHandler(HttpMethodGet, httpHandlerGetUser, handlerFlagNeedAdminRights))
-	smux.HandleFunc("/groups", x.makeHandler(HttpMethodGet, httpHandlerGetGroups, 0))
+	smux.HandleFunc("/groups", x.makeHandler(HttpMethodGet, httpHandlerGetGroups, handlerFlagNoLicense))
 	smux.HandleFunc("/exportgroups", x.makeHandler(HttpMethodGet, httpHandlerExportUserGroups, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/importgroups", x.makeHandler(HttpMethodPost, httpHandlerImportUserGroups, handlerFlagNeedInterService))
-	smux.HandleFunc("/hasactivedirectory", x.makeHandler(HttpMethodGet, httpHandlerHasActiveDirectory, 0))
+	smux.HandleFunc("/hasactivedirectory", x.makeHandler(HttpMethodGet, httpHandlerHasActiveDirectory, handlerFlagNoLicense))
 	smux.HandleFunc("/groups_perm_names", x.makeHandler(HttpMethodGet, httpHandlerGetGroupsPermNames, handlerFlagNeedAdminRights))
 	smux.HandleFunc("/dynamic_permissions", x.makeHandler(HttpMethodGet, httpHandlerGetDynamicPermissions, 0))
 	smux.HandleFunc("/oauth/providers", x.makeHandler(HttpMethodGet, httpHandlerOAuthProviders, 0))
