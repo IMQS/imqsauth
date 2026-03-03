@@ -1,7 +1,8 @@
 {
 	"Authaus": {
 		"Log": {
-			"Filename": "./log/imqsauth.log"
+			"Filename": "./log/imqsauth.log",
+			"DebugLevel": "debug"
 		},
 		"HTTP": {
 			"Bind": "0.0.0.0",
@@ -12,7 +13,13 @@
 			"Host": "127.0.0.1",
 			"Database": "unittest_auth",
 			"User": "unittest_user",
-			"Password": "unittest_password"
+			"Password": "unittest_password",
+			"SSL": false,
+			"Port": 5432
 		}
+	},
+	"Permissions": {
+		"disable": [],
+		"dynamic": []
 	}
 }
