@@ -20,3 +20,14 @@ __debug_bin
 /testconf/tempconf_live.json
 /testconf/tempconf_live_imqs-entra.json
 /testconf/tempconf_local.json
+/server.pub
+/frontend/node_modules/
+/frontend/dist/
+/t1/
+/t2/
+/t3/
+/keys/
+/test_ldap/imqsauth.exe
+/imqsauth.exe.garble
+/httpfront/static/assets/
+/test_ldap/log/imqsauth.log

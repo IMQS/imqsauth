@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	_ "embed"
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/cli"
 	"github.com/IMQS/gowinsvc/service"
@@ -19,11 +18,6 @@ import (
 	serviceconfig "github.com/IMQS/serviceconfigsgo"
 )
 
-//go:embed server.bin
-var pk []byte
-
-//go:embed key.bin
-var mask []byte
 
 func isRunningOnLinuxOutsideOfDocker() bool {
 	return !serviceconfig.IsContainer() && runtime.GOOS != "windows"
@@ -100,10 +94,8 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		}
 	}()
 
-	ic := &auth.ImqsCentral{
-		Pk:   pk,
-		Mask: mask,
-	}
+	ic := &auth.ImqsCentral{}
+
 	ic.Config = &auth.Config{}
 
 	configFile := options["c"]
@@ -415,6 +407,16 @@ func showAllIdentities(icentral *auth.ImqsCentral) bool {
 	}
 
 	return true
+}
+
+func getIdent(user *authaus.AuthUser) string {
+	ident := user.Email
+	if len(user.Email) == 0 {
+		if len(user.Username) > 0 {
+			ident = user.Username
+		}
+	}
+	return ident
 }
 
 func setGroup(icentral *auth.ImqsCentral, groupName string, roles []string) bool {
