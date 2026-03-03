@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/IMQS/log"
 	"os"
 	"regexp"
 	"runtime"
@@ -9,12 +10,19 @@ import (
 	"strings"
 	"time"
 
+	_ "embed"
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/cli"
 	"github.com/IMQS/gowinsvc/service"
 	auth "github.com/IMQS/imqsauth/auth"
 	serviceconfig "github.com/IMQS/serviceconfigsgo"
 )
+
+//go:embed server.bin
+var pk []byte
+
+//go:embed key.bin
+var mask []byte
 
 func isRunningOnLinuxOutsideOfDocker() bool {
 	return !serviceconfig.IsContainer() && runtime.GOOS != "windows"
@@ -89,7 +97,10 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		}
 	}()
 
-	ic := &auth.ImqsCentral{}
+	ic := &auth.ImqsCentral{
+		Pk:   pk,
+		Mask: mask,
+	}
 	ic.Config = &auth.Config{}
 
 	configFile := options["c"]
@@ -125,6 +136,7 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 	if createCentral {
 		var err error
 		ic.Central, err = authaus.NewCentralFromConfig(&ic.Config.Authaus)
+		ic.Central.Log.Level = log.Debug
 		if err != nil {
 			panic(err)
 		}
