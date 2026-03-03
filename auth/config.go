@@ -1,6 +1,7 @@
 package imqsauth
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -121,12 +122,26 @@ func (x *Config) ResetForUnitTests() {
 
 func (x *Config) LoadFile(filename string) error {
 	x.Reset()
-	err := serviceconfig.GetConfig(filename, serviceName, serviceConfigVersion, serviceConfigFileName, x)
-	if err != nil {
-		return err
+	//err := serviceconfig.GetConfig(filename, serviceName, serviceConfigVersion, serviceConfigFileName, x)
+	//if err != nil {
+	//	return err
+	//}
+
+	f, e := os.ReadFile(filename)
+	if e != nil {
+		return e
+	}
+	if e = json.Unmarshal(f, x); e != nil {
+		return e
 	}
 
 	x.SetDefaults()
+
+	//hostnameURL, err := serviceconfig.GetSystemVariableFromConfigService("IMQS_HOSTNAME_URL")
+	//if err != nil {
+	//	return err
+	//}
+	x.hostname = "127.0.0.1"
 
 	x.lastFileLoaded = filename
 	return x.loadDynamicPermissions()
@@ -155,12 +170,6 @@ func (x *Config) IsContainer() bool {
 }
 
 func (x *Config) GetHostname() string {
-	if x.hostname == "" {
-		hostname_b, ok := os.LookupEnv("IMQS_HOSTNAME_URL")
-		if ok {
-			x.hostname = strings.TrimSpace(string(hostname_b))
-		}
-	}
 	return x.hostname
 }
 
