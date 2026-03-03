@@ -235,6 +235,7 @@ func (x *ImqsCentral) RunHttp() error {
 		return e
 	}
 	licenseClient.Init("./licenses_client", serverPub)
+	licenseClient.LicenseServerURL = "https://deploy.imqs.co.za/licenses/"
 	licenseClient.Logger = x.Central.Log
 	// also initialise license client lib's log
 	lib.L = x.Central.Log

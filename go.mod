@@ -6,7 +6,7 @@ require (
 	github.com/IMQS/authaus v1.3.9
 	github.com/IMQS/cli v1.2.0
 	github.com/IMQS/gowinsvc v1.2.0
-	github.com/IMQS/licenseserver v0.0.1
+	github.com/IMQS/licenseserver v0.0.2
 	github.com/IMQS/log v1.5.1
 	github.com/IMQS/serviceauth v1.4.0
 	github.com/IMQS/serviceconfigsgo v1.4.0
