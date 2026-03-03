@@ -6,6 +6,8 @@ github.com/IMQS/cli v0.0.0-20151022082634-156324308096 h1:VffSY+13RAsa1X+AWA7/ft
 github.com/IMQS/cli v0.0.0-20151022082634-156324308096/go.mod h1:y2XQLPuROeqlwkjD/fieklY8cTCqFIh5OWNwsgrrwa8=
 github.com/IMQS/gowinsvc v0.0.0-20220601052852-62ce07b0ae0b h1:UoYC6fmg+eG8QgfYiXEvzrAjXzqnvX4rOo50O7CXeZM=
 github.com/IMQS/gowinsvc v0.0.0-20220601052852-62ce07b0ae0b/go.mod h1:/J9Vz5JKF3/Mn3bEWVA2FprLbvkLV3WO0FRCakF2v+g=
+github.com/IMQS/licenseserver v0.0.1 h1:xLu3RXW/5GJc1FnjRkL7oYzRY9AuBJdD88c3Qf0907U=
+github.com/IMQS/licenseserver v0.0.1/go.mod h1:mfwHu3bIWYsMJkO+mitT0GPKsQ+nd7m5KdrJuQ2sfTw=
 github.com/IMQS/log v1.5.1 h1:MrM5Cn4zUiH/cZqOd4A64sHrF+GldjN8UXOhiRKFRMc=
 github.com/IMQS/log v1.5.1/go.mod h1:EVm4FzOIBh22Ucdy4n01j725B85Z7We3LaRKCVozvy8=
 github.com/IMQS/serviceauth v1.0.9 h1:mrVS/PxGBxQcoOPzpTs1kRa3dqA70OgMpFlv8dApgQM=

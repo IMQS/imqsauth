@@ -6,3 +6,17 @@ Dockerfile-gotest
 __debug_bin
 /imqsauth.exe
 /log/
+/client.key
+/client.pub
+/licenses_client/
+/imqsauth.log
+/server.bin
+/server.key
+/tools/listanddiff/output.csv
+/testconf/tempconf_live.json
+/testconf/tempconf_live_imqs-entra.json
+/tools/listanddiff/listanddiff.exe
+/key.bin
+/id_rsa
+/tools/listanddiff/go_build_listanddiff_go.exe
+/testconf/tempconf_local.json

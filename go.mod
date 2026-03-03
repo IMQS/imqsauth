@@ -8,7 +8,7 @@ require (
 	github.com/IMQS/authaus v1.0.41
 	github.com/IMQS/cli v0.0.0-20151022082634-156324308096
 	github.com/IMQS/gowinsvc v0.0.0-20220601052852-62ce07b0ae0b
-	github.com/IMQS/licenseserver v1.4.0
+	github.com/IMQS/licenseserver v0.0.1
 	github.com/IMQS/log v1.5.1
 	github.com/IMQS/serviceauth v1.0.9
 	github.com/IMQS/serviceconfigsgo v1.0.3
@@ -35,5 +35,3 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/IMQS/licenseserver => ../licenseserver
