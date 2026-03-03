@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/IMQS/licenseserver/lib"
-	"golang.org/x/exp/slices"
 	"io/ioutil"
 	"net/http"
 	"net/url"
