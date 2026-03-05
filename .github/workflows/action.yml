@@ -47,6 +47,13 @@ jobs:
       - name: build-push
         uses: docker/build-push-action@v6
         with:
+          # Tells docker/build-push-action where to find the dockerfile, but
+          # also has the side effect of skipping the checkout, clone of
+          # submodules and fetching of lfs files and just uses the result of the
+          # checkout step. This works around the fact that
+          # docker/build-push-action currently has no way of cloning private
+          # submodules and fetching lfs files.
+          context: .
           ssh: default
           # Push the new image to Docker Hub with the tag as the git ref name
           # (branch or tag), except master is pushed as "latest"
