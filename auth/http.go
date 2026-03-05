@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/IMQS/authaus"
-	"github.com/IMQS/imqsauth/utils"
 	"github.com/IMQS/licenseserver/client"
 	"github.com/IMQS/serviceauth"
 )
