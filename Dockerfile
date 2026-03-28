@@ -1,6 +1,18 @@
 # docker build -t imqs/auth:latest --ssh default .
 
 ##################################
+# Frontend build
+##################################
+FROM node:20-alpine AS frontend
+
+WORKDIR /frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+# vite.config.ts: outDir: '../httpfront/static' → writes to /httpfront/static
+RUN npm run build
+
+##################################
 # Builder image
 ##################################
 FROM golang:1.22 AS builder
@@ -24,6 +36,9 @@ RUN --mount=type=ssh \
 
 # Compile
 COPY . /build/
+# Overlay the compiled frontend assets (from the Node stage) so that
+# the go:embed directive in httpfront/httpfront.go has files to embed.
+COPY --from=frontend /httpfront/static /build/httpfront/static
 RUN go build imqsauth.go
 
 ##################################

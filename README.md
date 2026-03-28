@@ -15,6 +15,52 @@ To build imqsauth:
 
 	go build imqsauth.go
 
+## Frontend
+
+The auth management UI lives in `frontend/`. It is a standalone Vue 3 / TypeScript SPA
+that is served by the Go binary at `/auth/ui/`.
+
+**Build the frontend before building/running the Go binary:**
+
+	cd frontend
+	npm install
+	npm run build
+
+This compiles the SPA into `httpfront/static/`, which is embedded into the Go binary
+at compile time. The `httpfront/static/assets/` directory is generated and should not
+be committed — only `httpfront/static/index.html` is checked in as a placeholder.
+
+**Run the frontend unit tests:**
+
+	cd frontend
+	npm test
+
+**Develop with live reload** (requires the Go server running on port 2003):
+
+	cd frontend
+	npm run dev
+
+API calls are proxied from `localhost:5173/auth2/*` to `localhost:2003/*` automatically.
+
+## Reverse-proxy (Apache) configuration
+
+When Apache proxies `/auth/` to the Go binary the browser sees URLs like `/auth/ui/`
+but Go only ever receives `/ui/` (the `/auth/` prefix is stripped by Apache).
+
+The SPA derives its API base URL from `window.location.pathname` at runtime — it
+finds the `/ui/` segment and uses everything before it (e.g. `/auth/`).  No special
+headers or server-side patching are needed.
+
+A minimal Apache virtual-host configuration:
+
+```apacheconf
+ProxyPass        "/auth/" "http://0.0.0.0:2003/"
+ProxyPassReverse "/auth/" "http://0.0.0.0:2003/"
+```
+
+The front-end is served from `/auth/ui/` and the API calls go to `/auth/` — both
+handled by the same Go process via the Apache proxy.
+
 ## Testing
 
 Note that github.com/IMQS/authaus has it's own set of tests, which we run
