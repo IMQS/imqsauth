@@ -10,9 +10,34 @@
 		"DB": {
 			"Driver": "postgres",
 			"Host": "127.0.0.1",
-			"Database": "unittest_auth",
-			"User": "unittest_user",
-			"Password": "unittest_password"
+			"Database": "auth",
+			"User": "imqs",
+			"Password": "xxx"
 		}
+	},
+	"Permissions": {
+		"dynamic": [
+			{
+				"id": "15015",
+				"name": "newMmIlViewChecklist",
+				"friendly": "IL – View Checklist",
+				"description": "User can view checklist",
+				"module": "Maintenance Management"
+			},
+			{
+				"id": "15006",
+				"name": "pcsprogrammeaccess",
+				"friendly": "Programme Access",
+				"description": "Activate the programme submodule",
+				"module": "PCS"
+			},
+			{
+				"id": "15007",
+				"name": "pcsprojectaccess",
+				"friendly": "Project Access",
+				"description": "Activate the project submodule",
+				"module": "PCS"
+			}
+		]
 	}
 }

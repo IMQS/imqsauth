@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/IMQS/authaus"
+	"github.com/IMQS/imqsauth/httpfront"
 	"github.com/IMQS/imqsauth/utils"
 	"github.com/IMQS/serviceauth"
 )
@@ -252,6 +253,11 @@ func (x *ImqsCentral) RunHttp() error {
 	// It's useful to uncomment this when developing new OAuth concepts,
 	// but it's obviously a bad idea to expose it in production.
 	// smux.HandleFunc("/oauth/test", x.makeHandler(HttpMethodGet, httpHandlerOAuthTest, 0))
+
+	// Serve the standalone auth management SPA.
+	// The frontend is built to /httpfront/static by `npm run build` in the frontend/ directory.
+	// Access it at /auth/ui/ (e.g. http://localhost:8080/auth/ui/).
+	smux.Handle("/auth/ui/", http.StripPrefix("/auth/ui", httpfront.Handler()))
 
 	server := &http.Server{}
 	server.Handler = smux

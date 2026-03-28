@@ -15,6 +15,33 @@ To build imqsauth:
 
 	go build imqsauth.go
 
+## Frontend
+
+The auth management UI lives in `frontend/`. It is a standalone Vue 3 / TypeScript SPA
+that is served by the Go binary at `/auth/ui/`.
+
+**Build the frontend before building/running the Go binary:**
+
+	cd frontend
+	npm install
+	npm run build
+
+This compiles the SPA into `httpfront/static/`, which is embedded into the Go binary
+at compile time. The `httpfront/static/assets/` directory is generated and should not
+be committed — only `httpfront/static/index.html` is checked in as a placeholder.
+
+**Run the frontend unit tests:**
+
+	cd frontend
+	npm test
+
+**Develop with live reload** (requires the Go server running on port 2003):
+
+	cd frontend
+	npm run dev
+
+API calls are proxied from `localhost:5173/auth2/*` to `localhost:2003/*` automatically.
+
 ## Testing
 
 Note that github.com/IMQS/authaus has it's own set of tests, which we run

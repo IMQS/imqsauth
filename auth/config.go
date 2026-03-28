@@ -1,7 +1,9 @@
 package imqsauth
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -120,18 +122,28 @@ func (x *Config) ResetForUnitTests() {
 
 func (x *Config) LoadConfig(filename string) error {
 	x.Reset()
-	err := serviceconfig.GetConfig(filename, serviceName, serviceConfigVersion, serviceConfigFileName, x)
-	if err != nil {
-		return err
+	//err := serviceconfig.GetConfig(filename, serviceName, serviceConfigVersion, serviceConfigFileName, x)
+	//if err != nil {
+	//	return err
+	//}
+
+	f, e := os.ReadFile(filename)
+	if e != nil {
+		return e
+	}
+
+	e = json.Unmarshal(f, x)
+	if e != nil {
+		return e
 	}
 
 	x.SetDefaults()
 
-	hostnameURL, err := serviceconfig.GetSystemVariableFromConfigService("IMQS_HOSTNAME_URL")
-	if err != nil {
-		return err
-	}
-	x.hostnameURL = hostnameURL
+	//hostnameURL, err := serviceconfig.GetSystemVariableFromConfigService("IMQS_HOSTNAME_URL")
+	//if err != nil {
+	//	return err
+	//}
+	x.hostnameURL = "127.0.0.1"
 
 	x.lastFileLoaded = filename
 	return x.loadDynamicPermissions()
