@@ -44,7 +44,7 @@
           <span>or</span>
         </div>
 
-        <div v-for="provider in oauthProviders" :key="provider.Name" class="oauth-provider">
+        <div v-for="provider in oauthProvidersWithRedirect" :key="provider.Name" class="oauth-provider">
           <a :href="provider.LoginURL" class="btn-oauth">
             Sign in with {{ provider.Name }}
           </a>
@@ -55,8 +55,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { doLogin, session } from '../composables/useSession';
+import { ref, onMounted, computed } from 'vue';
+import { doLogin } from '../composables/useSession';
 import { getOAuthProviders } from '../services/api';
 import type { OAuthProvider } from '../services/types';
 
@@ -67,6 +67,34 @@ const password       = ref('');
 const errorMsg       = ref('');
 const oauthProviders = ref<OAuthProvider[]>([]);
 const loading        = ref(false);
+
+// Read ?redirect= (or legacy ?returnUrl=) from the current URL.
+// Only allow same-origin or relative URLs to prevent open-redirect attacks.
+function safeRedirectTarget(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  const target = params.get('redirect') ?? params.get('returnUrl') ?? '';
+  if (!target) return null;
+  try {
+    const url = new URL(target, window.location.origin);
+    // Only follow if same origin
+    if (url.origin !== window.location.origin) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
+const redirectTarget = safeRedirectTarget();
+
+// Append the redirect param to OAuth provider URLs so they land back correctly
+const oauthProvidersWithRedirect = computed(() =>
+  oauthProviders.value.map(p => ({
+    ...p,
+    LoginURL: redirectTarget
+      ? `${p.LoginURL}${p.LoginURL.includes('?') ? '&' : '?'}redirect=${encodeURIComponent(redirectTarget)}`
+      : p.LoginURL,
+  }))
+);
 
 onMounted(async () => {
   try {
@@ -80,7 +108,11 @@ async function handleSubmit() {
   loading.value  = true;
   try {
     await doLogin(identity.value, password.value);
-    emit('logged-in');
+    if (redirectTarget) {
+      window.location.href = redirectTarget;
+    } else {
+      emit('logged-in');
+    }
   } catch (e: unknown) {
     errorMsg.value = e instanceof Error ? e.message : 'Login failed. Please try again.';
   } finally {
