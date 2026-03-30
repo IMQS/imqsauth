@@ -28,6 +28,7 @@
           <tr>
             <th @click="setSort('displayName')">Name {{ sortIcon('displayName') }}</th>
             <th @click="setSort('email')">Email {{ sortIcon('email') }}</th>
+            <th @click="setSort('username')">Username {{ sortIcon('username') }}</th>
             <th @click="setSort('authType')">Type {{ sortIcon('authType') }}</th>
             <th>Groups</th>
             <th @click="setSort('lastLogin')">Last Login {{ sortIcon('lastLogin') }}</th>
@@ -42,13 +43,14 @@
             @dblclick="openEdit"
           >
             <td>{{ u.displayName }}</td>
-            <td>{{ u.email ?? u.username }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.username }}</td>
             <td><span class="badge" :class="'badge--' + authTypeClass(u)">{{ authTypeLabel(u) }}</span></td>
             <td class="groups-cell">{{ u.groups.map(g => g.name).join(', ') }}</td>
             <td>{{ fmtDate(u.lastLoginDate) }}</td>
           </tr>
           <tr v-if="displayedUsers.length === 0">
-            <td colspan="5" class="empty">{{ loading ? 'Loading…' : 'No users found.' }}</td>
+            <td colspan="6" class="empty">{{ loading ? 'Loading…' : 'No users found.' }}</td>
           </tr>
         </tbody>
       </table>
@@ -153,7 +155,8 @@ const displayedUsers = computed(() => {
   list.sort((a, b) => {
     let av = '', bv = '';
     if (key === 'displayName') { av = a.displayName; bv = b.displayName; }
-    else if (key === 'email')  { av = a.email ?? a.username ?? ''; bv = b.email ?? b.username ?? ''; }
+    else if (key === 'email')    { av = a.email ?? ''; bv = b.email ?? ''; }
+    else if (key === 'username') { av = a.username ?? ''; bv = b.username ?? ''; }
     else if (key === 'authType') { av = authTypeLabel(a); bv = authTypeLabel(b); }
     else if (key === 'lastLogin') { av = a.lastLoginDate ?? ''; bv = b.lastLoginDate ?? ''; }
     const cmp = av.toLowerCase().localeCompare(bv.toLowerCase());

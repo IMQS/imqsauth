@@ -109,17 +109,17 @@ const groupName      = ref(props.group?.name ?? '');
 const selectedModule = ref(props.group?.moduleName ?? props.group?.permissions[0]?.module ?? '');
 const checkedIds     = reactive(new Set<string>(props.group?.permissions.map(p => p.id) ?? []));
 
-const moduleOptions = allModuleOptions();
-const allPermsByModule = permissionsByModule();
+const moduleOptions = computed(() => allModuleOptions());
+const allPermsByModule = computed(() => permissionsByModule());
 
 const modulePermissions = computed((): Permission[] => {
   const isModAccess = selectedModule.value === 'Module Access';
-  const perms = (allPermsByModule.get(selectedModule.value) ?? [])
+  const perms = (allPermsByModule.value.get(selectedModule.value) ?? [])
     .filter(p => !['Administrator', 'Enabled'].includes(p.friendlyName));
   if (isModAccess) {
     // Include all ModuleAccess permissions across modules
     const extra: Permission[] = [];
-    for (const arr of allPermsByModule.values()) {
+    for (const arr of allPermsByModule.value.values()) {
       for (const p of arr) if (p.name.includes('ModuleAccess') && !extra.find(e => e.id === p.id)) extra.push(p);
     }
     return extra.sort((a, b) => a.friendlyName.localeCompare(b.friendlyName));
@@ -130,7 +130,7 @@ const modulePermissions = computed((): Permission[] => {
 const activeByModule = computed((): Map<string, Permission[]> => {
   const m = new Map<string, Permission[]>();
   for (const id of checkedIds) {
-    for (const arr of allPermsByModule.values()) {
+    for (const arr of allPermsByModule.value.values()) {
       const found = arr.find(p => p.id === id);
       if (found) {
         const existing = m.get(found.module) ?? [];

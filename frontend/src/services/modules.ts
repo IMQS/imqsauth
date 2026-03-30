@@ -1,6 +1,11 @@
 // ─── Auth module registry ─────────────────────────────────────────────────────
 // Mirrors the Go PermissionsTable module names.
 
+import { ref } from 'vue';
+
+/** Bumped whenever a new module is registered so computed() properties re-evaluate. */
+export const modulesVersion = ref(0);
+
 export const AuthModule: Record<string, string> = {
   ASSETS:                  'Assets',
   COGTA:                   'COGTA',
@@ -51,6 +56,7 @@ export function registerDynamicModule(key: string, value: string): void {
   if (!AuthModule[key]) {
     AuthModule[key] = value;
     DynamicModules.push(key);
+    modulesVersion.value++;
   }
 }
 
@@ -59,10 +65,11 @@ export interface ModuleOption {
   value: string;
 }
 
-/** Returns all registered modules as selectable options, sorted by label. */
+/** Returns all registered modules as selectable options, sorted by label.
+ *  Reads modulesVersion so that Vue computed() re-evaluates when new modules are registered. */
 export function allModuleOptions(): ModuleOption[] {
+  void modulesVersion.value; // reactive dependency
   return Object.entries(AuthModule)
     .map(([id, value]) => ({ id, value }))
     .sort((a, b) => a.value.localeCompare(b.value));
 }
-

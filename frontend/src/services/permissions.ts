@@ -1,7 +1,12 @@
 // ─── Permissions registry ─────────────────────────────────────────────────────
 
+import { ref } from 'vue';
 import { AuthModule, authModuleExists, DynamicModules, registerDynamicModule } from './modules';
 import type { DynamicPermissionsResponse } from './types';
+
+/** Bumped whenever the permissions registry changes so computed() properties re-evaluate. */
+export const permissionsVersion = ref(0);
+function bumpVersion() { permissionsVersion.value++; }
 
 export class Permission {
   constructor(
@@ -56,10 +61,19 @@ export function applyDynamicPermissions(data: DynamicPermissionsResponse): void 
         if (v.toUpperCase() === perm.module.toUpperCase()) { modValue = v; break; }
       }
       if (!modValue && perm.module) {
-        registerDynamicModule(perm.module.toUpperCase(), perm.module);
-        modValue = AuthModule[perm.module.toUpperCase()];
+        // Register module using original casing as value (e.g. "HashService")
+        const moduleKey = perm.module.toUpperCase().replace(/\s+/g, '_');
+        registerDynamicModule(moduleKey, perm.module);
+        modValue = perm.module;
       }
-      if (parseInt(perm.id) < 15000 || Permissions[perm.name] || !modValue) continue;
+      if (!modValue) continue;
+      // Dynamic config permissions always win — remove any stale static entry first
+      const existing = Permissions[perm.name];
+      if (existing) {
+        const idx = permissionsArray.indexOf(existing);
+        if (idx !== -1) permissionsArray.splice(idx, 1);
+        delete Permissions[perm.name];
+      }
       const newPerm = new Permission(perm.id, perm.name, perm.friendly, perm.description, modValue);
       Permissions[perm.name] = newPerm;
       permissionsArray.push(newPerm);
@@ -83,10 +97,13 @@ export function applyDynamicPermissions(data: DynamicPermissionsResponse): void 
       current.description  = perm.description;
     }
   }
+  bumpVersion();
 }
 
-/** Permissions grouped by module name */
+/** Permissions grouped by module name.
+ *  Reads permissionsVersion so that Vue computed() re-evaluates when the registry changes. */
 export function permissionsByModule(): Map<string, Permission[]> {
+  void permissionsVersion.value; // reactive dependency
   const m = new Map<string, Permission[]>();
   for (const perm of permissionsArray) {
     const arr = m.get(perm.module) ?? [];
@@ -199,5 +216,6 @@ export function loadStaticPermissions(table: Record<string, string>): void {
       permissionsArray.push(perm);
     } catch { /* skip any that still fail */ }
   }
+  bumpVersion();
 }
 

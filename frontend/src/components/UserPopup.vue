@@ -274,8 +274,21 @@ async function save() {
 
     if (isAdd.value) {
       await api.createUser(data);
-      // Now we need the created user's ID – re-fetch to get it
-      // (The backend doesn't return the ID on create; we'll use set_user_groups after refresh)
+      // The backend doesn't return the new user's ID, so re-fetch the user list
+      // to find the new user and immediately apply any selected groups.
+      if (selectedGroupNames.size > 0) {
+        try {
+          const identity = form.email || form.username;
+          const allUsers = await api.getUsers(false);
+          const created = allUsers.find(u =>
+            (u.Email && u.Email === form.email) ||
+            (u.Username && u.Username === form.username)
+          );
+          if (created) {
+            await api.setUserGroups(String(created.UserId), [...selectedGroupNames]);
+          }
+        } catch { /* non-fatal – groups can be set on next edit */ }
+      }
     } else {
       await api.updateUser(data);
       if (props.user.userId) {

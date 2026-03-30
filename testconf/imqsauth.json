@@ -1,43 +1,64 @@
 {
-	"Authaus": {
-		"Log": {
-			"Filename": "./log/imqsauth.log"
-		},
-		"HTTP": {
-			"Bind": "0.0.0.0",
-			"Port": "2003"
-		},
-		"DB": {
-			"Driver": "postgres",
-			"Host": "127.0.0.1",
-			"Database": "auth",
-			"User": "imqs",
-			"Password": "xxx"
-		}
-	},
-	"Permissions": {
-		"dynamic": [
-			{
-				"id": "15015",
-				"name": "newMmIlViewChecklist",
-				"friendly": "IL – View Checklist",
-				"description": "User can view checklist",
-				"module": "Maintenance Management"
-			},
-			{
-				"id": "15006",
-				"name": "pcsprogrammeaccess",
-				"friendly": "Programme Access",
-				"description": "Activate the programme submodule",
-				"module": "PCS"
-			},
-			{
-				"id": "15007",
-				"name": "pcsprojectaccess",
-				"friendly": "Project Access",
-				"description": "Activate the project submodule",
-				"module": "PCS"
-			}
-		]
-	}
+  "Authaus": {
+    "Log": {
+      "Filename": "./log/imqsauth.log"
+    },
+    "HTTP": {
+      "Bind": "0.0.0.0",
+      "Port": "2003"
+    },
+    "DB": {
+      "Driver": "postgres",
+      "Host": "127.0.0.1",
+      "Database": "auth",
+      "User": "imqs",
+      "Password": "xxx"
+    }
+  },
+  "Permissions": {
+    "dynamic": [
+      {
+        "id": "15011",
+        "name": "hashserviceAddHost",
+        "friendly": "Add Host",
+        "description": "Allows the user to add a new host to the system",
+        "module": "HashService"
+      },
+      {
+        "id": "15012",
+        "name": "hashserviceDeleteHost",
+        "friendly": "Delete Host",
+        "description": "Allows the user to delete a host from the system",
+        "module": "HashService"
+      },
+      {
+        "id": "15013",
+        "name": "hashserviceUpdateHost",
+        "friendly": "Update Host",
+        "description": "Allows the user to update host details",
+        "module": "HashService"
+      },
+      {
+        "id": "15014",
+        "name": "hashserviceAddVersion",
+        "friendly": "Add Version",
+        "description": "Allows the user to add a new version to the system",
+        "module": "HashService"
+      },
+      {
+        "id": "15015",
+        "name": "hashserviceDeleteVersion",
+        "friendly": "Delete Version",
+        "description": "Allows the user to delete a version from the system",
+        "module": "HashService"
+      },
+      {
+        "id": "15016",
+        "name": "hashserviceUpdateVersion",
+        "friendly": "Update Version",
+        "description": "Allows the user to update version details",
+        "module": "HashService"
+      }
+    ]
+  }
 }
