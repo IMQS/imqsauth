@@ -69,17 +69,24 @@ const oauthProviders = ref<OAuthProvider[]>([]);
 const loading        = ref(false);
 
 // Read ?redirect= (or legacy ?returnUrl=) from the current URL.
-// Only allow same-origin or relative URLs to prevent open-redirect attacks.
+// Only allow same-host URLs to prevent open-redirect attacks.
+// We compare hostname (not full origin) because the SPA is served on a
+// different port (2003) than the main app (80/443).
 function safeRedirectTarget(): string | null {
   const params = new URLSearchParams(window.location.search);
   const target = params.get('redirect') ?? params.get('returnUrl') ?? '';
   if (!target) return null;
   try {
     const url = new URL(target, window.location.origin);
-    // Only follow if same origin
-    if (url.origin !== window.location.origin) return null;
+    // Allow any port on the same hostname
+    if (url.hostname !== window.location.hostname) {
+      console.warn('[auth] Ignoring cross-host redirect:', target);
+      return null;
+    }
+    console.info('[auth] Redirect after login:', url.href);
     return url.href;
   } catch {
+    console.warn('[auth] Invalid redirect param:', target);
     return null;
   }
 }
