@@ -23,7 +23,7 @@
     <!-- Main content -->
     <main class="app-main">
       <!-- Login screen -->
-      <LoginPage v-if="!session.loggedIn" @logged-in="onLoggedIn" />
+      <LoginPage v-if="!session.loggedIn" />
 
       <!-- Not admin notice -->
       <div v-else-if="!session.isAdmin" class="not-admin">
@@ -40,7 +40,7 @@
       <!-- Error state -->
       <div v-else-if="modelError" class="error-state">
         <p>{{ modelError }}</p>
-        <button class="btn-primary" @click="refresh">Retry</button>
+        <button class="btn-primary" @click="refreshModel">Retry</button>
       </div>
 
       <!-- Users tab -->
@@ -50,7 +50,7 @@
         :groups="model?.groups ?? []"
         :modules="modules"
         :loading="modelLoading"
-        @refresh="refresh"
+        @refresh="refreshModel"
       />
 
       <!-- Groups tab -->
@@ -58,7 +58,7 @@
         v-else-if="activeTab === 'groups'"
         :groups="model?.groups ?? []"
         :loading="modelLoading"
-        @refresh="refresh"
+        @refresh="refreshModel"
       />
     </main>
 
@@ -74,9 +74,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { session, initSession, doLogout } from './composables/useSession';
-import { useAuthModel }                   from './composables/useAuthModel';
+import { useAuthModel, clearModel }        from './composables/useAuthModel';
 import { toast, dismissToast }            from './composables/useToast';
 import { allModuleOptions }               from './services/modules';
 import { Permissions }                    from './services/permissions';
@@ -99,21 +99,20 @@ const { model, loading: modelLoading, error: modelError, refresh: refreshModel }
 
 const modules = computed(() => allModuleOptions());
 
-async function refresh() {
-  await refreshModel();
-}
-
 // ── Session ────────────────────────────────────────────────────────────────
 onMounted(async () => {
   await initSession();
-  if (session.loggedIn && session.isAdmin) {
-    await refresh();
-  }
 });
 
-async function onLoggedIn() {
-  await refresh();
-}
+// Whenever loggedIn flips true and the user is an admin → load data.
+// Whenever it flips false (logout) → clear stale data immediately.
+watch(() => session.loggedIn, async (loggedIn) => {
+  if (loggedIn && session.isAdmin) {
+    await refreshModel().catch(() => { /* error shown in template */ });
+  } else if (!loggedIn) {
+    clearModel();
+  }
+});
 
 async function handleLogout() {
   await doLogout();

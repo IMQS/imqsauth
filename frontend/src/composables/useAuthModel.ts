@@ -36,6 +36,12 @@ export async function refreshModel(): Promise<void> {
   }
 }
 
+export function clearModel(): void {
+  model.value   = null;
+  error.value   = null;
+  loading.value = false;
+}
+
 export function useAuthModel() {
   return {
     model,           // plain Ref<Model|null> — not DeepReadonly
@@ -44,4 +50,3 @@ export function useAuthModel() {
     refresh: refreshModel,
   };
 }
-

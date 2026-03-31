@@ -58,6 +58,27 @@
         "friendly": "Update Version",
         "description": "Allows the user to update version details",
         "module": "HashService"
+      },
+      {
+        "id": "15017",
+        "name": "hashserviceAddClient",
+        "friendly": "Add Client",
+        "description": "Allows the user to add a new client to the system",
+        "module": "HashService"
+      },
+      {
+        "id": "15018",
+        "name": "hashserviceDeleteClient",
+        "friendly": "Delete Client",
+        "description": "Allows the user to delete a client from the system",
+        "module": "HashService"
+      },
+      {
+        "id": "15019",
+        "name": "hashserviceUpdateClient",
+        "friendly": "Update Client",
+        "description": "Allows the user to update client details",
+        "module": "HashService"
       }
     ]
   }

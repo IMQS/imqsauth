@@ -60,7 +60,6 @@ import { doLogin } from '../composables/useSession';
 import { getOAuthProviders } from '../services/api';
 import type { OAuthProvider } from '../services/types';
 
-const emit = defineEmits<{ (e: 'logged-in'): void }>();
 
 const identity       = ref('');
 const password       = ref('');
@@ -117,9 +116,8 @@ async function handleSubmit() {
     await doLogin(identity.value, password.value);
     if (redirectTarget) {
       window.location.href = redirectTarget;
-    } else {
-      emit('logged-in');
     }
+    // No redirect — the watch on session.loggedIn in App.vue loads the model
   } catch (e: unknown) {
     errorMsg.value = e instanceof Error ? e.message : 'Login failed. Please try again.';
   } finally {
