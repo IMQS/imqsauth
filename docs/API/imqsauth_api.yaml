@@ -1,8 +1,11 @@
 openapi: 3.0.3
 info:
   title: IMQS Auth API
-  description: IMQS Auth API
-  version: 1.0.0
+  description: |
+    IMQS Auth API. Most endpoints require an active session cookie (set by `/login`)
+    or HTTP Basic Authentication. Endpoints marked with `handlerFlagNeedAdminRights`
+    require the caller to have the `admin` permission.
+  version: 2.0.0
 servers:
   - url: "{protocol}://{host}/{basePath}"
     variables:
@@ -16,20 +19,221 @@ servers:
         default: demo.imqs.co.za
       basePath:
         default: auth2
+
 components:
   securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session
+      description: Session cookie obtained from /login
     basicAuth:
       type: http
       scheme: basic
-      description: HTTP Basic Authentication
+      description: HTTP Basic Authentication (identity:password)
+
+  schemas:
+    CheckResponse:
+      type: object
+      description: The authenticated user's session information and resolved permission IDs.
+      properties:
+        UserId:
+          type: integer
+          example: 42
+        Identity:
+          type: string
+          example: john.doe@example.com
+        Email:
+          type: string
+          example: john.doe@example.com
+        Username:
+          type: string
+          example: johndoe
+        Roles:
+          type: array
+          description: Resolved permission IDs as strings
+          items:
+            type: string
+          example: ["1", "2", "15001"]
+        InternalUUID:
+          type: string
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    UserObject:
+      type: object
+      description: Full user record returned by /userobjects and /userobject.
+      properties:
+        UserId:
+          type: integer
+          example: 42
+        Email:
+          type: string
+          example: john.doe@example.com
+        Username:
+          type: string
+          example: johndoe
+        Name:
+          type: string
+          description: First name
+          example: John
+        Surname:
+          type: string
+          example: Doe
+        Mobile:
+          type: string
+          example: "+27821234567"
+        Telephone:
+          type: string
+          example: "+27114567890"
+        Remarks:
+          type: string
+          example: "Created via API"
+        Created:
+          type: string
+          format: date-time
+          example: "2024-01-15T08:30:00Z"
+        CreatedBy:
+          type: string
+          description: Display name of the user who created this record
+          example: "Administrator"
+        Modified:
+          type: string
+          format: date-time
+          example: "2024-06-01T12:00:00Z"
+        ModifiedBy:
+          type: string
+          description: Display name of the user who last modified this record
+          example: "Jane Admin"
+        Groups:
+          type: array
+          description: Group names the user belongs to (e.g. "enabled", "admin")
+          items:
+            type: string
+          example: ["enabled", "HashService"]
+        AuthUserType:
+          type: integer
+          description: "0 = DEFAULT, 1 = LDAP, 2 = MSAAD"
+          example: 0
+        Archived:
+          type: boolean
+          example: false
+        AccountLocked:
+          type: boolean
+          example: false
+        InternalUUID:
+          type: string
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        LastLogin:
+          type: string
+          format: date-time
+          description: Last successful login. Zero value (0001-01-01) means no logins recorded.
+          example: "2024-11-20T09:15:00Z"
+        EnabledDate:
+          type: string
+          format: date-time
+          example: "2024-01-15T08:35:00Z"
+        DisabledDate:
+          type: string
+          format: date-time
+          example: "0001-01-01T00:00:00Z"
+
+    GroupsListItem:
+      type: object
+      description: Lightweight user record returned by /users (group-name based, no permission IDs).
+      properties:
+        Email:
+          type: string
+          example: john.doe@example.com
+        UserName:
+          type: string
+          example: johndoe
+        Name:
+          type: string
+          description: First name
+          example: John
+        Surname:
+          type: string
+          example: Doe
+        Groups:
+          type: array
+          description: Group names the user belongs to
+          items:
+            type: string
+          example: ["enabled", "HashService"]
+
+    GroupResponse:
+      type: object
+      properties:
+        Name:
+          type: string
+          example: HashService
+        Roles:
+          type: array
+          description: Permission IDs as strings
+          items:
+            type: string
+          example: ["15001", "15002"]
+        ID:
+          type: string
+          description: Numeric group ID as string
+          example: "7"
+
+    OAuthProvider:
+      type: object
+      properties:
+        Name:
+          type: string
+          description: Internal provider name used in oauth/start?provider=<Name>
+          example: emerge
+        Type:
+          type: string
+          description: Provider type as configured (e.g. "msaad")
+          example: msaad
+        Title:
+          type: string
+          description: Human-readable title for display in UI
+          example: eMerge
+        IsDefault:
+          type: boolean
+          description: If true the login page should auto-trigger this provider
+          example: false
+
   responses:
-    NotAcceptable:
-      description: Not Acceptable
+    BadRequest:
+      description: Bad Request
       content:
         text/plain:
           schema:
             type: string
             example: Error message
+    Unauthorized:
+      description: Unauthorized – no valid session or credentials
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: No authorization information
+    Forbidden:
+      description: Forbidden – insufficient permissions
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: You are not an administrator
+    NotFound:
+      description: Not Found
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Resource not found
+    NotAcceptable:
+      description: Not Acceptable – e.g. blank name supplied
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Group name may not be blank
     InternalServerError:
       description: Internal Server Error
       content:
@@ -43,73 +247,23 @@ components:
         text/plain:
           schema:
             type: string
-            example: Error message
+            example: Service temporarily unavailable
+
 security:
+  - cookieAuth: []
   - basicAuth: []
+
 paths:
-  /login:
-    post:
-      summary: Login
-      security:
-        - basicAuth: []
-      requestBody:
-        required: false
-        content:
-          x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                login_type:
-                  type: string
-                client_id:
-                  type: string
-      responses:
-        '200':
-          description: Normally 'OK', from the code it seems the user's permissions should be returned, but it is not.
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: ''
-          headers:
-            Set-Cookie:
-              schema:
-                type: string
-                example: session=asdflkj2rsdfDFF3sdfsdf23; Path=/; Expires=Tue, 11 Mar 2025 08:25:45 GMT
-        '400':
-          description: Bad Request
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-        '401':
-          description: Unauthorized
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-        '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-  /logout:
-       post:
-        summary: Logout
-        security:
-            - basicAuth: []
-        responses:
-            '200':
-              description: OK
-            '401':
-              description: Unauthorized
+
+  # ──────────────────────────────────────────────
+  # Utility / health
+  # ──────────────────────────────────────────────
+
   /hello:
     get:
       summary: Hello
+      description: Simple liveness check, no authentication required.
+      security: []
       responses:
         '200':
           description: OK
@@ -118,9 +272,12 @@ paths:
               schema:
                 type: string
                 example: Hello!
+
   /ping:
     get:
       summary: Ping
+      description: Returns the current server Unix timestamp. No authentication required.
+      security: []
       responses:
         '200':
           description: OK
@@ -131,10 +288,13 @@ paths:
                 properties:
                   Timestamp:
                     type: integer
-                    example: 1633024800
+                    example: 1714000000
+
   /hostname:
     get:
       summary: Get Hostname
+      description: Returns the configured hostname URL. No authentication required.
+      security: []
       responses:
         '200':
           description: OK
@@ -145,55 +305,128 @@ paths:
                 properties:
                   Hostname:
                     type: string
-                    example: example.com
-  /check:
-    get:
-      summary: Check
+                    example: https://demo.imqs.co.za
+
+  # ──────────────────────────────────────────────
+  # Session
+  # ──────────────────────────────────────────────
+
+  /login:
+    post:
+      summary: Login
+      description: |
+        Authenticates the user via HTTP Basic Auth (identity:password).
+        On success sets a `session` cookie and returns the user's resolved permissions.
+
+        For MSAAD passthrough login, additionally supply `login_type` and `client_id`
+        as form fields. Both must be present together, or both absent for normal login.
       security:
         - basicAuth: []
+      requestBody:
+        required: false
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                login_type:
+                  type: string
+                  description: Set to the MSAAD login type for passthrough login.
+                  example: msaad
+                client_id:
+                  type: string
+                  description: MSAAD client/app ID (must be whitelisted in server config).
+                  example: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
       responses:
         '200':
-          description: OK
+          description: Authenticated. Returns session cookie and user permissions.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  UserId:
-                    type: integer
-                  Identity:
-                    type: string
-                  Email:
-                    type: string
-                  Username:
-                    type: string
-                  Roles:
-                    type: array
-                    items:
-                      type: string
-                  InternalUUID:
-                    type: string
+                $ref: '#/components/schemas/CheckResponse'
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: "session=abc123; Path=/; HttpOnly"
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Account disabled or client_id not whitelisted
           content:
             text/plain:
               schema:
                 type: string
-                example: No authorization information
+                example: Account disabled
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /logout:
+    post:
+      summary: Logout
+      description: |
+        Invalidates the current session and clears the session cookie.
+        Returns 401 if no identity was resolved, but the cookie is always cleared.
+      responses:
+        '200':
+          description: Logged out successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /check:
+    get:
+      summary: Check session
+      description: |
+        Validates the current session (cookie or Basic Auth) and returns the user's
+        identity and resolved permission IDs. Also verifies that the user has the
+        `enabled` permission (returns 403 if disabled).
+      responses:
+        '200':
+          description: Session is valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Account is disabled
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Account disabled
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ──────────────────────────────────────────────
+  # User management  (admin rights required unless noted)
+  # ──────────────────────────────────────────────
+
   /create_user:
     put:
       summary: Create User
-      security:
-        - basicAuth: []
+      description: |
+        Creates a new user identity. Requires admin rights.
+
+        If `password` is omitted a random password is generated and a password-reset
+        email is sent to the user.
+
+        **Note:** the new user has no groups after creation. Call `/set_user_groups`
+        (including `enabled`) before the user can log in.
       parameters:
         - name: email
           in: query
           required: true
           schema:
             type: string
+          example: jane.doe@example.com
         - name: username
           in: query
-          required: true
+          required: false
+          description: If provided, used as the login identity instead of email.
           schema:
             type: string
         - name: firstname
@@ -224,29 +457,42 @@ paths:
         - name: password
           in: query
           required: false
+          description: If omitted, a password-reset email is sent to the new user.
           schema:
             type: string
         - name: uuid
           in: query
           required: false
+          description: Optional internal UUID to assign.
           schema:
             type: string
       responses:
         '200':
-          description: OK
-        '403':
-          description: Forbidden
+          description: User created
           content:
             text/plain:
               schema:
                 type: string
-                example: Error message
+                example: "Created identity 'janedoe'"
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
   /update_user:
     post:
       summary: Update User
-      security:
-        - basicAuth: []
+      description: Updates an existing user's profile fields. Requires admin rights.
       parameters:
+        - name: userid
+          in: query
+          required: true
+          description: Numeric ID of the user to update.
+          schema:
+            type: integer
+          example: 42
         - name: email
           in: query
           required: true
@@ -254,7 +500,7 @@ paths:
             type: string
         - name: username
           in: query
-          required: true
+          required: false
           schema:
             type: string
         - name: firstname
@@ -285,552 +531,407 @@ paths:
         - name: authusertype
           in: query
           required: true
+          description: "Accepted values: `DEFAULT` or `LDAP`"
           schema:
             type: string
+            enum: [DEFAULT, LDAP]
+          example: DEFAULT
       responses:
         '200':
-          description: OK
+          description: User updated
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Updated user: '42'"
         '400':
-          description: Bad Request
+          description: Invalid userid or authusertype
           content:
             text/plain:
               schema:
                 type: string
-                example: Invalid AuthUserType...
+                example: "Invalid AuthUserType: 'UNKNOWN'"
         '403':
-          description: Forbidden
+          $ref: '#/components/responses/Forbidden'
+
+  /rename_user:
+    post:
+      summary: Rename User (deprecated)
+      description: |
+        Renames a user's login identity. Requires either admin rights **or** HTTP Basic Auth
+        of the account being renamed (self-service confirmation of current password).
+
+        **Deprecated** since May 2016 – prefer `/update_user` for profile changes.
+      security:
+        - cookieAuth: []
+        - basicAuth: []
+      parameters:
+        - name: old
+          in: query
+          required: true
+          description: Current identity (will be canonicalized).
+          schema:
+            type: string
+          example: old.name@example.com
+        - name: new
+          in: query
+          required: true
+          description: New identity.
+          schema:
+            type: string
+          example: new.name@example.com
+      responses:
+        '200':
+          description: Renamed successfully
           content:
             text/plain:
               schema:
                 type: string
-                example: Error message
+                example: "Renamed 'old.name@example.com' to 'new.name@example.com'"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /unlock_user:
     post:
       summary: Unlock User
-      security:
-        - basicAuth: []
-      parameters:
-        - name: username
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-        '400':
-            description: Bad Request
-            content:
-                text/plain:
-                  schema:
-                    type: string
-                    example: Error message
-        '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-  /archive_user:
-    post:
-      summary: Archive User
-      security:
-        - basicAuth: []
+      description: Unlocks a locked-out user account. Requires admin rights.
       parameters:
         - name: userid
           in: query
           required: true
+          description: Numeric ID of the user to unlock.
+          schema:
+            type: integer
+          example: 42
+        - name: username
+          in: query
+          required: false
+          description: Username of the user (used for audit logging only).
           schema:
             type: string
       responses:
         '200':
-          description: OK
-        '403':
-          description: Forbidden
+          description: User unlocked
           content:
             text/plain:
               schema:
                 type: string
-                example: Error message
+                example: "Unlocked user: '42'"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /archive_user:
+    post:
+      summary: Archive (soft-delete) User
+      description: |
+        Archives a user so they cannot log in. The record is retained.
+        Requires admin rights.
+      parameters:
+        - name: userid
+          in: query
+          required: true
+          description: Numeric ID of the user to archive.
+          schema:
+            type: integer
+          example: 42
+      responses:
+        '200':
+          description: User archived
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Archived user: '42'"
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users:
+    get:
+      summary: Get Users (lightweight list)
+      description: |
+        Returns a lightweight list of all users showing email, username, name, surname,
+        and group names. Requires a valid token (not necessarily admin).
+
+        Note: this endpoint returns group **names** (not permission IDs). Use `/userobjects`
+        for the full user record including permission resolution.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupsListItem'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /userobjects:
+    get:
+      summary: Get User Objects (full detail)
+      description: |
+        Returns the full `UserObject` record for every non-archived user. Requires admin rights.
+
+        Optional filters:
+        - `archived=true` – include archived users.
+        - `permission=<id>` – return only users who have the given permission ID through any group.
+          Permission IDs are discoverable via `/groups_perm_names`.
+      parameters:
+        - name: archived
+          in: query
+          required: false
+          description: Include archived users when `true`.
+          schema:
+            type: boolean
+            default: false
+        - name: permission
+          in: query
+          required: false
+          description: Filter to users who possess this numeric permission ID (16-bit).
+          schema:
+            type: integer
+          example: 15001
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserObject'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /userobject:
+    get:
+      summary: Get single User Object
+      description: |
+        Returns the full `UserObject` for one user. Requires admin rights.
+        Supply **either** `userid` or `identity` (not both required simultaneously).
+      parameters:
+        - name: userid
+          in: query
+          required: false
+          description: Numeric user ID. Required if `identity` is not given.
+          schema:
+            type: integer
+          example: 42
+        - name: identity
+          in: query
+          required: false
+          description: Login identity (email or username). Required if `userid` is not given.
+          schema:
+            type: string
+          example: john.doe@example.com
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserObject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ──────────────────────────────────────────────
+  # Group management  (admin rights required)
+  # ──────────────────────────────────────────────
+
+  /groups:
+    get:
+      summary: Get Groups
+      description: Returns all role groups and their permission IDs. No admin rights required.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /create_group:
     put:
       summary: Create Group
-      security:
-        - basicAuth: []
+      description: Creates a new empty role group. Requires admin rights.
       parameters:
         - name: groupname
           in: query
           required: true
           schema:
             type: string
+          example: FieldOperators
       responses:
         '200':
-          description: OK
+          description: Group created
         '400':
-            description: Bad Request
-            content:
-                text/plain:
-                  schema:
-                    type: string
-                    example: Error creating group
+          $ref: '#/components/responses/BadRequest'
         '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
+          $ref: '#/components/responses/Forbidden'
         '406':
           $ref: '#/components/responses/NotAcceptable'
+
   /update_group:
     post:
-      summary: Update Group
-      security:
-        - basicAuth: []
+      summary: Rename Group
+      description: Renames an existing group. Requires admin rights.
       parameters:
         - name: name
           in: query
           required: true
+          description: Current group name.
           schema:
             type: string
+          example: FieldOperators
         - name: newname
           in: query
           required: true
+          description: New group name (must not be blank).
           schema:
             type: string
+          example: FieldStaff
       responses:
         '200':
-          description: OK
+          description: Group renamed
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
+          $ref: '#/components/responses/Forbidden'
         '406':
           $ref: '#/components/responses/NotAcceptable'
+
   /delete_group:
     put:
       summary: Delete Group
-      security:
-        - basicAuth: []
+      description: |
+        Deletes a group and removes it from all users' permits.
+        The built-in `admin` and `enabled` groups cannot be deleted.
+        Requires admin rights. HTTP method is PUT (not DELETE) by server design.
       parameters:
         - name: groupname
           in: query
           required: true
           schema:
             type: string
+          example: FieldOperators
       responses:
         '200':
-          description: OK
+          description: Group deleted
         '400':
-          description: Bad Request
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error deleting group...
+          $ref: '#/components/responses/BadRequest'
         '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
+          $ref: '#/components/responses/Forbidden'
         '405':
-          description: Method Not Allowed
+          description: Method Not Allowed – attempting to delete a protected group
           content:
             text/plain:
               schema:
                 type: string
-                example: Deleting group %v is not permitted
+                example: "Deleting group admin is not permitted"
         '406':
           $ref: '#/components/responses/NotAcceptable'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
   /set_group_roles:
     put:
-      summary: Set Group Roles
-      security:
-        - basicAuth: []
+      summary: Set Group Roles (permissions)
+      description: |
+        Replaces all permission IDs on a group with the supplied list.
+        Requires admin rights. Broadcasts a permissions-changed notification
+        to all users in the group.
       parameters:
         - name: groupname
           in: query
           required: true
           schema:
             type: string
+          example: HashService
         - name: roles
           in: query
           required: true
+          description: Comma-separated list of numeric permission IDs. Empty string clears all roles. Do NOT wrap the value in quotes.
           schema:
             type: string
-            example: 23,45,99
+          example: 15001,15002,15003
       responses:
         '200':
-          description: OK
+          description: Roles updated
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Group: HashService roles updated: Added: HashRead Removed: <none>"
         '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Not Found
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Group %v not found
+          $ref: '#/components/responses/NotFound'
         '406':
           $ref: '#/components/responses/NotAcceptable'
+
   /set_user_groups:
     post:
       summary: Set User Groups
-      security:
-        - basicAuth: []
+      description: |
+        Replaces all group memberships for a user with the supplied list.
+        Requires admin rights.
+
+        Special groups:
+        - `enabled` – grants the user login access.
+        - `admin` – grants administrative rights.
+
+        Pass an empty `groups` value to remove the user from all groups.
+        Broadcasts a permissions-changed notification to the affected user.
       parameters:
         - name: userid
           in: query
           required: true
+          description: Numeric user ID.
           schema:
-            type: string
+            type: integer
+          example: 42
         - name: groups
           in: query
           required: true
+          description: Comma-separated group names. Use an empty string to clear all groups.
           schema:
             type: string
-            example: Assets,enabled,DevelopmentControl - Admin
+          example: enabled,HashService
       responses:
         '200':
-          description: OK
+          description: Groups updated
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "'42' groups set to (enabled,HashService)"
         '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-  /set_password:
-    post:
-      summary: Set Password
-      security:
-        - basicAuth: []
-      parameters:
-        - name: userid
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: password
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-        '400':
-            description: Bad Request
-            content:
-              text/plain:
-                schema:
-                  type: string
-                  example: Error message
-        '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-  /update_password:
-    post:
-      summary: Update Password
-      security:
-        - basicAuth: []
-      parameters:
-        - name: email
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-        '400':
-          description: Bad Request
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-        '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-  /check_password:
-    post:
-      summary: Check Password
-      security:
-        - basicAuth: []
-      responses:
-        '200':
-          description: OK
-        '400':
-          description: Bad Request
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-        '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-  /reset_password_start:
-    post:
-      summary: Reset Password Start
-      security:
-        - basicAuth: []
-      parameters:
-        - name: userid
-          in: query
-          required: false
-          schema:
-            type: string
-          description:
-            Either userid OR email MUST be specified.
-        - name: email
-          in: query
-          required: false
-          schema:
-            type: string
-          description:
-            Either userid OR email MUST be specified.
-      responses:
-        '200':
-          description: OK
-        '400':
-          description: Bad Request
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-        '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailable'
-  /reset_password_finish:
-    post:
-      summary: Reset Password Finish
-      security:
-        - basicAuth: []
-      parameters:
-        - name: userid
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: X-ResetToken
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: X-NewPassword
-          in: header
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-        '400':
-          description: Bad Request
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-        '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-  /users:
-    get:
-      summary: Get Users
-      security:
-        - basicAuth: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    UserId:
-                      type: integer
-                    Identity:
-                      type: string
-                    Email:
-                      type: string
-                    Username:
-                      type: string
-                    Roles:
-                      type: array
-                      items:
-                        type: string
-                    InternalUUID:
-                      type: string
-        '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-  /userobjects:
-    get:
-      summary: Get User Objects
-      security:
-        - basicAuth: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    UserId:
-                      type: integer
-                    Identity:
-                      type: string
-                    Email:
-                      type: string
-                    Username:
-                      type: string
-                    Roles:
-                      type: array
-                      items:
-                        type: string
-                    InternalUUID:
-                      type: string
-        '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-  /userobject:
-    get:
-      summary: Get User Object
-      security:
-        - basicAuth: []
-      parameters:
-        - name: userid
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: identity
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  UserId:
-                    type: integer
-                  Identity:
-                    type: string
-                  Email:
-                    type: string
-                  Username:
-                    type: string
-                  Roles:
-                    type: array
-                    items:
-                      type: string
-                  InternalUUID:
-                    type: string
-        '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-  /groups:
-    get:
-      summary: Get Groups
-      security:
-        - basicAuth: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    Name:
-                      type: string
-                    Roles:
-                      type: array
-                      items:
-                        type: string
-                    ID:
-                      type: string
-        '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
+          $ref: '#/components/responses/Forbidden'
+
   /exportgroups:
     get:
-      summary: Export User Groups
-      security:
-        - basicAuth: []
+      summary: Export User–Group assignments
+      description: |
+        Exports all user–group mappings and raw group definitions. Requires admin rights.
+        The output format matches the `/importgroups` request body.
       responses:
         '200':
           description: OK
@@ -846,37 +947,31 @@ paths:
                       properties:
                         ID:
                           type: string
+                          description: "Prefixed identifier, e.g. 'email: user@example.com' or 'username: johndoe'"
+                          example: "email: john.doe@example.com"
                         Groups:
                           type: array
+                          description: Numeric group IDs the user belongs to
                           items:
                             type: integer
                   Groups:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        Name:
-                          type: string
-                        Roles:
-                          type: array
-                          items:
-                            type: string
-                        ID:
-                          type: string
+                      $ref: '#/components/schemas/GroupResponse'
                   OverwriteGroups:
                     type: boolean
+                    example: true
         '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /importgroups:
     post:
-      summary: Import User Groups
-      security:
-        - basicAuth: []
+      summary: Import User–Group assignments
+      description: |
+        Imports user–group mappings. Requires **inter-service** authorization
+        (not a regular admin session).
       requestBody:
         required: true
         content:
@@ -891,6 +986,7 @@ paths:
                     properties:
                       ID:
                         type: string
+                        example: "email: john.doe@example.com"
                       Groups:
                         type: array
                         items:
@@ -898,46 +994,220 @@ paths:
                 Groups:
                   type: array
                   items:
-                    type: object
-                    properties:
-                      Name:
-                        type: string
-                      Roles:
-                        type: array
-                        items:
-                          type: string
-                      ID:
-                        type: string
+                    $ref: '#/components/schemas/GroupResponse'
                 OverwriteGroups:
                   type: boolean
       responses:
         '200':
-          description: OK
+          description: Import successful
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '403':
-          description: Forbidden
+          $ref: '#/components/responses/Forbidden'
+
+  # ──────────────────────────────────────────────
+  # Password management
+  # ──────────────────────────────────────────────
+
+  /set_password:
+    post:
+      summary: Set Password (admin or self)
+      description: |
+        Sets the password for the specified user. Requires a valid token.
+        - Admin users can change any user's password.
+        - Non-admin users can only change their own password (`userid` must match caller).
+
+        Supply the new password via **either** the `X-NewPassword` header (preferred) or
+        the `password` query parameter. The header takes precedence if both are present.
+        Avoid the query parameter in production – the value appears in HTTP access logs.
+      parameters:
+        - name: userid
+          in: query
+          required: true
+          description: Numeric ID of the user whose password to change.
+          schema:
+            type: integer
+          example: 42
+        - name: X-NewPassword
+          in: header
+          required: false
+          description: New password (preferred over the `password` query param).
+          schema:
+            type: string
+        - name: password
+          in: query
+          required: false
+          description: New password. Use the `X-NewPassword` header instead where possible.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Password changed
           content:
             text/plain:
               schema:
                 type: string
-                example: Error message
-  /hasactivedirectory:
-    get:
-      summary: Has Active Directory
+                example: Password changed
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /update_password:
+    post:
+      summary: Update Password (self-service)
+      description: |
+        Allows a user to change their own password by verifying the old one first.
+        No admin rights required.
+      parameters:
+        - name: email
+          in: query
+          required: true
+          description: The user's login identity (email or username).
+          schema:
+            type: string
+          example: john.doe@example.com
+        - name: X-OldPassword
+          in: header
+          required: true
+          description: Current password (must verify successfully before the new one is set).
+          schema:
+            type: string
+        - name: X-NewPassword
+          in: header
+          required: true
+          description: Desired new password.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Password changed
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Password changed
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /check_password:
+    post:
+      summary: Verify Password
+      description: |
+        Verifies that the supplied credentials are correct without creating a session.
+        Credentials are passed via HTTP Basic Auth (identity:password).
+        No existing session required.
       security:
         - basicAuth: []
       responses:
         '200':
-          description: OK
+          description: Password verified
           content:
             text/plain:
               schema:
                 type: string
-                example: 1
+                example: Password verified
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /reset_password_start:
+    post:
+      summary: Initiate password reset
+      description: |
+        Sends a password-reset email to the user. Supply **either** `userid` or `email`.
+        No authentication required (supports unauthenticated self-service reset).
+      security: []
+      parameters:
+        - name: userid
+          in: query
+          required: false
+          description: Numeric user ID. Required if `email` is not given.
+          schema:
+            type: integer
+        - name: email
+          in: query
+          required: false
+          description: User's email/identity. Required if `userid` is not given.
+          schema:
+            type: string
+          example: john.doe@example.com
+      responses:
+        '200':
+          description: Reset email sent
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /reset_password_finish:
+    post:
+      summary: Complete password reset
+      description: |
+        Completes the password-reset flow. No existing session required.
+        The `X-ResetToken` is single-use – it is cleared from the database atomically
+        with the password change, so a second call with the same token will fail.
+      security: []
+      parameters:
+        - name: userid
+          in: query
+          required: true
+          description: Numeric user ID from the reset link.
+          schema:
+            type: integer
+          example: 42
+        - name: X-ResetToken
+          in: header
+          required: true
+          description: One-time reset token received in the password-reset email.
+          schema:
+            type: string
+        - name: X-NewPassword
+          in: header
+          required: true
+          description: The desired new password.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Password reset
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Password reset
+        '400':
+          description: Missing headers, forbidden password, or invalid token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Need the two headers X-ResetToken and X-NewPassword"
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ──────────────────────────────────────────────
+  # Permission / group introspection
+  # ──────────────────────────────────────────────
+
   /groups_perm_names:
     get:
-      summary: Get Groups Permission Names
-      security:
-        - basicAuth: []
+      summary: Get permission ID → name map
+      description: |
+        Returns a JSON object mapping numeric permission IDs (integer keys encoded as
+        strings) to their human-readable names. These are the **static** permissions
+        compiled into the binary. Requires admin rights.
       responses:
         '200':
           description: OK
@@ -947,46 +1217,19 @@ paths:
                 type: object
                 additionalProperties:
                   type: string
+                example:
+                  "1": "admin"
+                  "2": "enabled"
+                  "15001": "HashRead"
         '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-  /msaad/approles:
-    get:
-      summary: Get MS AAD App Roles
-      security:
-        - basicAuth: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-        '401':
-          description: Unauthorized
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-        '501':
-          description: Not Implemented
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
+          $ref: '#/components/responses/Forbidden'
+
   /dynamic_permissions:
     get:
       summary: Get Dynamic Permissions
-      security:
-        - basicAuth: []
+      description: |
+        Returns dynamically-configured permissions loaded from the server config.
+        No admin rights required.
       responses:
         '200':
           description: OK
@@ -996,18 +1239,122 @@ paths:
                 type: object
                 additionalProperties:
                   type: string
+                example:
+                  "20001": "CustomModuleRead"
         '403':
-          description: Forbidden
+          $ref: '#/components/responses/Forbidden'
+
+  /hasactivedirectory:
+    get:
+      summary: Has Active Directory / LDAP
+      description: Returns `1` if LDAP/AD is configured, `0` otherwise. No auth required.
+      security: []
+      responses:
+        '200':
+          description: OK
           content:
             text/plain:
               schema:
                 type: string
-                example: Error message
+                enum: ["0", "1"]
+                example: "1"
+
+  # ──────────────────────────────────────────────
+  # OAuth / MSAAD
+  # ──────────────────────────────────────────────
+
   /oauth/providers:
     get:
-      summary: Get OAuth Providers
-      security:
-        - basicAuth: []
+      summary: List OAuth providers
+      description: |
+        Returns the list of configured OAuth providers. Used by the login page
+        to offer SSO buttons. No authentication required.
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OAuthProvider'
+
+  /oauth/start:
+    get:
+      summary: Start OAuth flow (GET)
+      description: |
+        Redirects the browser to the OAuth provider's authorization endpoint.
+        The `provider` param selects a provider name from `/oauth/providers`.
+        If omitted the configured default provider is used.
+        No authentication required.
+      security: []
+      parameters:
+        - name: provider
+          in: query
+          required: false
+          description: Provider name as returned by `/oauth/providers`.
+          schema:
+            type: string
+          example: emerge
+      responses:
+        '302':
+          description: Redirect to OAuth provider authorization URL
+    post:
+      summary: Start OAuth flow (POST)
+      description: Same as GET – accepts form-submitted provider selection.
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                provider:
+                  type: string
+                  example: emerge
+      responses:
+        '302':
+          description: Redirect to OAuth provider authorization URL
+
+  /oauth/finish:
+    get:
+      summary: OAuth callback
+      description: |
+        The OAuth provider redirects the browser here after authentication.
+        On success: sets the session cookie, then redirects to `/`.
+        On failure: redirects to `/?oauthError=<url-encoded message>`.
+        No pre-existing authentication required.
+      security: []
+      parameters:
+        - name: code
+          in: query
+          required: false
+          description: Authorization code from the provider.
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: false
+          description: CSRF state token set by `/oauth/start`.
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to `/` on success, or `/?oauthError=...` on failure
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: "session=abc123; Path=/; HttpOnly"
+
+  /msaad/approles:
+    get:
+      summary: Get MSAAD App Roles
+      description: |
+        Returns the Azure AD application roles configured for this tenant.
+        Requires admin rights. Returns 501 if MSAAD is not configured.
       responses:
         '200':
           description: OK
@@ -1017,40 +1364,17 @@ paths:
                 type: array
                 items:
                   type: string
-        '403':
-          description: Forbidden
+                example: ["Reader", "Contributor", "Owner"]
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '501':
+          description: Not Implemented – MSAAD is not configured
           content:
             text/plain:
               schema:
                 type: string
-                example: Error message
-  /oauth/start:
-    get:
-      summary: Start OAuth
-      security:
-        - basicAuth: []
-      responses:
-        '200':
-          description: OK
-        '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
-  /oauth/finish:
-    get:
-      summary: Finish OAuth
-      security:
-        - basicAuth: []
-      responses:
-        '200':
-          description: OK
-        '403':
-          description: Forbidden
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Error message
+                example: MSAAD is not configured
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
