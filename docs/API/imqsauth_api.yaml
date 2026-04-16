@@ -1378,3 +1378,27 @@ paths:
                 example: MSAAD is not configured
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
+
+  # ──────────────────────────────────────────────
+  # Front-end SPA
+  # ──────────────────────────────────────────────
+
+  /ui/:
+    get:
+      summary: Auth management SPA
+      description: |
+        Serves the built-in Vue 3 single-page application for managing users,
+        groups, and permissions. The SPA is embedded in the binary via Go `embed`.
+
+        When accessed through a reverse proxy under a sub-path (e.g. `/auth/ui/`),
+        the server injects a `<base href>` into `index.html` so that asset URLs
+        resolve correctly without requiring any build-time configuration.
+      security: []
+      responses:
+        '200':
+          description: HTML page (index.html with injected base href)
+          content:
+            text/html:
+              schema:
+                type: string
+
