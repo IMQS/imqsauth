@@ -13,12 +13,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/IMQS/licenseserver/lib"
 	"golang.org/x/exp/slices"
 
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/imqsauth/utils"
-	"github.com/IMQS/licenseserver/client"
 	"github.com/IMQS/serviceauth"
 )
 
@@ -36,8 +34,6 @@ const (
 var (
 	errNoUserId = errors.New("No userid specified")
 )
-
-var licenseClient *client.LicenseClient
 
 type HttpMethod string
 
@@ -170,9 +166,8 @@ func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, h
 		needInterService := 0 != (flags & handlerFlagNeedInterService)
 		needLicense := !(0 != (flags & handlerFlagNoLicense))
 
-		if needLicense && !x.DevMode {
-			// TODO : Optimise for performance
-			isValid := licenseClient.IsLicensed("enterprise")
+		if needLicense {
+			isValid := isLicensed()
 			if !isValid {
 				authaus.HttpSendTxt(w, http.StatusPaymentRequired, "This service is not licensed to run. Please contact your vendor.")
 				return
@@ -233,22 +228,8 @@ func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, h
 }
 
 func (x *ImqsCentral) RunHttp() error {
-	licenseClient = &client.LicenseClient{}
-	if len(x.Pk) == 0 || len(x.Mask) == 0 {
-		// Dev mode: no embedded keys, skip license initialisation entirely.
-		x.DevMode = true
-		x.Central.Log.Warnf("DEV MODE: license checks are disabled (built with -tags dev or no key files embedded)")
-	} else {
-		serverPub, e := lib.UnmaskPublicKey(x.Pk, x.Mask)
-		if e != nil {
-			return e
-		}
-		licenseClient.Init("./licenses_client", serverPub)
-		licenseClient.LicenseServerURL = "https://deploy.imqs.co.za/licenses/"
-		licenseClient.Logger = x.Central.Log
-		// also initialise license client lib's log
-		lib.L = x.Central.Log
-		licenseClient.RunClient()
+	if err := x.initLicenseClient(); err != nil {
+		return err
 	}
 	// The built-in go ServeMux does not support differentiating based on HTTP verb, so we have to make
 	// the request path unique for each verb. I think this is OK as far as API design is concerned - at least in this domain.
