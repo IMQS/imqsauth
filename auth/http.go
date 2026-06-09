@@ -124,11 +124,6 @@ type ImqsCentral struct {
 
 	// Guards access to roleChangeSubscribers and lastSubscriberId
 	subscriberLock sync.RWMutex
-	Pk             []byte
-	Mask           []byte
-	// DevMode is set automatically when Pk/Mask are empty (i.e. built with -tags dev).
-	// In dev mode the license check is skipped for all endpoints.
-	DevMode bool
 }
 
 // Admin accounts are not lockable, otherwise an attack could lock all accounts with noone to unlock them.

@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/IMQS/log"
 	"os"
 	"regexp"
 	"runtime"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/IMQS/log"
 
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/cli"
@@ -94,10 +95,8 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		}
 	}()
 
-	ic := &auth.ImqsCentral{
-		Pk:   pk,
-		Mask: mask,
-	}
+	ic := &auth.ImqsCentral{}
+
 	ic.Config = &auth.Config{}
 
 	configFile := options["c"]

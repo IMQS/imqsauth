@@ -7,10 +7,20 @@ import (
 	"github.com/IMQS/licenseserver/lib"
 )
 
+var pk   []byte
+var mask []byte
+
+// SetLicenseKeys is called from package main's init() to supply the embedded
+// key bytes without exposing them as fields on ImqsCentral.
+func SetLicenseKeys(p, m []byte) {
+	pk = p
+	mask = m
+}
+
 var licenseClient *client.LicenseClient
 
 func (x *ImqsCentral) initLicenseClient() error {
-	serverPub, e := lib.UnmaskPublicKey(x.Pk, x.Mask)
+	serverPub, e := lib.UnmaskPublicKey(pk, mask)
 	if e != nil {
 		return e
 	}
@@ -26,4 +36,3 @@ func (x *ImqsCentral) initLicenseClient() error {
 func isLicensed() bool {
 	return licenseClient.IsLicensed("enterprise")
 }
-
