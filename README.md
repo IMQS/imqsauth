@@ -29,6 +29,31 @@ before `go build` is run, because they are compiled directly into the binary via
 Both files are excluded from source control (`.gitignore`). See
 [Generating the embedded key files](#generating-the-embedded-key-files) below.
 
+### Build pipeline
+
+We use an older version of Jenkins at the moment, which supports specifying
+a secrets _file_.
+
+- Upload both `server.bin` and `key.bin` to Jenkins as secret files:
+    - _LICENSE_CLIENT_KEY_BIN_  
+        Obfuscation key used by auth build - see `server.bin` for public key.
+    - _LICENSE_CLIENT_SERVER_BIN_  
+        Public key used by auth build - see `key.bin` for obfuscation key.
+- Add them to the build pipeline as secret files, and assign them to named 
+    environment variables:
+    - _LICENSE_CLIENT_KEY_BIN_ → `KEY_BIN`
+    - _LICENSE_CLIENT_SERVER_BIN_ → `SERVER_BIN`
+- Copy the files into the correct location in the workspace before building 
+    using Windows Batch commands:
+-   ```
+    copy %KEY_BIN% .\key.bin
+    copy %SERVER_BIN% .\server.bin
+    ```
+- Clean up afterwards by deleting the files from the workspace:
+    - `del key.bin`
+    - `del server.bin`
+
+
 ### Go module dependencies
 
 All Go dependencies are declared in `go.mod` and fetched automatically by the
