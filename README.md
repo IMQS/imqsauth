@@ -11,9 +11,75 @@ More information can be found in Confluence: [Imqs Auth](https://imqssoftware.at
 
 ## Building
 
-To build imqsauth:
+### Quick build
 
 	go build imqsauth.go
+
+### License Management Considerations
+
+The build requires two binary files to be present in the root of the repository
+before `go build` is run, because they are compiled directly into the binary via
+`//go:embed`:
+
+| File | Purpose |
+|---|---|
+| `server.bin` | XOR-masked server public key used by the LicenseClient library |
+| `key.bin` | XOR mask used at runtime to recover the real public key from `server.bin` |
+
+Both files are excluded from source control (`.gitignore`). See
+[Generating the embedded key files](#generating-the-embedded-key-files) below.
+
+### Go module dependencies
+
+All Go dependencies are declared in `go.mod` and fetched automatically by the
+Go toolchain. The key external library for license management is:
+
+- `github.com/IMQS/licenseserver v0.0.4` — provides the `LicenseClient` used
+  to validate the `enterprise` license at runtime. Consumed via two sub-packages:
+  - `github.com/IMQS/licenseserver/client` — `LicenseClient` struct
+  - `github.com/IMQS/licenseserver/lib` — `UnmaskPublicKey()` and shared logger
+
+Run `go mod download` to fetch all dependencies before building offline.
+
+### Generating the embedded key files
+
+`server.bin` and `key.bin` are produced from the plaintext public key file
+`server.pub` using `xortool`. The source for `xortool` lives in the
+`github.com/IMQS/licenseserver` repository. Once you have `xortool.go`:
+
+	go build xortool.go
+	xortool ./server.pub
+
+This writes `server.bin` (the XOR-encoded key) and `key.bin` (the XOR mask)
+into the current directory. After that, `go build imqsauth.go` will succeed.
+
+### Building the license tooling (`build.bat`)
+
+`build.bat` automates building the supporting license tools. It requires source
+files from the `licenseserver` repository (`xortool.go`, `licenseclient.go`, 
+`licensetool.go`).
+
+	rem Build and run xortool to produce server.bin and key.bin from server.pub:
+	go build xortool.go
+	xortool ./server.pub
+
+	rem Build the license client helper:
+	go build licenseclient.go
+
+> **Note:** `build.bat` does **not** build `imqsauth.exe` itself. Run
+> `go build imqsauth.go` separately after the key files have been generated.
+
+_Garble_
+
+We CAN support `garble` (a Go code obfuscator), but there are
+problems with anti-virus scanning, especially in production environments and is 
+currently not used.
+
+	rem Install garble (code obfuscation tool):
+	go install mvdan.cc/garble@v0.15.0
+
+	rem Build the license tool with literal obfuscation:
+	garble --literals build licensetool.go
 
 ## Testing
 
