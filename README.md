@@ -13,7 +13,25 @@ More information can be found in Confluence: [Imqs Auth](https://imqssoftware.at
 
 ### Quick build
 
-	go build imqsauth.go
+A build tag must **always** be specified — omitting it is a compile error:
+
+	go build -tags prod .   # production (requires server.bin and key.bin)
+	go build -tags dev  .   # development (no license required, no key files needed)
+
+### Dev build (no license required)
+
+For local development, build with the `dev` tag. This skips the `//go:embed`
+key file requirement entirely and disables all license checks at runtime —
+no `server.bin`, `key.bin`, or `licenses_client` folder needed:
+
+	go build -tags dev -o imqsauth.exe .
+
+A warning is printed on startup to make it clear the service is running in
+dev mode:
+
+	DEV MODE: license checks are disabled (built with -tags dev or no key files embedded)
+
+**Do not use a dev build in production.**
 
 ### License Management Considerations
 
@@ -34,24 +52,40 @@ Both files are excluded from source control (`.gitignore`). See
 We use an older version of Jenkins at the moment, which supports specifying
 a secrets _file_.
 
-- Upload both `server.bin` and `key.bin` to Jenkins as secret files:
-    - _LICENSE_CLIENT_KEY_BIN_  
-        Obfuscation key used by auth build - see `server.bin` for public key.
-    - _LICENSE_CLIENT_SERVER_BIN_  
-        Public key used by auth build - see `key.bin` for obfuscation key.
+- Upload both `server.bin` and `key.bin` to Jenkins as **Secret file** credentials
+    (**not** Secret text — Secret text stores the file *contents* as a string, so
+    the bound variable will contain binary data instead of a file path, causing
+    `copy` to fail with *"The system cannot find the file specified"*):
+    - Go to **Jenkins → Manage Jenkins → Credentials → (store) → Add Credentials**
+    - Set **Kind** = `Secret file`, upload the file, set the ID:
+    - _LICENSE_CLIENT_KEY_BIN_ — upload `key.bin`
+    - _LICENSE_CLIENT_SERVER_BIN_ — upload `server.bin`
 - Add them to the build pipeline as secret files, and assign them to named 
     environment variables:
     - _LICENSE_CLIENT_KEY_BIN_ → `KEY_BIN`
     - _LICENSE_CLIENT_SERVER_BIN_ → `SERVER_BIN`
-- Copy the files into the correct location in the workspace before building 
-    using Windows Batch commands:
--   ```
-    copy %KEY_BIN% .\key.bin
-    copy %SERVER_BIN% .\server.bin
+- Copy the files into the correct location before building using **Windows Batch**
+    commands. Jenkins injects the secret file path using forward slashes, which the
+    Windows `copy` command does not handle correctly as a source path — convert them
+    to backslashes first:
+    ```bat
+    set KEY_BIN_WIN=%KEY_BIN:/=\%
+    set SERVER_BIN_WIN=%SERVER_BIN:/=\%
+    copy "%KEY_BIN_WIN%" "%WORKSPACE%\imqsauth\key.bin"
+    copy "%SERVER_BIN_WIN%" "%WORKSPACE%\imqsauth\server.bin"
+    cd %WORKSPACE%\imqsauth && go build -tags prod -o imqsauth.exe .
     ```
+    > **Note:** if `imqsauth` is checked out as a submodule inside a larger
+    > workspace (e.g. `C:\Jenkins\workspace\Build-RC\imqsauth\`), the destination
+    > path should include the submodule folder as shown above. If this repository
+    > *is* the workspace root, use `%WORKSPACE%\key.bin` / `%WORKSPACE%\server.bin`
+    > directly. Either way the files must end up alongside `imqsauth.go`, because
+    > the `go:embed` directives resolve paths relative to the `.go` source file.
 - Clean up afterwards by deleting the files from the workspace:
-    - `del key.bin`
-    - `del server.bin`
+    ```bat
+    del "%WORKSPACE%\imqsauth\key.bin"
+    del "%WORKSPACE%\imqsauth\server.bin"
+    ```
 
 
 ### Go module dependencies
@@ -76,7 +110,7 @@ Run `go mod download` to fetch all dependencies before building offline.
 	xortool ./server.pub
 
 This writes `server.bin` (the XOR-encoded key) and `key.bin` (the XOR mask)
-into the current directory. After that, `go build imqsauth.go` will succeed.
+into the current directory. After that, `go build -tags prod .` will succeed.
 
 ### Building the license tooling (`build.bat`)
 
@@ -92,7 +126,7 @@ files from the `licenseserver` repository (`xortool.go`, `licenseclient.go`,
 	go build licenseclient.go
 
 > **Note:** `build.bat` does **not** build `imqsauth.exe` itself. Run
-> `go build imqsauth.go` separately after the key files have been generated.
+> `go build -tags prod .` separately after the key files have been generated.
 
 _Garble_
 
@@ -116,7 +150,7 @@ in it's own CI job.
 The following block demonstrates running all of the tests:
 
 	go test github.com/IMQS/imqsauth/auth
-	go build imqsauth.go
+	go build -tags dev .
 	gem install rest-client
 	ruby resttest.rb
 
