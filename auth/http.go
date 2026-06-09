@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/IMQS/licenseserver/lib"
-	"golang.org/x/exp/slices"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -14,6 +12,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/IMQS/licenseserver/lib"
+	"golang.org/x/exp/slices"
 
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/imqsauth/utils"
@@ -129,6 +130,9 @@ type ImqsCentral struct {
 	subscriberLock sync.RWMutex
 	Pk             []byte
 	Mask           []byte
+	// DevMode is set automatically when Pk/Mask are empty (i.e. built with -tags dev).
+	// In dev mode the license check is skipped for all endpoints.
+	DevMode bool
 }
 
 // Admin accounts are not lockable, otherwise an attack could lock all accounts with noone to unlock them.
@@ -166,7 +170,7 @@ func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, h
 		needInterService := 0 != (flags & handlerFlagNeedInterService)
 		needLicense := !(0 != (flags & handlerFlagNoLicense))
 
-		if needLicense {
+		if needLicense && !x.DevMode {
 			// TODO : Optimise for performance
 			isValid := licenseClient.IsLicensed("enterprise")
 			if !isValid {
@@ -230,16 +234,22 @@ func (x *ImqsCentral) makeHandler(method HttpMethod, actual func(*ImqsCentral, h
 
 func (x *ImqsCentral) RunHttp() error {
 	licenseClient = &client.LicenseClient{}
-	serverPub, e := lib.UnmaskPublicKey(x.Pk, x.Mask)
-	if e != nil {
-		return e
+	if len(x.Pk) == 0 || len(x.Mask) == 0 {
+		// Dev mode: no embedded keys, skip license initialisation entirely.
+		x.DevMode = true
+		x.Central.Log.Warnf("DEV MODE: license checks are disabled (built with -tags dev or no key files embedded)")
+	} else {
+		serverPub, e := lib.UnmaskPublicKey(x.Pk, x.Mask)
+		if e != nil {
+			return e
+		}
+		licenseClient.Init("./licenses_client", serverPub)
+		licenseClient.LicenseServerURL = "https://deploy.imqs.co.za/licenses/"
+		licenseClient.Logger = x.Central.Log
+		// also initialise license client lib's log
+		lib.L = x.Central.Log
+		licenseClient.RunClient()
 	}
-	licenseClient.Init("./licenses_client", serverPub)
-	licenseClient.LicenseServerURL = "https://deploy.imqs.co.za/licenses/"
-	licenseClient.Logger = x.Central.Log
-	// also initialise license client lib's log
-	lib.L = x.Central.Log
-	licenseClient.RunClient()
 	// The built-in go ServeMux does not support differentiating based on HTTP verb, so we have to make
 	// the request path unique for each verb. I think this is OK as far as API design is concerned - at least in this domain.
 	smux := http.NewServeMux()

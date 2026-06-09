@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	_ "embed"
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/cli"
 	"github.com/IMQS/gowinsvc/service"
@@ -19,11 +18,6 @@ import (
 	serviceconfig "github.com/IMQS/serviceconfigsgo"
 )
 
-//go:embed server.bin
-var pk []byte
-
-//go:embed key.bin
-var mask []byte
 
 func isRunningOnLinuxOutsideOfDocker() bool {
 	return !serviceconfig.IsContainer() && runtime.GOOS != "windows"
