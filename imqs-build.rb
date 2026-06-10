@@ -20,9 +20,9 @@ case ARGV[0]
 	when "build" then
 		# 'build' exists solely for CI integration. We can't use "prepare" in that case, because "../out/bin" doesn't exist on a CI build.
 		# OK.. this is now a legacy thing, after having creating the "copy_out" phase.
-		exec_or_die( "go build imqsauth.go" )
+		exec_or_die( "go build -o imqsauth.exe -tags prod ." )
 	when "prepare" then
-		exec_or_die( "go build imqsauth.go" )
+		exec_or_die( "go build -o imqsauth.exe -tags prod ." )
 	when "copy_out" then
 		FileUtils.cp( "imqsauth.exe", out_dir + '/bin/' )
 	when "test_unit" then
