@@ -42,6 +42,10 @@ jobs:
         with:
           username: ${{ secrets.DEPLOY_DOCKER_USERNAME }}
           password: ${{ secrets.DEPLOY_DOCKER_PASSWORD }}
+      - name: Provide licensing secrets
+        run: |
+          echo "${{ secrets.KEY_BIN }}"  | base64 --decode > ./key.bin
+          echo "${{ secrets.SERVER_BIN }}"  | base64 --decode > ./server.bin
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: build-push

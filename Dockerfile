@@ -3,7 +3,7 @@
 ##################################
 # Builder image
 ##################################
-FROM golang:1.22 AS builder
+FROM golang:1.24 AS builder
 
 # Authorize SSH Host
 RUN mkdir -p /root/.ssh && \
@@ -24,7 +24,7 @@ RUN --mount=type=ssh \
 
 # Compile
 COPY . /build/
-RUN go build imqsauth.go
+RUN go build -o imqsauth -tags prod .
 
 ##################################
 # Deployed image
@@ -35,6 +35,8 @@ RUN mkdir -p /etc/imqsbin
 RUN mkdir -p /var/log/imqs/
 RUN mkdir -p /var/imqs/secrets
 COPY --from=builder /build/imqsauth /opt/imqsauth
+#COPY --from=builder /build/key.bin /opt/key.bin
+#COPY --from=builder /build/server.bin /opt/server.bin
 
 EXPOSE 80
 

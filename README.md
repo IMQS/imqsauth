@@ -47,7 +47,7 @@ before `go build` is run, because they are compiled directly into the binary via
 Both files are excluded from source control (`.gitignore`). See
 [Generating the embedded key files](#generating-the-embedded-key-files) below.
 
-### Build pipeline
+### Build pipeline (WINDOWS)
 
 We use an older version of Jenkins at the moment, which supports specifying
 a secrets _file_.
@@ -87,6 +87,12 @@ a secrets _file_.
     del "%WORKSPACE%\imqsauth\server.bin"
     ```
 
+### Build pipeline (DOCKER/GitHub Actions)
+
+- Convert the key.bin and server.bin files to base64.
+- Add KEY_BIN and SERVER_BIN as secrets to the _repository_ actions secrets and add
+  their base64 values as the secret values.
+- See actions.yml for details on how the files are used in the build pipeline.
 
 ### Go module dependencies
 
