@@ -195,3 +195,34 @@ The auth service is capable of detecting whether it is running inside or outside
 upon startup. It leverages the service discovery mechanism in the config service to transparently
 rewrite database connection configurations, as well as other serviceconfig utils to detect whether or not
 it is inside the auth service.
+
+### Docker volume mapping — licenseserver 1.0.1+
+
+Starting from **licenseserver 1.0.1**, the `LicenseClient` stores the client keypair
+(`client.key` and `client.pub`) under `/keys` inside the container. The service manages
+these files itself — it will create them on first run and may regenerate them if they do
+not match. Only the **folder** needs to be mapped; do not mount the individual files.
+
+Mount a persistent host directory to `/keys` so the keypair survives container restarts:
+
+**Docker run:**
+```sh
+docker run \
+  -v /path/to/keys:/keys \
+  imqs/auth:latest
+```
+
+**Docker Compose:**
+```yaml
+services:
+  auth:
+    image: imqs/auth:latest
+    volumes:
+      - /path/to/keys:/keys
+```
+
+> **Note:** If you are on an older version of licenseserver (pre-1.0.1) this mapping is
+> not required. The change is **breaking** — without a persistent volume at `/keys` the
+> service will regenerate its keypair on every restart, which will invalidate any
+> previously issued tokens.
+

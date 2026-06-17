@@ -35,8 +35,6 @@ RUN mkdir -p /etc/imqsbin
 RUN mkdir -p /var/log/imqs/
 RUN mkdir -p /var/imqs/secrets
 COPY --from=builder /build/imqsauth /opt/imqsauth
-#COPY --from=builder /build/key.bin /opt/key.bin
-#COPY --from=builder /build/server.bin /opt/server.bin
 
 EXPOSE 80
 

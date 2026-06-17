@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/IMQS/log"
-
 	"github.com/IMQS/authaus"
 	"github.com/IMQS/cli"
 	"github.com/IMQS/gowinsvc/service"
@@ -18,7 +16,6 @@ import (
 	"github.com/IMQS/imqsauth/health"
 	serviceconfig "github.com/IMQS/serviceconfigsgo"
 )
-
 
 func isRunningOnLinuxOutsideOfDocker() bool {
 	return !serviceconfig.IsContainer() && runtime.GOOS != "windows"
@@ -95,9 +92,9 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		}
 	}()
 
-	ic := &auth.ImqsCentral{}
-
-	ic.Config = &auth.Config{}
+	ic := &auth.ImqsCentral{
+		Config: &auth.Config{},
+	}
 
 	configFile := options["c"]
 
@@ -132,7 +129,6 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 	if createCentral {
 		var err error
 		ic.Central, err = authaus.NewCentralFromConfig(&ic.Config.Authaus)
-		ic.Central.Log.Level = log.Debug
 		if err != nil {
 			panic(err)
 		}
