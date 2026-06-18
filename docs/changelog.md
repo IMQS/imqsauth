@@ -1,5 +1,17 @@
 # Changelog
 
+## Current (~v2.0.0)
+
+* feat!: Add licensing support to imqsauth
+* feat!: CICD piplines enabled for prod builds (Jenkins / GitHub Actions) 
+
+## 2026.1.0 (windows)
+
+* docs: OpenAPI spec overhaul
+* fix: GitHub Actions workflow fixes with supported actions versions and LFS support
+* fix: Dockerfile ssh secrets injection
+* added: Add SQL query to retrieve users based on their groups
+
 ## v1.9.0
 
 * fix: Fix 'showidentities' command line option (NEXUS-4832)
