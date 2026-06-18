@@ -92,8 +92,9 @@ func exec(cmd string, args []string, options cli.OptionSet) int {
 		}
 	}()
 
-	ic := &auth.ImqsCentral{}
-	ic.Config = &auth.Config{}
+	ic := &auth.ImqsCentral{
+		Config: &auth.Config{},
+	}
 
 	configFile := options["c"]
 
