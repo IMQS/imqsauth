@@ -38,6 +38,29 @@ describe('Group', () => {
     const g = new Group('test', []);
     expect(g.hasPermission(Permissions.admin)).toBe(false);
   });
+
+  it('fromRaw infers moduleName, preferring a specific module over Global', () => {
+    // Global-module 'admin' (id 1) is listed first, but the group also has a
+    // specific module permission (importsModuleAccess, Importer). The group's
+    // module should be reported as 'Importer', not 'Global', so that the
+    // module the user selected/expects is honoured rather than masked by the
+    // ubiquitous low-id Global permissions most groups carry.
+    const g = new Group();
+    g.fromRaw({ Name: 'importers', Roles: ['1', '302'], ID: '9' });
+    expect(g.moduleName).toBe('Importer');
+  });
+
+  it('fromRaw falls back to Global when the group has only Global permissions', () => {
+    const g = new Group();
+    g.fromRaw({ Name: 'admin', Roles: ['1', '2'], ID: '1' });
+    expect(g.moduleName).toBe('Global');
+  });
+
+  it('fromRaw does not overwrite an explicitly-set moduleName', () => {
+    const g = new Group(undefined, undefined, 'Roads');
+    g.fromRaw({ Name: 'roads-group', Roles: ['1'], ID: '3' });
+    expect(g.moduleName).toBe('Roads');
+  });
 });
 
 // ── User ──────────────────────────────────────────────────────────────────

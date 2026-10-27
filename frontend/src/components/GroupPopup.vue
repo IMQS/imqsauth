@@ -99,31 +99,50 @@ const emit = defineEmits<{
 
 // ── State ──────────────────────────────────────────────────────────────────
 
+// Ignore the 'group' prop entirely when in add mode, even if the caller
+// mistakenly still passes a (stale) previously-selected group. This prevents
+// a brand new group from silently inheriting another group's module/permissions.
+const editingGroup = props.isAdd ? undefined : props.group;
+
 const saving              = ref(false);
 const saveError           = ref('');
 const showDiscardConfirm  = ref(false);
 const groupNameError      = ref(false);
 const permissionsError    = ref(false);
 
-const groupName      = ref(props.group?.name ?? '');
-const selectedModule = ref(props.group?.moduleName ?? props.group?.permissions[0]?.module ?? '');
-const checkedIds     = reactive(new Set<string>(props.group?.permissions.map(p => p.id) ?? []));
+const groupName       = ref(editingGroup?.name ?? '');
+const originalModule  = editingGroup?.moduleName ?? editingGroup?.permissions[0]?.module ?? '';
+const selectedModule  = ref(originalModule);
+const checkedIds      = reactive(new Set<string>(editingGroup?.permissions.map(p => p.id) ?? []));
+
 
 const moduleOptions = computed(() => allModuleOptions());
 const allPermsByModule = computed(() => permissionsByModule());
 
 const modulePermissions = computed((): Permission[] => {
   const isModAccess = selectedModule.value === 'Module Access';
-  const perms = (allPermsByModule.value.get(selectedModule.value) ?? [])
+  let perms = (allPermsByModule.value.get(selectedModule.value) ?? [])
     .filter(p => !['Administrator', 'Enabled'].includes(p.friendlyName));
+
   if (isModAccess) {
     // Include all ModuleAccess permissions across modules
     const extra: Permission[] = [];
     for (const arr of allPermsByModule.value.values()) {
       for (const p of arr) if (p.name.includes('ModuleAccess') && !extra.find(e => e.id === p.id)) extra.push(p);
     }
-    return extra.sort((a, b) => a.friendlyName.localeCompare(b.friendlyName));
+    perms = extra;
   }
+
+  // Always include any already-checked permissions, even ones belonging to a
+  // different module than the one currently selected. Without this, there is
+  // no checkbox rendered for them once you switch modules, so there would be
+  // no way to uncheck/remove them when moving a group to a different module.
+  for (const arr of allPermsByModule.value.values()) {
+    for (const p of arr) {
+      if (checkedIds.has(p.id) && !perms.find(e => e.id === p.id)) perms.push(p);
+    }
+  }
+
   return perms.sort((a, b) => a.friendlyName.localeCompare(b.friendlyName));
 });
 
@@ -143,10 +162,11 @@ const activeByModule = computed((): Map<string, Permission[]> => {
 });
 
 const isDirty = computed(() => {
-  if (props.isAdd) return groupName.value.length > 0 || checkedIds.size > 0;
-  const origName = props.group?.name ?? '';
+  if (props.isAdd) return groupName.value.length > 0 || checkedIds.size > 0 || selectedModule.value !== originalModule;
+  const origName = editingGroup?.name ?? '';
   if (groupName.value !== origName) return true;
-  const origIds = new Set(props.group?.permissions.map(p => p.id) ?? []);
+  if (selectedModule.value !== originalModule) return true;
+  const origIds = new Set(editingGroup?.permissions.map(p => p.id) ?? []);
   if (origIds.size !== checkedIds.size) return true;
   for (const id of origIds) if (!checkedIds.has(id)) return true;
   return false;
@@ -155,7 +175,10 @@ const isDirty = computed(() => {
 // ── Actions ────────────────────────────────────────────────────────────────
 
 function onModuleChange() {
-  // Keep already-checked permissions from other modules; just show new module's perms
+  // Switching the selected module only changes which module's full permission
+  // catalog is shown for *adding new* permissions. Already-checked permissions
+  // (from any module) remain checked and still render a checkbox - see the
+  // modulePermissions computed above - so they can be unchecked/removed here.
 }
 
 function togglePerm(perm: Permission) {
@@ -163,13 +186,16 @@ function togglePerm(perm: Permission) {
 }
 
 function validate(): boolean {
-  groupNameError.value   = !groupName.value.trim();
-  permissionsError.value = checkedIds.size === 0;
-  return !groupNameError.value && !permissionsError.value;
+  groupNameError.value = !groupName.value.trim();
+  // Permissions are not mandatory - a group may legitimately have none assigned
+  // (e.g. a freshly created placeholder group), and that must not block saving
+  // other changes such as renaming the group.
+  permissionsError.value = false;
+  return !groupNameError.value;
 }
 
 function groupExists(): boolean {
-  const orig = props.isAdd ? '' : (props.group?.name ?? '');
+  const orig = props.isAdd ? '' : (editingGroup?.name ?? '');
   if (groupName.value === orig) return false;
   return props.allGroups.some(g => g.name === groupName.value);
 }
@@ -183,8 +209,8 @@ async function save() {
   try {
     if (props.isAdd) {
       await api.createGroup(groupName.value);
-    } else if (props.group?.name && groupName.value !== props.group.name) {
-      await api.updateGroup(props.group.name, groupName.value);
+    } else if (editingGroup?.name && groupName.value !== editingGroup.name) {
+      await api.updateGroup(editingGroup.name, groupName.value);
     }
     await api.setGroupRoles(groupName.value, [...checkedIds]);
 

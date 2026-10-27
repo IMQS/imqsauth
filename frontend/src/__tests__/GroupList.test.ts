@@ -1,8 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { Group } from '../services/auth';
+import { Group, storeSession } from '../services/auth';
 import GroupList from '../components/GroupList.vue';
+import GroupPopup from '../components/GroupPopup.vue';
 import { Permissions } from '../services/permissions';
+
+// Give localStorage an admin role so isAdmin=true (toolbar buttons are admin-only).
+storeSession({ Identity: 'admin@test.com', UserId: '1', InternalUUID: '', Roles: ['1'] });
 
 function makeGroups(): Group[] {
   const adminGroup = new Group('admin', [Permissions.admin]);
@@ -63,6 +67,27 @@ describe('GroupList', () => {
     const firstItem = wrapper.find('.group-item');
     await firstItem.trigger('click');
     expect(wrapper.text()).toContain('Permissions');
+  });
+
+  it('clears the current selection when opening the Add Group popup', async () => {
+    const groups = makeGroups();
+    const wrapper = mount(GroupList, {
+      props: { groups, loading: false },
+      global: { stubs: { GroupPopup: true, ConfirmDialog: true, Teleport: true } },
+    });
+
+    // Select an existing group first (e.g. 'admin', which has a permission/module).
+    await wrapper.find('.group-item').trigger('click');
+
+    // Now click "+ Add Group" - it must not carry the previous selection
+    // through to the popup as its 'group' prop, otherwise the new group
+    // would inherit the old group's module/permissions.
+    await wrapper.find('button.btn-primary').trigger('click');
+
+    const popup = wrapper.findComponent(GroupPopup);
+    expect(popup.exists()).toBe(true);
+    expect(popup.props('group')).toBeUndefined();
+    expect(popup.props('isAdd')).toBe(true);
   });
 });
 

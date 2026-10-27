@@ -1,7 +1,10 @@
 package imqsauth
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -138,18 +141,65 @@ func (x *Config) LoadConfig(filename string) error {
 }
 
 // loadDynamicPermissions adds the dynamic permissions from config to the
-// static/coded list of permissions for transparent usage
+// static/coded list of permissions for transparent usage.
+//
+// Each permission ID must be unique across the entire permission space (both
+// the hard-coded static permissions in perms.go, and the dynamic permissions
+// loaded here from config). If two permissions share the same numeric ID,
+// whichever one happens to be resolved "wins" unpredictably wherever that ID
+// is looked up (e.g. in the auth UI), causing one permission/module's
+// checkbox to silently alias to a completely unrelated permission. To avoid
+// this class of bug, we scan the *entire* dynamic permission list up front
+// and fail loudly at config-load time, reporting every clashing id found in
+// a single pass, instead of silently allowing the collision through (or only
+// reporting the first one encountered).
 func (x *Config) loadDynamicPermissions() error {
 	if x.Permissions != nil && x.Permissions.Dynamic != nil {
+		// Seed with the names already present in PermissionsTable - this
+		// includes all of the hard-coded static permissions from perms.go,
+		// plus anything registered by an earlier call to this function.
+		idToName := make(map[authaus.PermissionU16]string, len(PermissionsTable))
+		for id, name := range PermissionsTable {
+			idToName[id] = name
+		}
+
+		var collidingIDs []authaus.PermissionU16
+		alreadyReported := map[authaus.PermissionU16]bool{}
+
 		for _, perm := range x.Permissions.Dynamic {
 			permID, err := strconv.ParseUint(perm.ID, 10, 16)
 			if err != nil {
 				return fmt.Errorf("Failed to parse dynamic permission ID '%s' to uint16 for permission %s: %v\n", perm.ID, perm.Name, err)
 			}
-			PermissionsTable[authaus.PermissionU16(permID)] = perm.Name
-			if strings.HasSuffix(strings.ToLower(perm.Name), "moduleaccess") {
-				PermissionModuleMap[perm.Module] = authaus.PermissionU16(permID)
+			id := authaus.PermissionU16(permID)
+
+			if existingName, exists := idToName[id]; exists && existingName != perm.Name {
+				// Record the clash and keep scanning the rest of the list, so
+				// that every clashing id is identified in one pass rather than
+				// stopping at the first one found.
+				if !alreadyReported[id] {
+					collidingIDs = append(collidingIDs, id)
+					alreadyReported[id] = true
+				}
+				continue
 			}
+			idToName[id] = perm.Name
+
+			PermissionsTable[id] = perm.Name
+			if strings.HasSuffix(strings.ToLower(perm.Name), "moduleaccess") {
+				PermissionModuleMap[perm.Module] = id
+			}
+		}
+
+		if len(collidingIDs) > 0 {
+			sort.Slice(collidingIDs, func(i, j int) bool { return collidingIDs[i] < collidingIDs[j] })
+			ids := make([]string, len(collidingIDs))
+			for i, id := range collidingIDs {
+				ids[i] = strconv.Itoa(int(id))
+			}
+			return fmt.Errorf("Found %d dynamic permission id(s) that clash with an existing permission (static or dynamic): %s. "+
+				"Each permission id must be unique - please reassign a different, unused id for each of these in the config's Permissions.dynamic list.",
+				len(collidingIDs), strings.Join(ids, ", "))
 		}
 	}
 	return nil

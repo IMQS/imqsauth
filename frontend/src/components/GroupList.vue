@@ -109,6 +109,9 @@ const permsByModule = computed((): Map<string, Permission[]> => {
 function selectGroup(g: Group) { selectedGroup.value = g; }
 
 function openAdd() {
+  // Clear any pre-existing selection so the popup doesn't inherit a stale
+  // group's module/permissions when adding a brand new group.
+  selectedGroup.value = null;
   isAddMode.value = true;
   showPopup.value = true;
 }

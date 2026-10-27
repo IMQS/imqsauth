@@ -1,6 +1,7 @@
 // ─── Domain model ─────────────────────────────────────────────────────────────
 
 import { getPermissionById, Permission, Permissions } from './permissions';
+import { AuthModule } from './modules';
 import { AuthUserType, authUserTypeFromNumber, type RawGroup, type RawUser } from './types';
 import * as api from './api';
 
@@ -44,9 +45,15 @@ export class Group {
       const perm = getPermissionById(roleId);
       if (perm) this.permissions.push(perm);
     }
-    // Infer module from the first permission that carries one
+    // Infer the group's module from its permissions. Prefer a specific
+    // (non-Global) module if the group has one: almost every group incidentally
+    // includes Global-module permissions (e.g. Admin, Enabled, File Drop), which
+    // have low permission IDs and would otherwise always be picked first,
+    // masking whatever specific module the group is actually meant for and
+    // making it look like the user's module selection was never honoured.
     if (!this.moduleName) {
-      this.moduleName = this.permissions.find(p => p.module)?.module;
+      const specific = this.permissions.find(p => p.module && p.module !== AuthModule.GLOBAL);
+      this.moduleName = specific?.module ?? this.permissions.find(p => p.module)?.module;
     }
   }
 
