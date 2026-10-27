@@ -27,12 +27,15 @@
             </label>
             <div class="perm-list">
               <label v-for="perm in modulePermissions" :key="perm.id" class="perm-item">
-                <input
-                  type="checkbox"
-                  :checked="checkedIds.has(perm.id)"
-                  @change="togglePerm(perm)"
-                />
-                {{ perm.friendlyName }}
+                <span class="perm-item-left">
+                  <input
+                    type="checkbox"
+                    :checked="checkedIds.has(perm.id)"
+                    @change="togglePerm(perm)"
+                  />
+                  {{ perm.friendlyName }}
+                </span>
+                <span v-if="perm.module !== selectedModule" class="perm-other-module">({{ perm.module }})</span>
               </label>
               <span v-if="modulePermissions.length === 0 && selectedModule" class="no-perms">
                 No permissions for this module.
@@ -264,7 +267,9 @@ function forceClose() {
 .input-error { border-color: #c0392b; }
 .perm-section { display: flex; flex-direction: column; gap: .3rem; flex: 1; }
 .perm-list { display: flex; flex-direction: column; gap: .3rem; overflow-y: auto; max-height: 300px; padding: .25rem; }
-.perm-item { display: flex; align-items: center; gap: .4rem; font-size: .83rem; cursor: pointer; }
+.perm-item { display: flex; align-items: center; justify-content: space-between; gap: .4rem; font-size: .83rem; cursor: pointer; }
+.perm-item-left { display: flex; align-items: center; gap: .4rem; }
+.perm-other-module { color: #bbb; font-size: .78rem; margin-left: auto; white-space: nowrap; }
 .no-perms { font-size: .8rem; color: #999; font-style: italic; }
 .summary-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; color: #666; margin: 0 0 .5rem; }
 .summary-module { margin-bottom: .5rem; }

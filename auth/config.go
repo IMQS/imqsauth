@@ -130,11 +130,11 @@ func (x *Config) LoadConfig(filename string) error {
 
 	x.SetDefaults()
 
-	hostnameURL, err := serviceconfig.GetSystemVariableFromConfigService("IMQS_HOSTNAME_URL")
-	if err != nil {
-		return err
-	}
-	x.hostnameURL = hostnameURL
+	//hostnameURL, err := serviceconfig.GetSystemVariableFromConfigService("IMQS_HOSTNAME_URL")
+	//if err != nil {
+	//	return err
+	//}
+	x.hostnameURL = "127.0.0.1"
 
 	x.lastFileLoaded = filename
 	return x.loadDynamicPermissions()

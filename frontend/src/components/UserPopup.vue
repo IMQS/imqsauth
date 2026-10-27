@@ -82,7 +82,7 @@
                       @change="toggleGroup(g.name!)"
                       :disabled="user.archived"
                     />
-                    {{ g.name }}
+                    {{ g.name }}<span v-if="hasMultipleModules(g)" class="multi-module-marker" title="This group has permissions spanning more than one module">*</span>
                   </label>
                 </div>
               </transition>
@@ -179,6 +179,12 @@ function toggleGroup(name: string) {
 }
 
 const isModuleAccess = (n: string) => n.includes('ModuleAccess');
+
+/** True if the group's permissions span more than one module. */
+function hasMultipleModules(g: Group): boolean {
+  const mods = new Set(g.permissions.map(p => p.module).filter(Boolean));
+  return mods.size > 1;
+}
 
 function moduleGroups(mod: ModuleOption): Group[] {
   const seen = new Set<string>();
@@ -355,6 +361,7 @@ async function save() {
 .toggle-icon { font-size: 1rem; width: 1rem; }
 .module-groups { padding: .3rem .5rem .3rem 1.5rem; display: flex; flex-direction: column; gap: .25rem; }
 .group-chk { font-size: .82rem; }
+.multi-module-marker { color: #d32f2f; font-weight: 700; margin-left: .15rem; cursor: help; }
 .no-groups { font-size: .8rem; color: #999; font-style: italic; padding: .2rem .5rem; }
 .active-perm-block { margin-bottom: .5rem; }
 .active-perm-module { font-size: .8rem; font-weight: 700; color: #444; }

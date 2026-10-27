@@ -20,7 +20,9 @@
           @dblclick="openEdit"
         >
           <span class="group-name">{{ g.name }}</span>
-          <span class="group-module">{{ g.moduleName }}</span>
+          <span class="group-module">
+            {{ g.moduleName }}<span v-if="hasMultipleModules(g)" class="multi-module-marker" title="This group has permissions spanning more than one module">*</span>
+          </span>
         </div>
         <div v-if="filteredGroups.length === 0" class="empty">
           {{ loading ? 'Loading…' : 'No groups found.' }}
@@ -106,6 +108,12 @@ const permsByModule = computed((): Map<string, Permission[]> => {
   return m;
 });
 
+/** True if the group's permissions span more than one module. */
+function hasMultipleModules(g: Group): boolean {
+  const mods = new Set(g.permissions.map(p => p.module).filter(Boolean));
+  return mods.size > 1;
+}
+
 function selectGroup(g: Group) { selectedGroup.value = g; }
 
 function openAdd() {
@@ -165,6 +173,7 @@ function onSaved(updatedGroups: Group[]) {
 .group-item.selected { background: #e3f2fd; }
 .group-name { font-size: .875rem; font-weight: 600; }
 .group-module { font-size: .75rem; color: #888; }
+.multi-module-marker { color: #d32f2f; font-weight: 700; margin-left: .15rem; cursor: help; }
 .empty { text-align: center; color: #999; padding: 2rem; font-size: .85rem; }
 .detail-title { margin: 0 0 .75rem; font-size: .9rem; font-weight: 700; }
 .perm-module { margin-bottom: .6rem; }
