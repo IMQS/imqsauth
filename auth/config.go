@@ -1,9 +1,7 @@
 package imqsauth
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
