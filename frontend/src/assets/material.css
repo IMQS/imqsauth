@@ -1,0 +1,122 @@
+/* ─── Material Design foundation ──────────────────────────────────────────
+ * Shared design tokens (colors, elevation, typography) and base component
+ * styles, applied globally so every view gets a consistent Material Design
+ * look. Colors are kept as close as possible to the app's original palette -
+ * this only re-expresses them as Material-style tokens/elevations/type.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Brand / semantic colors (unchanged from the original palette) */
+  --md-primary:         #1a73e8;
+  --md-primary-dark:    #1557b0;
+  --md-primary-light:   #e8f0fe;
+  --md-on-primary:      #ffffff;
+
+  --md-danger:          #d32f2f;
+  --md-danger-dark:     #b71c1c;
+  --md-warning:         #f57c00;
+  --md-success:         #2e7d32;
+
+  --md-neutral:         #e0e0e0;
+  --md-neutral-dark:    #c7c7c7;
+  --md-on-neutral:      #333333;
+
+  --md-surface:         #ffffff;
+  --md-surface-variant: #fafafa;
+  --md-background:      #f0f2f5;
+  --md-outline:         #cccccc;
+  --md-outline-variant: #e0e0e0;
+
+  --md-text-primary:    #212121;
+  --md-text-secondary:  #5f6368;
+  --md-text-disabled:   #9aa0a6;
+
+  /* Shape */
+  --md-radius-sm: 4px;
+  --md-radius-md: 8px;
+  --md-radius-lg: 12px;
+
+  /* Elevation (Material elevation shadow recipes) */
+  --md-elevation-0: none;
+  --md-elevation-1: 0 1px 2px rgba(0,0,0,.30), 0 1px 3px 1px rgba(0,0,0,.15);
+  --md-elevation-2: 0 1px 2px rgba(0,0,0,.30), 0 2px 6px 2px rgba(0,0,0,.15);
+  --md-elevation-3: 0 1px 3px rgba(0,0,0,.30), 0 4px 8px 3px rgba(0,0,0,.15);
+  --md-elevation-4: 0 2px 3px rgba(0,0,0,.30), 0 6px 10px 4px rgba(0,0,0,.15);
+  --md-elevation-5: 0 4px 4px rgba(0,0,0,.30), 0 8px 12px 6px rgba(0,0,0,.15);
+
+  /* Motion */
+  --md-motion-fast:     120ms;
+  --md-motion-standard: 200ms;
+  --md-easing:          cubic-bezier(.2,0,0,1);
+
+  --md-font: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  font-family: var(--md-font);
+  color: var(--md-text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+body { margin: 0; background: var(--md-background); }
+
+/* ─── Buttons ────────────────────────────────────────────────────────────
+ * Material "contained" / "text" button conventions: uppercase label,
+ * medium weight, 4px shape, resting elevation 1 with a deeper elevation on
+ * hover, and a quick elevation/background transition. */
+button {
+  font-family: var(--md-font);
+  font-size: .8125rem;
+  font-weight: 500;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: var(--md-radius-sm);
+  padding: .5rem 1rem;
+  cursor: pointer;
+  box-shadow: var(--md-elevation-1);
+  transition: box-shadow var(--md-motion-standard) var(--md-easing),
+              background-color var(--md-motion-fast) var(--md-easing);
+}
+button:hover:not(:disabled) { box-shadow: var(--md-elevation-2); }
+button:active:not(:disabled) { box-shadow: var(--md-elevation-1); }
+button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+button:focus-visible {
+  outline: 2px solid var(--md-primary-dark);
+  outline-offset: 2px;
+}
+
+.btn-primary  { background: var(--md-primary);  color: var(--md-on-primary); }
+.btn-primary:hover:not(:disabled)  { background: var(--md-primary-dark); }
+.btn-neutral  { background: var(--md-neutral);  color: var(--md-on-neutral); box-shadow: none; }
+.btn-neutral:hover:not(:disabled)  { background: var(--md-neutral-dark); box-shadow: none; }
+.btn-danger   { background: var(--md-danger);   color: #ffffff; }
+.btn-danger:hover:not(:disabled)   { background: var(--md-danger-dark); }
+.btn-warning  { background: var(--md-warning);  color: #ffffff; }
+
+/* ─── Form fields ──────────────────────────────────────────────────────── */
+input[type="text"], input[type="email"], input[type="password"],
+input[type="search"], input:not([type]), select, textarea {
+  font-family: var(--md-font);
+  border: 1px solid var(--md-outline);
+  border-radius: var(--md-radius-sm);
+  transition: border-color var(--md-motion-fast) var(--md-easing),
+              box-shadow var(--md-motion-fast) var(--md-easing);
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--md-primary);
+  box-shadow: 0 0 0 1px var(--md-primary);
+}
+
+input[type="checkbox"], input[type="radio"] { accent-color: var(--md-primary); }
+
+/* ─── Surfaces (cards / popups) ────────────────────────────────────────── */
+.md-surface {
+  background: var(--md-surface);
+  border-radius: var(--md-radius-md);
+  box-shadow: var(--md-elevation-3);
+}
+

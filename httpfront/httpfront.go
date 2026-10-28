@@ -4,6 +4,7 @@ import (
 	"embed"
 	"io"
 	"io/fs"
+	"mime"
 	"net/http"
 	"strings"
 )
@@ -13,6 +14,21 @@ import (
 //
 //go:embed static
 var Static embed.FS
+
+func init() {
+	// Go's mime package doesn't reliably map font extensions to the correct
+	// Content-Type on every OS (Windows in particular often has nothing
+	// registered for .woff/.woff2 in its registry, which is what Go's mime
+	// package consults). Without this, http.FileServer falls back to
+	// sniffing/"application/octet-stream", and some browsers (Firefox in
+	// particular) silently refuse to apply @font-face rules whose font file
+	// wasn't served with a proper font/* Content-Type - so Roboto would
+	// quietly fail to load and the UI would fall back to the system font.
+	_ = mime.AddExtensionType(".woff2", "font/woff2")
+	_ = mime.AddExtensionType(".woff", "font/woff")
+	_ = mime.AddExtensionType(".ttf", "font/ttf")
+	_ = mime.AddExtensionType(".otf", "font/otf")
+}
 
 // Handler returns an http.Handler that serves the auth management SPA.
 // All requests that don't match a static asset fall back to index.html so

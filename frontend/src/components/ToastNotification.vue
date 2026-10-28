@@ -45,12 +45,12 @@ function dismiss() { emit('dismiss'); }
 .toast {
   position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 10000;
   display: flex; align-items: flex-start; gap: .75rem;
-  padding: .85rem 1rem; border-radius: 6px; min-width: 260px; max-width: 400px;
-  box-shadow: 0 3px 12px rgba(0,0,0,.18); color: white;
+  padding: .85rem 1rem; border-radius: var(--md-radius-sm); min-width: 260px; max-width: 400px;
+  box-shadow: var(--md-elevation-4); color: white;
 }
-.toast--success { background: #2e7d32; }
-.toast--error   { background: #c62828; }
-.toast--info    { background: #1565c0; }
+.toast--success { background: var(--md-success); }
+.toast--error   { background: var(--md-danger-dark); }
+.toast--info    { background: var(--md-primary-dark); }
 .toast-icon     { font-size: 1.2rem; line-height: 1; }
 .toast-body     { flex: 1; font-size: .875rem; line-height: 1.4; }
 .toast-close    { background: none; border: none; color: rgba(255,255,255,.8); cursor: pointer; font-size: 1rem; padding: 0; }

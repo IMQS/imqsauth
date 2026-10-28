@@ -26,3 +26,10 @@ __debug_bin
 /httpfront/static/
 /tools/listanddiff/output.csv
 /test_ldap/log/imqsauth.log
+/licensetool.exe
+/server.pub
+/server.pub.plain
+/testconf/tempconf_live.json
+/testconf/tempconf_live_imqs-entra.json
+/testconf/tempconf_local.json
+/xortool.exe

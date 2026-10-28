@@ -123,46 +123,48 @@ async function handleLogout() {
 </script>
 
 <style>
-/* Global resets */
-*, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; }
+/* Global resets - shared tokens/base styles now live in src/assets/material.css */
 </style>
 
 <style scoped>
 .app-shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 .app-header {
   display: flex; align-items: center; gap: 1rem;
-  background: #1a73e8; color: white; padding: 0 1rem; height: 48px;
-  flex-shrink: 0;
+  background: var(--md-primary); color: white; padding: 0 1rem; height: 56px;
+  flex-shrink: 0; box-shadow: var(--md-elevation-2); z-index: 1;
 }
-.app-brand { font-size: 1.1rem; font-weight: 700; letter-spacing: .03em; }
+.app-brand { font-size: 1.15rem; font-weight: 500; letter-spacing: .03em; }
 .app-tabs { display: flex; gap: 0; height: 100%; }
 .tab-btn {
   height: 100%; padding: 0 1.1rem; background: none; border: none;
-  color: rgba(255,255,255,.75); font-size: .9rem; font-weight: 600;
-  cursor: pointer; border-bottom: 3px solid transparent; transition: all .15s;
+  color: rgba(255,255,255,.75); font-size: .8125rem; font-weight: 500;
+  letter-spacing: .03em; text-transform: uppercase;
+  cursor: pointer; border-bottom: 3px solid transparent;
+  box-shadow: none;
+  transition: color var(--md-motion-fast) var(--md-easing),
+              background-color var(--md-motion-fast) var(--md-easing),
+              border-color var(--md-motion-fast) var(--md-easing);
 }
-.tab-btn:hover  { color: white; background: rgba(255,255,255,.1); }
+.tab-btn:hover  { color: white; background: rgba(255,255,255,.1); box-shadow: none; }
 .tab-btn.active { color: white; border-bottom-color: white; }
 .app-header-right { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
-.user-identity { font-size: .85rem; opacity: .85; }
+.user-identity { font-size: .8125rem; opacity: .9; text-transform: none; letter-spacing: normal; font-weight: 400; }
 .btn-logout {
-  padding: .3rem .75rem; background: rgba(255,255,255,.15);
+  padding: .35rem .85rem; background: rgba(255,255,255,.15);
   border: 1px solid rgba(255,255,255,.4); color: white;
-  border-radius: 4px; cursor: pointer; font-size: .82rem;
+  border-radius: var(--md-radius-sm); font-size: .75rem;
+  box-shadow: none;
 }
-.btn-logout:hover { background: rgba(255,255,255,.25); }
+.btn-logout:hover { background: rgba(255,255,255,.25); box-shadow: none; }
 .app-main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 .loading-state, .error-state, .not-admin {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: 100%; gap: 1rem; color: #555;
+  height: 100%; gap: 1rem; color: var(--md-text-secondary);
 }
 .spinner {
   width: 36px; height: 36px; border: 3px solid #ddd;
-  border-top-color: #1a73e8; border-radius: 50%; animation: spin .7s linear infinite;
+  border-top-color: var(--md-primary); border-radius: 50%; animation: spin .7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.btn-primary { padding: .45rem 1rem; background: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: .875rem; font-weight: 600; }
-.btn-neutral { padding: .45rem 1rem; background: #e0e0e0; color: #333; border: none; border-radius: 4px; cursor: pointer; font-size: .875rem; font-weight: 600; }
 </style>
 
