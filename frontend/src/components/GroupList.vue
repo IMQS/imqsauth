@@ -6,6 +6,10 @@
       <button class="btn-neutral" @click="openEdit" :disabled="!selectedGroup || !isAdmin">Edit</button>
       <button class="btn-danger"  @click="confirmDelete" :disabled="!selectedGroup || !isAdmin">Delete</button>
       <input class="search-box" v-model="search" placeholder="Search groups…" />
+      <label class="chk-system-groups">
+        <input type="checkbox" v-model="showSystemGroups" />
+        Show admin/enabled
+      </label>
     </div>
 
     <div class="content-area">
@@ -91,10 +95,19 @@ const showPopup         = ref(false);
 const isAddMode         = ref(false);
 const showDeleteConfirm = ref(false);
 const search            = ref('');
+const showSystemGroups  = ref(false);
+
+// 'admin' and 'enabled' aren't really groups - they just reflect the single
+// Administrator / Enabled permissions respectively, and are managed directly
+// via the checkboxes on the user edit popup. Hide them from this list by
+// default since they tend to confuse the group list with non-module entries.
+const SYSTEM_GROUP_NAMES = new Set(['admin', 'enabled']);
 
 const filteredGroups = computed(() => {
   const q = search.value.toLowerCase();
-  return props.groups.filter(g => !q || (g.name ?? '').toLowerCase().includes(q));
+  return props.groups
+    .filter(g => showSystemGroups.value || !SYSTEM_GROUP_NAMES.has(g.name ?? ''))
+    .filter(g => !q || (g.name ?? '').toLowerCase().includes(q));
 });
 
 const permsByModule = computed((): Map<string, Permission[]> => {
@@ -148,9 +161,13 @@ async function doDelete() {
   }
 }
 
-function onSaved(updatedGroups: Group[]) {
+function onSaved(updatedGroups: Group[], savedGroupName: string) {
   showPopup.value = false;
   showToast('Group saved', '', 'success');
+  // Keep the (possibly renamed) group selected and showing its freshly
+  // saved permissions, instead of losing the selection/detail panel while
+  // the parent's full refresh is still in flight.
+  selectedGroup.value = updatedGroups.find(g => g.name === savedGroupName) ?? null;
   emit('refresh');
 }
 </script>
@@ -161,7 +178,8 @@ function onSaved(updatedGroups: Group[]) {
   display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
   padding: .5rem .75rem; border-bottom: 1px solid #e0e0e0; background: #fafafa;
 }
-.search-box { padding: .35rem .6rem; border: 1px solid #ccc; border-radius: 4px; font-size: .85rem; min-width: 180px; margin-left: auto; }
+.search-box { padding: .35rem .6rem; border: 1px solid #ccc; border-radius: 4px; font-size: .85rem; min-width: 180px; margin-left: .25rem; }
+.chk-system-groups { display: flex; align-items: center; gap: .35rem; font-size: .82rem; color: #555; cursor: pointer; margin-left: auto; }
 .content-area { display: flex; flex: 1; overflow: hidden; }
 .list-col { flex: 0 0 280px; border-right: 1px solid #e0e0e0; overflow-y: auto; }
 .detail-col { flex: 1; padding: 1rem; overflow-y: auto; }
@@ -170,7 +188,7 @@ function onSaved(updatedGroups: Group[]) {
   display: flex; justify-content: space-between; align-items: center;
 }
 .group-item:hover { background: #f5f5f5; }
-.group-item.selected { background: #e3f2fd; }
+.group-item.selected { background: #bbdefb; }
 .group-name { font-size: .875rem; font-weight: 600; }
 .group-module { font-size: .75rem; color: #888; }
 .multi-module-marker { color: #d32f2f; font-weight: 700; margin-left: .15rem; cursor: help; }

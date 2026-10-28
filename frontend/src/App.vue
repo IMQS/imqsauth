@@ -31,14 +31,17 @@
         <button class="btn-neutral" @click="handleLogout">Sign out</button>
       </div>
 
-      <!-- Loading state -->
-      <div v-else-if="modelLoading" class="loading-state">
+      <!-- Loading state (only for the very first load - once we have a model,
+           keep the tab components mounted during background refreshes so
+           their local state, e.g. the selected group/user, isn't lost). -->
+      <div v-else-if="modelLoading && !model" class="loading-state">
         <div class="spinner"></div>
         <span>Loading auth data…</span>
       </div>
 
-      <!-- Error state -->
-      <div v-else-if="modelError" class="error-state">
+      <!-- Error state (same reasoning - don't tear down an already-loaded
+           model's views just because a background refresh failed). -->
+      <div v-else-if="modelError && !model" class="error-state">
         <p>{{ modelError }}</p>
         <button class="btn-primary" @click="refreshModel">Retry</button>
       </div>

@@ -6,19 +6,19 @@
       <button class="btn-neutral" @click="openEdit" :disabled="!selectedUser || !isAdmin">Edit</button>
       <button class="btn-danger"  @click="confirmArchive" :disabled="!selectedUser || !isAdmin">Archive</button>
 
-      <div class="toolbar-filters">
-        <label v-for="opt in filterOpts" :key="opt.value" class="filter-radio">
-          <input type="radio" :value="opt.value" v-model="filter" @change="applyFilter" />
-          {{ opt.label }}
-        </label>
-      </div>
-
       <input
         class="search-box"
         v-model="search"
         placeholder="Search users…"
         @input="applyFilter"
       />
+
+      <div class="toolbar-filters">
+        <label v-for="opt in filterOpts" :key="opt.value" class="filter-radio">
+          <input type="radio" :value="opt.value" v-model="filter" @change="applyFilter" />
+          {{ opt.label }}
+        </label>
+      </div>
     </div>
 
     <!-- Table -->
@@ -240,7 +240,7 @@ function fmtDate(d?: string) {
 .filter-radio { display: flex; align-items: center; gap: .3rem; font-size: .82rem; cursor: pointer; }
 .search-box {
   padding: .35rem .6rem; border: 1px solid #ccc; border-radius: 4px;
-  font-size: .85rem; min-width: 180px;
+  font-size: .85rem; min-width: 180px; margin-left: .25rem;
 }
 .table-wrap { flex: 1; overflow-y: auto; }
 .data-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
@@ -250,7 +250,7 @@ function fmtDate(d?: string) {
 }
 .data-table th:hover { background: #ebebeb; }
 .data-table td { padding: .45rem .75rem; border-bottom: 1px solid #eee; }
-.data-table tr.selected td { background: #e3f2fd; }
+.data-table tr.selected td { background: #bbdefb; }
 .data-table tr:hover td { background: #f5f5f5; }
 .data-table tr.archived td { color: #999; font-style: italic; }
 .empty { text-align: center; color: #999; padding: 2rem !important; }

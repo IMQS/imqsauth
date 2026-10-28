@@ -19,14 +19,26 @@ function makeGroups(): Group[] {
 }
 
 describe('GroupList', () => {
-  it('renders group names', () => {
+  it('hides the admin/enabled system groups by default', () => {
     const groups = makeGroups();
     const wrapper = mount(GroupList, {
       props: { groups, loading: false },
       global: { stubs: { GroupPopup: true, ConfirmDialog: true, Teleport: true } },
     });
-    expect(wrapper.text()).toContain('admin');
-    expect(wrapper.text()).toContain('enabled');
+    expect(wrapper.find('.list-col').text()).not.toContain('admin');
+    expect(wrapper.find('.list-col').text()).not.toContain('enabled');
+    expect(wrapper.text()).toContain('roads-viewer');
+  });
+
+  it('shows the admin/enabled system groups when the toggle is checked', async () => {
+    const groups = makeGroups();
+    const wrapper = mount(GroupList, {
+      props: { groups, loading: false },
+      global: { stubs: { GroupPopup: true, ConfirmDialog: true, Teleport: true } },
+    });
+    await wrapper.find('input[type=checkbox]').setValue(true);
+    expect(wrapper.find('.list-col').text()).toContain('admin');
+    expect(wrapper.find('.list-col').text()).toContain('enabled');
     expect(wrapper.text()).toContain('roads-viewer');
   });
 
@@ -54,8 +66,8 @@ describe('GroupList', () => {
     });
     const searchInput = wrapper.find('input.search-box');
     await searchInput.setValue('roads');
-    expect(wrapper.text()).toContain('roads-viewer');
-    expect(wrapper.text()).not.toContain('admin');
+    expect(wrapper.find('.list-col').text()).toContain('roads-viewer');
+    expect(wrapper.find('.list-col').text()).not.toContain('admin');
   });
 
   it('shows permission detail when group selected', async () => {
@@ -76,7 +88,8 @@ describe('GroupList', () => {
       global: { stubs: { GroupPopup: true, ConfirmDialog: true, Teleport: true } },
     });
 
-    // Select an existing group first (e.g. 'admin', which has a permission/module).
+    // Select an existing group first (e.g. 'roads-viewer', the only one
+    // visible by default since 'admin'/'enabled' are hidden system groups).
     await wrapper.find('.group-item').trigger('click');
 
     // Now click "+ Add Group" - it must not carry the previous selection

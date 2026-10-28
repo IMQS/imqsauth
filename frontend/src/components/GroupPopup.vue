@@ -22,21 +22,33 @@
           </div>
 
           <div class="perm-section">
-            <label :class="['field-label', permissionsError && 'field-label--error']">
-              Permissions
-            </label>
-            <div class="perm-list">
-              <label v-for="perm in modulePermissions" :key="perm.id" class="perm-item">
-                <span class="perm-item-left">
-                  <input
-                    type="checkbox"
-                    :checked="checkedIds.has(perm.id)"
-                    @change="togglePerm(perm)"
-                  />
-                  {{ perm.friendlyName }}
-                </span>
-                <span v-if="perm.module !== selectedModule" class="perm-other-module">({{ perm.module }})</span>
+            <div class="perm-header-row">
+              <label :class="['field-label', permissionsError && 'field-label--error']">
+                Permissions
               </label>
+              <button
+                type="button"
+                class="btn-toggle-all"
+                :disabled="!selectedModule || currentModulePerms.length === 0"
+                @click="toggleAllPerms"
+              >
+                {{ allCurrentModuleChecked ? 'Remove All' : 'Add All' }}
+              </button>
+            </div>
+            <div class="perm-list">
+              <transition-group name="perm-item" tag="div" class="perm-list-items">
+                <label v-for="perm in modulePermissions" :key="perm.id" class="perm-item">
+                  <span class="perm-item-left">
+                    <input
+                      type="checkbox"
+                      :checked="checkedIds.has(perm.id)"
+                      @change="togglePerm(perm)"
+                    />
+                    {{ perm.friendlyName }}
+                  </span>
+                  <span v-if="perm.module !== selectedModule" class="perm-other-module">({{ perm.module }})</span>
+                </label>
+              </transition-group>
               <span v-if="modulePermissions.length === 0 && selectedModule" class="no-perms">
                 No permissions for this module.
               </span>
@@ -96,7 +108,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'saved', groups: Group[]): void;
+  (e: 'saved', groups: Group[], savedGroupName: string): void;
   (e: 'close'): void;
 }>();
 
@@ -122,7 +134,10 @@ const checkedIds      = reactive(new Set<string>(editingGroup?.permissions.map(p
 const moduleOptions = computed(() => allModuleOptions());
 const allPermsByModule = computed(() => permissionsByModule());
 
-const modulePermissions = computed((): Permission[] => {
+/** Permissions belonging to the currently selected module's own catalog
+ *  (i.e. excluding any already-checked permissions that happen to belong
+ *  to a different module). This is what "Add All" / "Remove All" operates on. */
+const currentModulePerms = computed((): Permission[] => {
   const isModAccess = selectedModule.value === 'Module Access';
   let perms = (allPermsByModule.value.get(selectedModule.value) ?? [])
     .filter(p => !['Administrator', 'Enabled'].includes(p.friendlyName));
@@ -136,6 +151,12 @@ const modulePermissions = computed((): Permission[] => {
     perms = extra;
   }
 
+  return perms;
+});
+
+const modulePermissions = computed((): Permission[] => {
+  const perms = [...currentModulePerms.value];
+
   // Always include any already-checked permissions, even ones belonging to a
   // different module than the one currently selected. Without this, there is
   // no checkbox rendered for them once you switch modules, so there would be
@@ -148,6 +169,11 @@ const modulePermissions = computed((): Permission[] => {
 
   return perms.sort((a, b) => a.friendlyName.localeCompare(b.friendlyName));
 });
+
+/** True once every permission belonging to the currently selected module is checked. */
+const allCurrentModuleChecked = computed(() =>
+  currentModulePerms.value.length > 0 && currentModulePerms.value.every(p => checkedIds.has(p.id))
+);
 
 const activeByModule = computed((): Map<string, Permission[]> => {
   const m = new Map<string, Permission[]>();
@@ -188,6 +214,21 @@ function togglePerm(perm: Permission) {
   checkedIds.has(perm.id) ? checkedIds.delete(perm.id) : checkedIds.add(perm.id);
 }
 
+/**
+ * Acts as "Add All" when not every permission of the selected module is
+ * checked yet - adds only the currently selected module's own permissions.
+ * Acts as "Remove All" once they're all checked - unchecks every permission
+ * currently visible in the list (including any cross-module ones), so the
+ * whole list empties out and the same checkbox-removal animation plays.
+ */
+function toggleAllPerms() {
+  if (allCurrentModuleChecked.value) {
+    for (const p of modulePermissions.value) checkedIds.delete(p.id);
+  } else {
+    for (const p of currentModulePerms.value) checkedIds.add(p.id);
+  }
+}
+
 function validate(): boolean {
   groupNameError.value = !groupName.value.trim();
   // Permissions are not mandatory - a group may legitimately have none assigned
@@ -220,7 +261,7 @@ async function save() {
     // Reload groups and emit
     const rawGroups = await api.getGroups();
     const groups = rawGroups.map(rg => { const g = new Group(); g.fromRaw(rg); return g; });
-    emit('saved', groups);
+    emit('saved', groups, groupName.value);
   } catch (e: unknown) {
     saveError.value = e instanceof Error ? e.message : 'Save failed';
   } finally {
@@ -248,7 +289,7 @@ function forceClose() {
 .popup-container {
   background: white; border-radius: 6px; width: 860px; max-width: 100%;
   box-shadow: 0 4px 24px rgba(0,0,0,.2); display: flex; flex-direction: column;
-  max-height: 90vh;
+  height: 640px; max-height: 90vh;
 }
 .popup-header {
   background: #f5f5f5; font-weight: 700; padding: .75rem 1rem;
@@ -265,11 +306,23 @@ function forceClose() {
   padding: .4rem .6rem; border: 1px solid #ccc; border-radius: 3px; font-size: .875rem;
 }
 .input-error { border-color: #c0392b; }
-.perm-section { display: flex; flex-direction: column; gap: .3rem; flex: 1; }
-.perm-list { display: flex; flex-direction: column; gap: .3rem; overflow-y: auto; max-height: 300px; padding: .25rem; }
+.perm-section { display: flex; flex-direction: column; gap: .3rem; flex: 1; min-height: 0; }
+.perm-header-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.btn-toggle-all {
+  padding: .2rem .6rem; border: 1px solid #1a73e8; border-radius: 3px;
+  background: white; color: #1a73e8; font-size: .75rem; font-weight: 600; cursor: pointer;
+}
+.btn-toggle-all:hover:not(:disabled) { background: #e8f0fe; }
+.btn-toggle-all:disabled { opacity: .5; cursor: not-allowed; border-color: #ccc; color: #999; }
+.perm-list { display: flex; flex-direction: column; gap: .3rem; overflow-y: auto; overflow-x: hidden; flex: 1; min-height: 0; padding: .25rem; }
+.perm-list-items { position: relative; display: flex; flex-direction: column; gap: .3rem; }
 .perm-item { display: flex; align-items: center; justify-content: space-between; gap: .4rem; font-size: .83rem; cursor: pointer; }
 .perm-item-left { display: flex; align-items: center; gap: .4rem; }
 .perm-other-module { color: #bbb; font-size: .78rem; margin-left: auto; white-space: nowrap; }
+.perm-item-move { transition: transform .25s ease; }
+.perm-item-enter-active, .perm-item-leave-active { transition: opacity .25s ease, transform .25s ease; }
+.perm-item-enter-from, .perm-item-leave-to { opacity: 0; transform: translateX(10px); }
+.perm-item-leave-active { position: absolute; width: 100%; }
 .no-perms { font-size: .8rem; color: #999; font-style: italic; }
 .summary-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; color: #666; margin: 0 0 .5rem; }
 .summary-module { margin-bottom: .5rem; }
