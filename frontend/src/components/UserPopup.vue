@@ -16,33 +16,62 @@
         <!-- Left column: account info -->
         <section class="popup-section">
           <h3 class="section-label">Account Information</h3>
-          <div class="form-grid">
+          <!--
+            This is deliberately wrapped in its own <form> with non-generic "name"
+            attributes (prefixed "upopup-"). A *lone* password input is still classified
+            by Chrome/Edge as a sign-in field regardless of autocomplete="new-password",
+            and gets silently filled with a previously-saved credential (plus whichever
+            text field precedes it gets filled as the guessed "username"). The documented
+            fix (web.dev "sign-up-form-best-practices") is to pair it with a second
+            "Confirm password" field, which is the pattern browsers reliably recognise as
+            account-creation rather than sign-in - see the Password/Confirm Password
+            fields below.
+          -->
+          <form class="form-grid" autocomplete="off" @submit.prevent>
             <label>Name <span v-if="isIMQS" class="required">*</span></label>
-            <input v-model="form.name" :disabled="!isIMQS || user.archived" />
+            <input v-model="form.name" name="upopup-name" autocomplete="off" :disabled="!isIMQS || user.archived" />
 
             <label>Surname <span v-if="isIMQS" class="required">*</span></label>
-            <input v-model="form.surname" :disabled="!isIMQS || user.archived" />
+            <input v-model="form.surname" name="upopup-surname" autocomplete="off" :disabled="!isIMQS || user.archived" />
 
             <label>Username</label>
-            <input v-model="form.username" :disabled="!isIMQS || user.archived" />
+            <input v-model="form.username" name="upopup-username" autocomplete="off" :disabled="!isIMQS || user.archived" />
 
             <label>Email <span v-if="isIMQS" class="required">*</span></label>
-            <input v-model="form.email" type="email" :disabled="!isIMQS || user.archived" />
+            <input v-model="form.email" type="email" name="upopup-email" autocomplete="off" :disabled="!isIMQS || user.archived" />
 
             <label>Mobile</label>
-            <input v-model="form.mobile" :disabled="!isIMQS || user.archived" />
+            <input v-model="form.mobile" name="upopup-mobile" autocomplete="off" :disabled="!isIMQS || user.archived" />
 
             <label>Telephone</label>
-            <input v-model="form.telephone" :disabled="!isIMQS || user.archived" />
+            <input
+              v-model="form.telephone"
+              name="upopup-telephone"
+              autocomplete="off"
+              :disabled="!isIMQS || user.archived"
+            />
 
             <label>Remarks</label>
-            <textarea v-model="form.remarks" :disabled="!isIMQS || user.archived" rows="2" />
+            <textarea v-model="form.remarks" name="upopup-remarks" autocomplete="off" :disabled="!isIMQS || user.archived" rows="2" />
 
             <template v-if="isAdd">
               <label>Password <span class="required">*</span></label>
-              <input v-model="form.password" type="password" />
+              <input
+                v-model="form.password"
+                type="password"
+                name="upopup-new-password"
+                autocomplete="new-password"
+              />
+
+              <label>Confirm Password <span class="required">*</span></label>
+              <input
+                v-model="form.confirmPassword"
+                type="password"
+                name="upopup-confirm-password"
+                autocomplete="new-password"
+              />
             </template>
-          </div>
+          </form>
 
           <div class="checkbox-row">
             <label class="chk-label">
@@ -150,6 +179,7 @@ const form = reactive({
   telephone: props.user.telephoneNumber ?? '',
   remarks:   props.user.remarks   ?? '',
   password:  '',
+  confirmPassword: '',
 });
 
 const isIMQS = computed(() => props.user.isIMQSUser());
@@ -261,6 +291,7 @@ async function save() {
     if (!form.name)    { saveError.value = 'Name is required'; return; }
     if (!form.surname) { saveError.value = 'Surname is required'; return; }
     if (isAdd.value && !form.password) { saveError.value = 'Password is required for new users'; return; }
+    if (isAdd.value && form.password !== form.confirmPassword) { saveError.value = 'Passwords do not match'; return; }
   }
 
   saving.value = true;

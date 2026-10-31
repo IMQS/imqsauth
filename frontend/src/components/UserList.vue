@@ -9,6 +9,9 @@
       <input
         class="search-box"
         v-model="search"
+        type="search"
+        name="user-list-search"
+        autocomplete="off"
         placeholder="Search users…"
         @input="applyFilter"
       />
