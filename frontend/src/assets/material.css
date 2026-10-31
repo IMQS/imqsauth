@@ -111,7 +111,35 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 1px var(--md-primary);
 }
 
-input[type="checkbox"], input[type="radio"] { accent-color: var(--md-primary); }
+/* ─── Checkboxes / radios ──────────────────────────────────────────────
+ * Replace the browser's default blue focus rectangle with a soft, "fuzzy"
+ * halo (a blurred glow around the control) and tint the wrapping label text
+ * with the Material primary blue, but only while the control is actually
+ * focused (e.g. via keyboard) - not merely because it's checked. */
+input[type="checkbox"], input[type="radio"] {
+  accent-color: var(--md-primary);
+  outline: none;
+  border-radius: var(--md-radius-sm);
+  transition: box-shadow var(--md-motion-standard) var(--md-easing);
+}
+input[type="checkbox"]:focus-visible, input[type="radio"]:focus-visible {
+  /* The native control's visible square sits 1px further from its top/left
+   * edge than its bottom/right edge in most browsers, which left a visible
+   * sliver of white between the control and the ring on those two sides.
+   * Nudging the solid ring 1px up/left compensates, keeping the halo
+   * visually symmetric on all four sides. */
+  box-shadow: -1px -1px 0 3px rgba(26, 115, 232, .22), 0 0 9px 4px rgba(26, 115, 232, .4);
+}
+
+/* Any label wrapping a focused checkbox/radio gets the Material primary blue
+ * text color, so the "focused" state is also communicated through the
+ * label text, not just the control itself. !important ensures this wins
+ * over any scoped per-component label color (e.g. muted/secondary text
+ * colors), since this is a deliberate, global design-system override. */
+label:has(input[type="checkbox"]:focus-visible),
+label:has(input[type="radio"]:focus-visible) {
+  color: var(--md-primary) !important;
+}
 
 /* ─── Surfaces (cards / popups) ────────────────────────────────────────── */
 .md-surface {
