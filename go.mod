@@ -3,7 +3,7 @@ module github.com/IMQS/imqsauth
 go 1.22.7
 
 require (
-	github.com/IMQS/authaus v1.3.9
+	github.com/IMQS/authaus v1.3.10-alpha.0.20261111232152-d91177656bcb
 	github.com/IMQS/cli v1.2.0
 	github.com/IMQS/gowinsvc v1.2.0
 	github.com/IMQS/log v1.4.0
