@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.9.1
+
+* fix: Update authaus to v1.3.10 (ASG-5631) (prompt select_account on cookie expiry)
+
 ## v1.9.0
 
 * fix: Fix 'showidentities' command line option (NEXUS-4832)
